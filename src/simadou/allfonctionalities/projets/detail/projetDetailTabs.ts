@@ -3,11 +3,13 @@ import {
   Briefcase,
   ClipboardList,
   Layout,
+  LayoutDashboard,
   Target,
   type LucideIcon,
 } from 'lucide-react'
 
 export type ProjetDetailTabKey =
+  | 'dashboard'
   | 'activities'
   | 'activity_indicators'
   | 'results_framework'
@@ -23,8 +25,14 @@ export type ProjetDetailTab = {
 
 export const projetDetailTabs: ProjetDetailTab[] = [
   {
+    key: 'dashboard',
+    name: "Vue d'ensemble",
+    icon: LayoutDashboard,
+    description: 'Synthèse du projet (indicateurs et avancement).',
+  },
+  {
     key: 'activities',
-    name: 'Activités du projet',
+    name: 'Activités',
     icon: Briefcase,
     description: 'Liste et suivi des activités rattachées au projet.',
   },

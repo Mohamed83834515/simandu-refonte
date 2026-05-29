@@ -1,12 +1,14 @@
 import { apiClient } from "@/axios/api";
 import type { ActiviteProjet } from "../allTypes";
+import { normalizeApiList } from "./apiListUtils";
 
 const BASE_URL = "/activite_projet/";
 
 export const activiteProjetService = {
   // Récupérer toutes les activités projet
   getAll: async (): Promise<ActiviteProjet[]> => {
-    return await apiClient.request<ActiviteProjet[]>(BASE_URL);
+    const response = await apiClient.request<unknown>(BASE_URL);
+    return normalizeApiList<ActiviteProjet>(response);
   },
 
   // Récupérer une activité projet par ID
@@ -56,9 +58,10 @@ export const activiteProjetService = {
 
   // Récupérer les activités par projet
   getByProjet: async (codeProjet: string): Promise<ActiviteProjet[]> => {
-    return await apiClient.request<ActiviteProjet[]>(
-      `${BASE_URL}?code_projet=${codeProjet}`,
+    const response = await apiClient.request<unknown>(
+      `${BASE_URL}?code_projet=${encodeURIComponent(codeProjet)}`,
     );
+    return normalizeApiList<ActiviteProjet>(response);
   },
 
   // Récupérer les activités par niveau

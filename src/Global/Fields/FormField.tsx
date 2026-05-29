@@ -555,16 +555,19 @@ export const FormField = ({
                   opt.value === controllerField.value
               )
               return (
-                <div className='relative'>
-                  <Popover open={comboboxOpen} onOpenChange={setComboboxOpen}>
+                <div className='relative min-w-0'>
+                  <Popover open={comboboxOpen} onOpenChange={setComboboxOpen} modal={false}>
                     <PopoverTrigger asChild>
                       <Button
                         variant='outline'
                         role='combobox'
                         aria-expanded={comboboxOpen}
                         disabled={field.isLoading || field.disabled}
+                        title={
+                          selectedOption ? selectedOption.label : undefined
+                        }
                         className={cn(
-                          'w-full justify-between font-normal',
+                          'h-auto min-h-9 w-full min-w-0 justify-between gap-2 overflow-hidden font-normal whitespace-normal',
                           !controllerField.value && 'text-muted-foreground',
                           isValid && 'border-green-500 focus:ring-green-500',
                           isInvalid && 'border-red-500 focus:ring-red-500'
@@ -572,25 +575,28 @@ export const FormField = ({
                         onClick={() => setTouched(true)}
                       >
                         {selectedOption ? (
-                          <span className='flex items-center gap-2'>
+                          <span className='flex min-w-0 flex-1 items-center gap-2 overflow-hidden text-left'>
                             <span
                               className={cn(
+                                'truncate',
                                 selectedOption.isInscrit &&
-                                'font-medium text-green-700 dark:text-green-400'
+                                  'font-medium text-green-700 dark:text-green-400'
                               )}
                             >
                               {selectedOption.label}
                             </span>
                             {selectedOption.isInscrit && (
-                              <span className='rounded-full bg-green-100 px-1.5 py-0.5 text-[10px] font-semibold text-green-700 dark:bg-green-900 dark:text-green-300'>
+                              <span className='shrink-0 rounded-full bg-green-100 px-1.5 py-0.5 text-[10px] font-semibold text-green-700 dark:bg-green-900 dark:text-green-300'>
                                 ✓ Inscrit
                               </span>
                             )}
                           </span>
                         ) : (
-                          field.placeholder || 'Sélectionner'
+                          <span className='min-w-0 flex-1 truncate text-left'>
+                            {field.placeholder || 'Sélectionner'}
+                          </span>
                         )}
-                        <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
+                        <ChevronsUpDown className='h-4 w-4 shrink-0 opacity-50' />
                       </Button>
                     </PopoverTrigger>
 
@@ -598,6 +604,8 @@ export const FormField = ({
                       className='p-0'
                       style={{ width: 'var(--radix-popover-trigger-width)' }}
                       align='start'
+                      onWheel={(e) => e.stopPropagation()}
+                      onTouchMove={(e) => e.stopPropagation()}
                     >
                       <Command>
                         <CommandInput
@@ -688,35 +696,40 @@ export const FormField = ({
 
               return (
                 <div className='space-y-3'>
-                  <div className='relative'>
-                    <Popover open={comboboxOpen} onOpenChange={setComboboxOpen}>
+                  <div className='relative min-w-0'>
+                    <Popover open={comboboxOpen} onOpenChange={setComboboxOpen} modal={false}>
                       <PopoverTrigger asChild>
                         <Button
                           variant='outline'
                           role='combobox'
                           aria-expanded={comboboxOpen}
                           disabled={field.isLoading || field.disabled}
+                          title={selectedOption?.label}
                           className={cn(
-                            'w-full justify-between font-normal',
+                            'h-auto min-h-9 w-full min-w-0 justify-between gap-2 overflow-hidden font-normal whitespace-normal',
                             !controllerField.value && 'text-muted-foreground',
                             isValid &&
-                            !isOtherSelected &&
-                            'border-green-500 focus:ring-green-500',
+                              !isOtherSelected &&
+                              'border-green-500 focus:ring-green-500',
                             isInvalid && 'border-red-500 focus:ring-red-500'
                           )}
                           onClick={() => setTouched(true)}
                         >
-                          {selectedOption?.label ||
-                            (isOtherSelected
-                              ? 'Autre'
-                              : field.placeholder || 'Sélectionner')}
-                          <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
+                          <span className='min-w-0 flex-1 truncate text-left'>
+                            {selectedOption?.label ||
+                              (isOtherSelected
+                                ? 'Autre'
+                                : field.placeholder || 'Sélectionner')}
+                          </span>
+                          <ChevronsUpDown className='h-4 w-4 shrink-0 opacity-50' />
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent
                         className='p-0'
                         style={{ width: 'var(--radix-popover-trigger-width)' }}
                         align='start'
+                        onWheel={(e) => e.stopPropagation()}
+                        onTouchMove={(e) => e.stopPropagation()}
                       >
                         <Command>
                           <CommandInput
@@ -1151,6 +1164,8 @@ export const FormField = ({
             <Input
               type='text'
               placeholder={field.placeholder}
+              maxLength={field.maxLength}
+              minLength={field.minLength}
               {...register(field.name)}
               onBlur={handleBlur}
               className={cn(
@@ -1261,6 +1276,8 @@ export const FormField = ({
             <Input
               type={field.type}
               placeholder={field.placeholder}
+              maxLength={field.maxLength}
+              minLength={field.minLength}
               {...register(field.name)}
               onBlur={handleBlur}
               className={cn(
@@ -1285,7 +1302,7 @@ export const FormField = ({
   }
 
   return (
-    <div>
+    <div className='min-w-0'>
       {field.type !== 'daterange' && (
         <label className='mb-2 block text-sm font-medium'>
           {field.label}

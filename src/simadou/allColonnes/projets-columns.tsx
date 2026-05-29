@@ -3,18 +3,11 @@ import { Eye } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { DataTableColumnHeader } from '@/components/data-table'
 import { LongText } from '@/components/others/long-text'
-import { cn } from '@/lib/utils'
 import type { Projet } from '@/simadou/allTypes/projet'
 
-export type ProjetsColumnHandlers = {
-  onDetail?: (projet: Projet) => void
-}
-
 export function buildProjetsColumns(
-  handlers: ProjetsColumnHandlers = {}
+  onDetail: (projet: Projet) => void
 ): ColumnDef<Projet>[] {
-  const { onDetail } = handlers
-
   return [
     {
       id: 'code_projet',
@@ -85,30 +78,21 @@ export function buildProjetsColumns(
       header: () => (
         <span className='text-xs font-medium text-muted-foreground'>Actions</span>
       ),
-      cell: ({ row }) => {
-        const projet = row.original
-        const detailButton = (
-          <Button
-            type='button'
-            variant='outline'
-            size='sm'
-            className={cn(
-              'h-8 gap-1.5 text-xs font-semibold',
-              !onDetail && 'pointer-events-none opacity-60'
-            )}
-            onClick={(e) => {
-              e.stopPropagation()
-              onDetail?.(projet)
-            }}
-            disabled={!onDetail}
-          >
-            <Eye className='h-3.5 w-3.5' />
-            Détails
-          </Button>
-        )
-
-        return detailButton
-      },
+      cell: ({ row }) => (
+        <Button
+          type='button'
+          variant='outline'
+          size='sm'
+          className='h-8 gap-1.5 border-primary/20 bg-primary/10 text-xs font-semibold text-primary hover:bg-primary hover:text-primary-foreground'
+          onClick={(e) => {
+            e.stopPropagation()
+            onDetail(row.original)
+          }}
+        >
+          <Eye className='h-3.5 w-3.5' />
+          Détails
+        </Button>
+      ),
       meta: { thClassName: 'text-center pe-4', className: 'text-center pe-4' },
       enableSorting: false,
       enableHiding: false,

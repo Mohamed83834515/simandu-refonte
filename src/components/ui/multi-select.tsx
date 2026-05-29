@@ -65,12 +65,12 @@ export function MultiSelect({
           role="combobox"
           aria-expanded={open}
           className={cn(
-            "w-full justify-between h-auto min-h-10",
+            "w-full min-w-0 justify-between gap-2 overflow-hidden whitespace-normal h-auto min-h-10",
             !selected.length && "text-muted-foreground",
             className
           )}
           disabled={disabled}>
-          <div className="flex flex-wrap gap-1">
+          <div className="flex min-w-0 flex-1 flex-wrap gap-1 overflow-hidden">
             {selected.length === 0 ? (
               placeholder
             ) : (

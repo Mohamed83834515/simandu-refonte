@@ -1,12 +1,14 @@
 import { apiClient } from "@/axios/api";
 import type { NiveauActiviteProjet } from "../allTypes";
+import { normalizeApiList } from "./apiListUtils";
 
 const BASE_URL = "/niveau_activite_config/";
 
 export const niveauActiviteProjetService = {
   // Récupérer tous les niveaux
   getAll: async (): Promise<NiveauActiviteProjet[]> => {
-    return await apiClient.request<NiveauActiviteProjet[]>(BASE_URL);
+    const response = await apiClient.request<unknown>(BASE_URL);
+    return normalizeApiList<NiveauActiviteProjet>(response);
   },
 
   // Récupérer un niveau par ID
@@ -16,9 +18,10 @@ export const niveauActiviteProjetService = {
 
   // Récupérer les niveaux par projet
   getByProjet: async (codeProjet: string): Promise<NiveauActiviteProjet[]> => {
-    return await apiClient.request<NiveauActiviteProjet[]>(
-      `${BASE_URL}?code_projet=${codeProjet}`,
+    const response = await apiClient.request<unknown>(
+      `${BASE_URL}?code_projet=${encodeURIComponent(codeProjet)}`,
     );
+    return normalizeApiList<NiveauActiviteProjet>(response);
   },
 
   // Créer un niveau

@@ -1,150 +1,86 @@
-import { toast } from "sonner";
 import { apiClient } from "@/axios/api";
 import type { CibleCmrProjet } from "../allTypes";
+import { normalizeApiList } from "./apiListUtils";
 
 export interface CibleCmrProjetFormData {
   annee: string;
   valeur_cible_indcateur_crp: number;
-  code_indicateur_crp?: string | null;
+  code_indicateur_crp?: number | null;
   code_ug?: string | null;
   code_projet?: string | null;
 }
 
 export const cibleCmrProjetService = {
-  // Récupérer toutes les cibles
   async getAll(): Promise<CibleCmrProjet[]> {
-    try {
-      const response =
-        await apiClient.request<CibleCmrProjet[]>("/cible_cmr_projet/");
-      response.sort(
-        (a, b) => new Date(a.annee).getTime() - new Date(b.annee).getTime(),
-      );
-      return response || [];
-    } catch (error) {
-      toast.error("Erreur lors de la récupération des cibles CMR projet");
-      throw error;
-    }
+    const response = await apiClient.request<unknown>("/cible_cmr_projet/");
+    const list = normalizeApiList<CibleCmrProjet>(response);
+    return list.sort(
+      (a, b) => new Date(a.annee).getTime() - new Date(b.annee).getTime(),
+    );
   },
 
-  // Récupérer une cible par ID
   async getById(id_cible_indicateur_crp: number): Promise<CibleCmrProjet> {
-    try {
-      const response = await apiClient.request<CibleCmrProjet>(
-        `/cible_cmr_projet/${id_cible_indicateur_crp}/`,
-      );
-      return response;
-    } catch (error) {
-      toast.error("Erreur lors de la récupération de la cible CMR projet");
-      throw error;
-    }
+    return await apiClient.request<CibleCmrProjet>(
+      `/cible_cmr_projet/${id_cible_indicateur_crp}/`,
+    );
   },
 
-  // Créer une nouvelle cible
   async create(data: CibleCmrProjetFormData): Promise<CibleCmrProjet> {
-    try {
-      const response = await apiClient.request<CibleCmrProjet>(
-        "/cible_cmr_projet/",
-        {
-          method: "POST",
-          data,
-        },
-      );
-      toast.success("Cible CMR projet créée avec succès");
-      return response;
-    } catch (error) {
-      toast.error("Erreur lors de la création de la cible CMR projet");
-      throw error;
-    }
+    return await apiClient.request<CibleCmrProjet>("/cible_cmr_projet/", {
+      method: "POST",
+      data,
+    });
   },
 
-  // Mettre à jour une cible
   async update(
     id_cible_indicateur_crp: number,
     data: CibleCmrProjetFormData,
   ): Promise<CibleCmrProjet> {
-    try {
-      const response = await apiClient.request<CibleCmrProjet>(
-        `/cible_cmr_projet/${id_cible_indicateur_crp}/`,
-        {
-          method: "PUT",
-          data,
-        },
-      );
-      toast.success("Cible CMR projet mise à jour avec succès");
-      return response;
-    } catch (error) {
-      toast.error("Erreur lors de la mise à jour de la cible CMR projet");
-      throw error;
-    }
+    return await apiClient.request<CibleCmrProjet>(
+      `/cible_cmr_projet/${id_cible_indicateur_crp}/`,
+      {
+        method: "PUT",
+        data,
+      },
+    );
   },
 
-  // Supprimer une cible
   async delete(id_cible_indicateur_crp: number): Promise<void> {
-    try {
-      await apiClient.request<void>(
-        `/cible_cmr_projet/${id_cible_indicateur_crp}/`,
-        {
-          method: "DELETE",
-        },
-      );
-      toast.success("Cible CMR projet supprimée avec succès");
-    } catch (error) {
-      toast.error("Erreur lors de la suppression de la cible CMR projet");
-      throw error;
-    }
+    await apiClient.request<void>(
+      `/cible_cmr_projet/${id_cible_indicateur_crp}/`,
+      {
+        method: "DELETE",
+      },
+    );
   },
 
-  // Rechercher des cibles
   async search(query: string): Promise<CibleCmrProjet[]> {
-    try {
-      const response = await apiClient.request<CibleCmrProjet[]>(
-        `/cible_cmr_projet/search/?q=${encodeURIComponent(query)}`,
-      );
-      return response || [];
-    } catch (error) {
-      toast.error("Erreur lors de la recherche de cibles CMR projet");
-      throw error;
-    }
+    const response = await apiClient.request<unknown>(
+      `/cible_cmr_projet/search/?q=${encodeURIComponent(query)}`,
+    );
+    return normalizeApiList<CibleCmrProjet>(response);
   },
 
-  // Récupérer les cibles par indicateur
   async getByIndicateur(
     code_indicateur_crp: number,
   ): Promise<CibleCmrProjet[]> {
-    try {
-      const response = await apiClient.request<CibleCmrProjet[]>(
-        `/cible_cmr_projet/?code_indicateur_crp=${code_indicateur_crp}`,
-      );
-      return response || [];
-    } catch (error) {
-      toast.error("Erreur lors de la récupération des cibles par indicateur");
-      throw error;
-    }
+    const response = await apiClient.request<unknown>(
+      `/cible_cmr_projet/?code_indicateur_crp=${code_indicateur_crp}`,
+    );
+    return normalizeApiList<CibleCmrProjet>(response);
   },
 
-  // Récupérer les cibles par projet
   async getByProjet(code_projet: string): Promise<CibleCmrProjet[]> {
-    try {
-      const response = await apiClient.request<CibleCmrProjet[]>(
-        `/cible_cmr_projet/?code_projet=${encodeURIComponent(code_projet)}`,
-      );
-      return response || [];
-    } catch (error) {
-      toast.error("Erreur lors de la récupération des cibles par projet");
-      throw error;
-    }
+    const response = await apiClient.request<unknown>(
+      `/cible_cmr_projet/?code_projet=${encodeURIComponent(code_projet)}`,
+    );
+    return normalizeApiList<CibleCmrProjet>(response);
   },
 
-  // Récupérer les cibles par année
   async getByAnnee(annee: string): Promise<CibleCmrProjet[]> {
-    try {
-      const response = await apiClient.request<CibleCmrProjet[]>(
-        `/cible_cmr_projet/?annee=${encodeURIComponent(annee)}`,
-      );
-      return response || [];
-    } catch (error) {
-      toast.error("Erreur lors de la récupération des cibles par année");
-      throw error;
-    }
+    const response = await apiClient.request<unknown>(
+      `/cible_cmr_projet/?annee=${encodeURIComponent(annee)}`,
+    );
+    return normalizeApiList<CibleCmrProjet>(response);
   },
 };

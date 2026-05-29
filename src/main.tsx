@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import ReactDOM from 'react-dom/client'
 import { AxiosError } from 'axios'
 import {
+  MutationCache,
   QueryCache,
   QueryClient,
   QueryClientProvider,
@@ -9,7 +10,6 @@ import {
 import { RouterProvider, createRouter } from '@tanstack/react-router'
 import { toast } from 'sonner'
 import { handleServerError } from '@/lib/handle-server-error'
-import { Toaster } from './components/ui/sonner'
 // Generated Routes
 import { routeTree } from './routeTree.gen'
 import { DirectionProvider } from './stores/others/direction-provider'
@@ -38,8 +38,6 @@ const queryClient = new QueryClient({
     },
     mutations: {
       onError: (error) => {
-        handleServerError(error)
-
         if (error instanceof AxiosError) {
           if (error.response?.status === 304) {
             toast.error('Content not modified!')
@@ -48,6 +46,18 @@ const queryClient = new QueryClient({
       },
     },
   },
+  mutationCache: new MutationCache({
+    onError: (error, _variables, _context, mutation) => {
+      if (
+        (mutation.options.meta as { suppressGlobalErrorToast?: boolean } | undefined)
+          ?.suppressGlobalErrorToast
+      ) {
+        return
+      }
+
+      handleServerError(error)
+    },
+  }),
   queryCache: new QueryCache({
     onError: (error) => {
       if (error instanceof AxiosError) {
@@ -96,7 +106,6 @@ if (!rootElement.innerHTML) {
       <AuthProvider>                           
         <DirectionProvider>
           <RouterProvider router={router} />
-          <Toaster />
         </DirectionProvider>
       </AuthProvider>
     </QueryClientProvider>

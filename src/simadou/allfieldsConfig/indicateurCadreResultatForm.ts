@@ -1,101 +1,128 @@
-import type { FormConfig } from "../../Global/types/formConfig";
+import type { FormConfig, SelectOption } from "../../Global/types/formConfig";
 
-export const getIndicateurCadreResultatFormConfig = (): FormConfig => ({
+const PERIODICITE_OPTIONS: SelectOption[] = [
+  { value: "Mensuel", label: "Mensuel" },
+  { value: "Trimestriel", label: "Trimestriel" },
+  { value: "Semestriel", label: "Semestriel" },
+  { value: "Annuel", label: "Annuel" },
+  { value: "Ponctuel", label: "Ponctuel" },
+];
 
-    fields: [
-        // number - Niveau IOP
-        {
-            name: "niveau_iop",
-            label: "Niveau IOP",
-            type: "number",
-            placeholder: "Ex: 1, 2, 3...",
-            required: true,
-            min: 1,
-            gridCols: 1,
-        },
-        // texte - Code indicateur CRP
-        {
-            name: "code_indicateur_cr_iop",
-            label: "Code indicateur CRP",
-            type: "text",
-            placeholder: "Ex: IND001, IOP01...",
-            required: true,
-            gridCols: 1,
-        },
-        // texte - Code cadre résultat
-        {
-            name: "code_cr_iop",
-            label: "Code cadre résultat",
-            type: "text",
-            placeholder: "Ex: CR001, CR01...",
-            required: true,
-            gridCols: 1,
-        },
-        // texte - Intitulé indicateur
-        {
-            name: "intitule_indicateur_cr_iop",
-            label: "Intitulé indicateur",
-            type: "text",
-            placeholder: "Intitulé de l'indicateur",
-            required: true,
-            gridCols: 2,
-        },
-        // texte - Périodicité
-        {
-            name: "periodicite_iop",
-            label: "Périodicité",
-            type: "text",
-            placeholder: "Ex: Mensuel, Trimestriel, Annuel...",
-            required: true,
-            gridCols: 1,
-        },
-        // texte - Source
-        {
-            name: "source_iop",
-            label: "Source",
-            type: "text",
-            placeholder: "Source des données",
-            required: true,
-            gridCols: 1,
-        },
-        // texte - Responsable
-        {
-            name: "responsable_iop",
-            label: "Responsable",
-            type: "text",
-            placeholder: "Nom du responsable",
-            required: true,
-            gridCols: 1,
-        },
-        // textarea - Description
-        {
-            name: "description_iop",
-            label: "Description",
-            type: "textarea",
-            placeholder: "Description détaillée de l'indicateur...",
-            rows: 3,
-            required: true,
-            gridCols: 2,
-        },
-        // texte - Structure (optionnel)
-        {
-            name: "structure_iop",
-            label: "Structure",
-            type: "text",
-            placeholder: "Structure associée (optionnel)",
-            required: false,
-            gridCols: 1,
-        },
-        // select - Projet (optionnel)
-        {
+export const getIndicateurCadreResultatFormConfigForDialog = ({
+  cadreOptions,
+  acteurOptions,
+  projetOptions,
+  isLoadingCadres,
+  isLoadingActeurs,
+  isLoadingProjets,
+  showProjet = false,
+}: {
+  cadreOptions: SelectOption[];
+  acteurOptions: SelectOption[];
+  projetOptions?: SelectOption[];
+  isLoadingCadres?: boolean;
+  isLoadingActeurs?: boolean;
+  isLoadingProjets?: boolean;
+  showProjet?: boolean;
+}): FormConfig => ({
+  fields: [
+    {
+      name: "code_indicateur_cr_iop",
+      label: "Code indicateur CR",
+      type: "text",
+      placeholder: "ex: IND001, IOP001",
+      required: true,
+      maxLength: 50,
+      gridCols: 2,
+    },
+    {
+      name: "code_cr_iop",
+      label: "Cadre de résultat",
+      type: "select",
+      placeholder: "Sélectionnez un cadre de résultat",
+      required: true,
+      options: cadreOptions,
+      isLoading: isLoadingCadres,
+      gridCols: 2,
+    },
+    {
+      name: "intitule_indicateur_cr_iop",
+      label: "Intitulé de l'indicateur CR",
+      type: "text",
+      placeholder: "Intitulé complet de l'indicateur",
+      required: true,
+      maxLength: 200,
+      gridCols: 1,
+    },
+    {
+      name: "niveau_iop",
+      label: "Niveau",
+      type: "number",
+      placeholder: "Sélectionnez un niveau",
+      required: true,
+      min: 1,
+      gridCols: 2,
+    },
+    {
+      name: "periodicite_iop",
+      label: "Périodicité",
+      type: "select",
+      placeholder: "Sélectionner une périodicité…",
+      required: true,
+      options: PERIODICITE_OPTIONS,
+      gridCols: 2,
+    },
+    {
+      name: "source_iop",
+      label: "Source",
+      type: "text",
+      placeholder: "Source ou système de données",
+      required: true,
+      maxLength: 200,
+      gridCols: 2,
+    },
+    {
+      name: "responsable_iop",
+      label: "Responsable",
+      type: "text",
+      placeholder: "Responsable de l'indicateur",
+      required: true,
+      maxLength: 200,
+      gridCols: 2,
+    },
+    {
+      name: "structure_iop",
+      label: "Structure (Acteur)",
+      type: "select",
+      placeholder: "Sélectionnez un acteur",
+      required: false,
+      options: acteurOptions,
+      isLoading: isLoadingActeurs,
+      gridCols: 2,
+    },
+    ...(showProjet
+      ? [
+          {
             name: "projet_iop",
             label: "Projet",
-            type: "select",
-            placeholder: "Sélectionner un projet (optionnel)",
+            type: "select" as const,
+            placeholder: "Sélectionnez un projet",
             required: false,
-            options: [], // À remplir dynamiquement depuis l'API
-            gridCols: 1,
-        },
-    ]
-
-})
+            options: projetOptions ?? [],
+            isLoading: isLoadingProjets,
+            gridCols: 2 as const,
+          },
+        ]
+      : []),
+    {
+      name: "description_iop",
+      label: "Description",
+      type: "textarea",
+      placeholder: "Description détaillée de l'indicateur…",
+      rows: 4,
+      required: true,
+      maxLength: 1000,
+      gridCols: 1,
+    },
+  ],
+});

@@ -14,7 +14,7 @@ export default function ListeProjets() {
   const navigate = route.useNavigate()
   const activeProgramme = useActiveProgramme()
 
-  const { data: projets = [], isLoading, isFetching } = useGetProjets()
+  const { data: projets = [], isLoading } = useGetProjets()
 
   const goToDetail = useCallback(
     (projet: Projet) => {
@@ -27,7 +27,7 @@ export default function ListeProjets() {
   )
 
   const columns = useMemo(
-    () => buildProjetsColumns({ onDetail: goToDetail }),
+    () => buildProjetsColumns(goToDetail),
     [goToDetail]
   )
 
@@ -54,7 +54,7 @@ export default function ListeProjets() {
       search={search}
       navigate={navigate}
       searchKey='intitule_projet'
-      searchPlaceholder='Filtrer les projets...'
+      searchPlaceholder='Filtrer les projets…'
       urlFilterConfig={[
         {
           columnId: 'intitule_projet',
@@ -69,11 +69,7 @@ export default function ListeProjets() {
       ]}
       defaultPageSize={10}
       showViewOptions={false}
-      emptyMessage={
-        isFetching
-          ? 'Chargement…'
-          : 'Aucun projet pour ce programme.'
-      }
+      emptyMessage='Aucun projet pour ce programme.'
       onRowClick={goToDetail}
     />
   )

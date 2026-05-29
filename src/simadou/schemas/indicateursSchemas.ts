@@ -44,7 +44,7 @@ export type CadreSecteurUpdateData = z.infer<typeof cadreSecteurUpdateSchema>;
 // IndicateurCadreResultat Schema
 export const indicateurCadreResultatSchema = z.object({
   id_indicateur_cr_iop: z.number(),
-  niveau_iop: z.number().min(1, "Le niveau est requis"),
+  niveau_iop: z.coerce.number().min(1, "Le niveau est requis"),
   code_indicateur_cr_iop: z.string().min(1, "Le code est requis").max(50),
   code_cr_iop: z.string().min(1, "Le code CR est requis").max(50),
   intitule_indicateur_cr_iop: z
@@ -53,7 +53,7 @@ export const indicateurCadreResultatSchema = z.object({
     .max(200),
   periodicite_iop: z.string().min(1, "La périodicité est requise").max(50),
   source_iop: z.string().min(1, "La source est requise").max(200),
-  responsable_iop: z.string().min(1, "Le responsable est requis").max(100),
+  responsable_iop: z.string().min(1, "Le responsable est requis").max(200),
   description_iop: z.string().min(1, "La description est requise").max(1000),
   structure_iop: z.string().max(200).optional(),
   projet_iop: z.string().max(200).optional(),
@@ -75,10 +75,10 @@ export type IndicateurCadreResultatUpdateData = z.infer<
 export const indicateurCmrSchema = z.object({
   id_ref_ind_cmr: z.number(),
   code_ref_ind: z.string().min(1, "Le code est requis").max(50),
-  Resultat_cmr: z.string().min(1, "Le résultat est requis").max(200),
+  resultat_cmr: z.string().min(1, "Le résultat est requis").max(200),
   intitule_ref_ind: z.string().min(1, "L'intitulé est requis").max(200),
   reference_cmr: z.string().min(1, "La référence est requise").max(200),
-  annee_reference: z
+  annee_reference: z.coerce
     .number()
     .min(2000, "Année invalide")
     .max(2050, "Année invalide"),
