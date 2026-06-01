@@ -1,4 +1,4 @@
-import { Acteur, UniteIndicateur, TypeZone } from ".";
+import type { Acteur, TypeZone, UniteIndicateur } from '.'
 
 export interface DictionnaireIndicateur extends Record<string, unknown> {
   id_ref_ind_ref: number;
@@ -15,7 +15,15 @@ export interface DictionnaireIndicateur extends Record<string, unknown> {
   updated_at?: string;
 }
 
-export type DictionnaireIndicateurFormData = Omit<
-  DictionnaireIndicateur,
-  "id_ref_ind_ref"
->;
+/** Payload API création / mise à jour : références par id (pas objets). */
+export type DictionnaireIndicateurWritePayload = {
+  code_ref_ind: string
+  intitule_ref_ind: string
+  unite_cmr: number
+  fonction_agregat_cmr: string
+  echelle: number
+  typologie: string
+  seuil_minimum: number
+  seuil_maximum: number
+  responsable_collecte_cmr: number
+}

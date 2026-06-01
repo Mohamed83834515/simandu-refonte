@@ -19,7 +19,14 @@ export const etatSuiviOptions = [
   { value: "modification", label: "Modification" },
 ] as const;
 
-export const suiviAvancementContratSchema = z.object({
+/** Fichier nouvellement joint ou URL d'un document déjà enregistré (édition). */
+export const documentFichierSchema = z.union([
+  z.instanceof(File),
+  z.string().min(1),
+]);
+
+/** Formulaire suivi PTBA (onglet observation globale) — champs visibles uniquement. */
+export const suiviAvancementContratSuiviPtbaSchema = z.object({
   date_suivi: z
     .string()
     .min(1, "La date est requise")
@@ -27,15 +34,32 @@ export const suiviAvancementContratSchema = z.object({
   statut_activite: z.enum(STATUT_ACTIVITE_VALUES, {
     message: "Sélectionnez un statut d'activité",
   }),
-  etat_avancement: z.string().max(2000),
+  etat_avancement: z
+    .string()
+    .min(1, "L'état d'avancement est requis")
+    .max(2000),
+  difficultes_rencontrees: z
+    .string()
+    .min(1, "Les difficultés rencontrées sont requises")
+    .max(2000),
+  pistes_solutions: z
+    .string()
+    .min(1, "Les pistes de solutions sont requises")
+    .max(2000),
+  observation: z.string().min(1, "L'observation est requise").max(2000),
+  documents_fichiers: z.array(documentFichierSchema).default([]),
+});
+
+export type SuiviAvancementContratSuiviPtbaFormData = z.output<
+  typeof suiviAvancementContratSuiviPtbaSchema
+>;
+
+/** Schéma entité complète (admin / paramétrage). */
+export const suiviAvancementContratSchema = suiviAvancementContratSuiviPtbaSchema.extend({
   retard_accuse: z.string().max(500),
-  difficultes_rencontrees: z.string().max(2000),
-  pistes_solutions: z.string().max(2000),
-  observation: z.string().max(2000),
   etat: z.enum(ETAT_SUIVI_VALUES, {
     message: "Sélectionnez un état",
   }),
-  documents_fichiers: z.array(z.instanceof(File)).default([]),
 });
 
 export type SuiviAvancementContratFormData = z.output<

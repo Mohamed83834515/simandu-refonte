@@ -35,6 +35,10 @@ export function ContentSection({
     <div className='flex flex-1 flex-col w-full'>
       <div className='flex flex-col md:flex-row items-start gap-3 md:items-center justify-between w-full text-gray-500'>
         <div className='flex flex-col md:flex-row items-start md:items-center gap-3'>
+          <div className='min-w-0'>
+            <div className='truncate text-sm font-medium text-foreground'>{title}</div>
+            <div className='truncate text-xs text-muted-foreground'>{desc}</div>
+          </div>
           <div className='relative'>
             <Avatar className='w-28 h-28 border-4 border-background shadow-xl'>
               <AvatarImage src={''} />

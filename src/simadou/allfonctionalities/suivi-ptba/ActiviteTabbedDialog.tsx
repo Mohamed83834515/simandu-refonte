@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from 'react'
+import { cn } from '@/lib/utils'
 import {
   Dialog,
   DialogContent,
@@ -45,10 +46,13 @@ export default function ActiviteTabbedDialog({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
-        className={`${DIALOG_SIZES.full} max-h-[95vh] overflow-y-auto`}
+        className={cn(
+          'flex max-h-[95vh] flex-col overflow-hidden transition-[max-width] duration-200',
+          subViewActive ? DIALOG_SIZES.lg : DIALOG_SIZES.full
+        )}
         aria-describedby={undefined}
       >
-        <DialogHeader>
+        <DialogHeader className='shrink-0'>
           <DialogTitle>
             {title ?? activiteModalTitle(activite, 'Activité')}
           </DialogTitle>
@@ -59,7 +63,7 @@ export default function ActiviteTabbedDialog({
             <Tabs
               key={activite.id_ptba}
               defaultValue={initialTab}
-              className='w-full'
+              className='flex min-h-0 w-full flex-1 flex-col'
             >
               {!subViewActive && (
                 <TabsList className='flex h-auto w-full flex-wrap gap-1'>
@@ -75,7 +79,7 @@ export default function ActiviteTabbedDialog({
                 <TabsContent
                   key={tab.value}
                   value={tab.value}
-                  className='max-h-[min(70vh,800px)] overflow-y-auto'
+                  className='mt-3 flex min-h-0 flex-1 flex-col overflow-hidden data-[state=inactive]:hidden'
                 >
                   {tab.content}
                 </TabsContent>

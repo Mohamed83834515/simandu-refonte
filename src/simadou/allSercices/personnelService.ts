@@ -38,6 +38,7 @@ export const personnelService = {
         method: "POST",
         data,
       });
+      toast.success("Personnel créé avec succès");
       return response;
     } catch (error) {
       toast.error("Erreur lors de la création du personnel");
@@ -51,14 +52,12 @@ export const personnelService = {
     data: PersonnelFormData,
   ): Promise<Personnel> {
     try {
-      data.projet_active_perso =
-        (data.projet_active_perso as string)
-          ?.split(",")
-          .map((p) => p.trim() || undefined) || [];
-      data.projet_active_perso = (data.projet_active_perso as string[])?.filter(
-        Boolean,
-      );
-      console.log(data);
+      if (typeof data.projet_active_perso === "string") {
+        data.projet_active_perso = data.projet_active_perso
+          .split(",")
+          .map((p) => p.trim())
+          .filter(Boolean);
+      }
       const response = await apiClient.request<Personnel>(
         `${BASE_URL}${n_personnel}/`,
         {

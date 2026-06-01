@@ -39,6 +39,10 @@ interface DynamicFormProps {
   /** Bouton retour étape précédente (ex. formulaire multi-étapes) */
   onBack?: () => void
   backText?: string
+  /** Formulaire dans un modal PTBA : padding réduit, sans ombre portée */
+  embedded?: boolean
+  /** Largeur max. du formulaire embarqué (ex. modales suivi PTBA) */
+  className?: string
 }
 
 export interface DynamicFormHandle {
@@ -62,6 +66,8 @@ export const DynamicForm = forwardRef<DynamicFormHandle, DynamicFormProps>(
       cancelText = 'Annuler',
       onBack,
       backText = 'Précédent',
+      embedded = false,
+      className,
     },
     ref
   ) => {
@@ -140,17 +146,26 @@ export const DynamicForm = forwardRef<DynamicFormHandle, DynamicFormProps>(
     return (
       <div
         className={cn(
-          'overflow-hidden rounded-xl border border-border/60 bg-card shadow-sm',
-          'transition-shadow duration-300 hover:shadow-md'
+          embedded
+            ? 'overflow-visible border-0 bg-transparent shadow-none'
+            : 'overflow-hidden rounded-xl border border-border/60 bg-card shadow-sm transition-shadow duration-300 hover:shadow-md',
+          className
         )}
       >
-        <div className='h-px w-full bg-gradient-to-r from-transparent via-border to-transparent' />
+        {!embedded && (
+          <div className='h-px w-full bg-gradient-to-r from-transparent via-border to-transparent' />
+        )}
 
         {/* ── Corps du formulaire ── */}
         <Form {...form}>
           <form onSubmit={handleSubmit(onSubmit as any)}>
-            <div className='p-6'>
-              <div className='grid grid-cols-1 gap-x-5 gap-y-5 sm:grid-cols-2'>
+            <div className={cn(embedded ? 'px-0 pt-0 pb-1' : 'p-6')}>
+              <div
+                className={cn(
+                  'grid grid-cols-1 sm:grid-cols-2',
+                  embedded ? 'gap-x-5 gap-y-3' : 'gap-x-5 gap-y-5'
+                )}
+              >
                 {visibleFields.map((field, index) => (
                   <div
                     key={field.name}
@@ -175,11 +190,22 @@ export const DynamicForm = forwardRef<DynamicFormHandle, DynamicFormProps>(
               </div>
             </div>
 
-            <div className='mx-6 h-px bg-border/50' />
+            <div
+              className={cn(
+                'h-px bg-border/50',
+                embedded ? 'mt-3' : 'mx-6'
+              )}
+            />
 
             {/* ── Pied du formulaire (aligné StepDynamicForm / PTBA) ── */}
-            <div className='flex items-center justify-between gap-4 px-6 py-4'>
-                {/* Indicateur de statut */}
+            <div
+              className={cn(
+                'flex items-center gap-4',
+                embedded ? 'justify-end pt-3' : 'justify-between px-6 py-4'
+              )}
+            >
+                {/* Indicateur de statut (masqué en modal embarqué sauf erreurs) */}
+                {(!embedded || hasErrors) && (
                 <div className='flex items-center gap-2'>
                   <span className='relative flex h-2 w-2'>
                     {(isDirty || hasErrors) && (
@@ -206,6 +232,7 @@ export const DynamicForm = forwardRef<DynamicFormHandle, DynamicFormProps>(
                     {status.label}
                   </Badge>
                 </div>
+                )}
 
                 <div className='flex items-center gap-2'>
                   {onBack && (

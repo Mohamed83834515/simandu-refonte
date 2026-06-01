@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { toast } from 'sonner'
 import { DynamicForm } from '@/Global/Forms/DynamicForm'
+import { getApiErrorMessage } from '@/lib/api-error-message'
 import { getSuiviTacheActiviteFormConfigForTache } from '@/simadou/allfieldsConfig/suiviTacheActiviteForm'
 import {
   suiviTacheActiviteSchema,
@@ -60,7 +61,10 @@ export default function SuiviTacheActiviteForm({
             toast.success('Suivi mis à jour')
             onSuccess()
           },
-          onError: () => toast.error('Erreur lors de la mise à jour'),
+          onError: (error: unknown) =>
+            toast.error(
+              getApiErrorMessage(error, 'Erreur lors de la mise à jour')
+            ),
         }
       )
     } else {
@@ -69,7 +73,10 @@ export default function SuiviTacheActiviteForm({
           toast.success('Suivi enregistré')
           onSuccess()
         },
-        onError: () => toast.error("Erreur lors de l'enregistrement"),
+        onError: (error: unknown) =>
+          toast.error(
+            getApiErrorMessage(error, "Erreur lors de l'enregistrement")
+          ),
       })
     }
   }
@@ -77,6 +84,8 @@ export default function SuiviTacheActiviteForm({
   return (
     <DynamicForm
       key={`${tache.id_groupe_tache}-${suivi?.id_suivi_groupe_tache ?? 'new'}`}
+      className='w-full'
+      embedded
       config={formConfig}
       schema={suiviTacheActiviteSchema}
       defaultValues={defaultValues}

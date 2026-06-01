@@ -12,6 +12,7 @@ import {
   useGetSuiviTachesByActivite,
   useGetTachesByActivite,
 } from '@/simadou/allHooks/admin/suiviPtbaHooks'
+import ActiviteTabbedFormPanel from '../ActiviteTabbedFormPanel'
 import {
   ActiviteTabbedSubViewHeader,
   useActiviteTabbedSubView,
@@ -91,14 +92,17 @@ export default function SuiviTacheActiviteManager({
   }
 
   return (
-    <>
-      <div className='flex-1 overflow-y-auto'>
+    <div className='flex min-h-0 flex-1 flex-col overflow-hidden'>
         {showForm && selectedTache ? (
-          <div className='px-6 pb-6 pt-2'>
-            <ActiviteTabbedSubViewHeader
-              sectionLabel={`Suivi — ${selectedTache.intutile_tache_gt}`}
-              className='-mt-2 mb-4 border-0 px-0'
-            />
+          <ActiviteTabbedFormPanel
+            maxWidth='lg'
+            header={
+              <ActiviteTabbedSubViewHeader
+                sectionLabel={`Suivi — ${selectedTache.intutile_tache_gt}`}
+                className='shrink-0 border-0 px-0 pb-0 text-base font-semibold text-foreground'
+              />
+            }
+          >
             <SuiviTacheActiviteForm
               tache={selectedTache}
               suivi={editingSuivi}
@@ -106,9 +110,9 @@ export default function SuiviTacheActiviteManager({
               onClose={handleCloseForm}
               onSuccess={handleSuccess}
             />
-          </div>
+          </ActiviteTabbedFormPanel>
         ) : (
-          <div className='px-6 py-5'>
+          <div className='min-h-0 flex-1 overflow-y-auto px-6 py-5'>
             <SuiviTacheActiviteList
               taches={filteredTaches}
               suivis={suivisForTaches}
@@ -116,10 +120,9 @@ export default function SuiviTacheActiviteManager({
             />
           </div>
         )}
-      </div>
 
       {!showForm && (
-        <div className='border-t bg-muted/40 px-6 py-5 text-sm'>
+        <div className='shrink-0 border-t bg-muted/40 px-6 py-4 text-sm'>
           <div className='flex flex-wrap items-center justify-between gap-6'>
             <TacheAvancementProgressBar percent={tauxAvancementGlobal} />
             {filteredTaches.length > 0 && (
@@ -131,6 +134,6 @@ export default function SuiviTacheActiviteManager({
           </div>
         </div>
       )}
-    </>
+    </div>
   )
 }

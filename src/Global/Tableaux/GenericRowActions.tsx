@@ -44,7 +44,10 @@ export function GenericRowActions<TData>({
             {action.separator && <DropdownMenuSeparator key={`sep-${index}`} />}
             <DropdownMenuItem
               key={index}
-              onClick={() => action.onClick(row.original)}
+              onSelect={(e) => {
+                e.preventDefault()
+                action.onClick(row.original)
+              }}
               className={action.className}
             >
               {action.label}

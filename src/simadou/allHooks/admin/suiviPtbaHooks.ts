@@ -2,6 +2,7 @@ import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/rea
 import suiviTacheActiviteService from '@/simadou/allSercices/suiviTacheActiviteService'
 import tacheActivitePtbaService from '@/simadou/allSercices/tacheActivitePtbaService'
 import suiviAvancementContratService from '@/simadou/allSercices/suiviAvancementContratService'
+import sourceVerificationSuiviAvancementContratService from '@/simadou/allSercices/sourceVerificationSuiviAvancementContratService'
 import observationPtbaService from '@/simadou/allSercices/observationPtbaService'
 import indicateurActivitePtbaService from '@/simadou/allSercices/indicateurActivitePtbaService'
 import suiviIndicateurActiviteService from '@/simadou/allSercices/suiviIndicateurActiviteService'
@@ -25,6 +26,8 @@ export const suiviPtbaQueryKeys = {
     ['taches-activite', idActivite] as const,
   suiviAvancement: (idActivite: number) =>
     ['suivi-avancement-contrat', idActivite] as const,
+  suiviAvancementSources: (idSuivi: number) =>
+    ['suivi-avancement-sources', idSuivi] as const,
   observations: (codeActivite: string) =>
     ['observations-ptba', codeActivite] as const,
   indicateurs: (codeActivite: string) =>
@@ -116,6 +119,14 @@ export const useGetSuiviAvancementByActivite = (idActivite: number) =>
     queryKey: suiviPtbaQueryKeys.suiviAvancement(idActivite),
     queryFn: () => suiviAvancementContratService.getByActivite(idActivite),
     enabled: Number.isFinite(idActivite),
+  })
+
+export const useGetSuiviAvancementSources = (idSuivi?: number) =>
+  useQuery({
+    queryKey: suiviPtbaQueryKeys.suiviAvancementSources(idSuivi ?? 0),
+    queryFn: () =>
+      sourceVerificationSuiviAvancementContratService.getBySuivi(idSuivi!),
+    enabled: Number.isFinite(idSuivi) && (idSuivi ?? 0) > 0,
   })
 
 export const useGetObservationsByActivite = (codeActivite: string) =>

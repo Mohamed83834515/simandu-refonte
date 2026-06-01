@@ -1,9 +1,6 @@
-import { toast } from "sonner";
-import { apiClient } from "@/axios/api";
-import type {
-  DictionnaireIndicateur,
-  DictionnaireIndicateurFormData,
-} from "../allTypes";
+import { toast } from 'sonner'
+import { apiClient } from '@/axios/api'
+import type { DictionnaireIndicateur, DictionnaireIndicateurWritePayload } from '../allTypes'
 
 export const dictionnaireIndicateurService = {
   // Get all indicateurs du dictionnaire
@@ -101,7 +98,7 @@ export const dictionnaireIndicateurService = {
 
   // Create new indicateur
   create: async (
-    data: DictionnaireIndicateurFormData,
+    data: DictionnaireIndicateurWritePayload,
   ): Promise<DictionnaireIndicateur> => {
     try {
       const response = await apiClient.request<DictionnaireIndicateur>(
@@ -122,7 +119,7 @@ export const dictionnaireIndicateurService = {
   // Update indicateur
   update: async (
     id: number,
-    data: Partial<DictionnaireIndicateurFormData>,
+    data: Partial<DictionnaireIndicateurWritePayload>,
   ): Promise<DictionnaireIndicateur> => {
     try {
       const response = await apiClient.request<DictionnaireIndicateur>(

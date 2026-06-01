@@ -6,6 +6,7 @@ import {
   suiviPtbaQueryKeys,
   useGetSuiviAvancementByActivite,
 } from '@/simadou/allHooks/admin/suiviPtbaHooks'
+import ActiviteTabbedFormPanel from '../ActiviteTabbedFormPanel'
 import {
   ActiviteTabbedSubViewHeader,
   useActiviteTabbedSubView,
@@ -62,25 +63,26 @@ export default function SuiviAvancementContratManager({
   }
 
   return (
-    <>
-      <div className='flex-1 overflow-y-auto'>
+    <div className='flex min-h-0 flex-1 flex-col overflow-hidden'>
         {showForm ? (
-          <div>
-            <ActiviteTabbedSubViewHeader
-              sectionLabel="Observation globale sur l'activité"
-              className='-mt-2 border-0 px-6'
-            />
-            <div className='p-6 pt-2'>
-              <SuiviAvancementContratForm
-                suivi={editing}
-                activite={activite}
-                onClose={handleCloseForm}
-                onSuccess={handleSuccess}
+          <ActiviteTabbedFormPanel
+            maxWidth='xl'
+            header={
+              <ActiviteTabbedSubViewHeader
+                sectionLabel="Observation globale sur l'activité"
+                className='shrink-0 border-0 px-0 pb-0 text-base font-semibold text-foreground'
               />
-            </div>
-          </div>
+            }
+          >
+            <SuiviAvancementContratForm
+              suivi={editing}
+              activite={activite}
+              onClose={handleCloseForm}
+              onSuccess={handleSuccess}
+            />
+          </ActiviteTabbedFormPanel>
         ) : (
-          <div className='p-6'>
+          <div className='min-h-0 flex-1 overflow-y-auto p-6'>
             <SuiviAvancementContratList
               suivis={suivis}
               idActivite={activite.id_ptba}
@@ -89,10 +91,9 @@ export default function SuiviAvancementContratManager({
             />
           </div>
         )}
-      </div>
 
       {!showForm && (
-        <div className='border-t bg-muted/40 px-6 py-4 text-sm'>
+        <div className='shrink-0 border-t bg-muted/40 px-6 py-4 text-sm'>
           <div className='flex flex-wrap items-center justify-between gap-4'>
             <div>
               <span className='font-medium'>Activité :</span>{' '}
@@ -104,6 +105,6 @@ export default function SuiviAvancementContratManager({
           </div>
         </div>
       )}
-    </>
+    </div>
   )
 }

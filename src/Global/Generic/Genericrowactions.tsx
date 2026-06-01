@@ -60,7 +60,10 @@ export function GenericRowActions<TData>({
             <React.Fragment key={idx}>
               {action.separator && <DropdownMenuSeparator />}
               <DropdownMenuItem
-                onClick={() => action.onClick(row.original)}
+                onSelect={(e) => {
+                  e.preventDefault()
+                  action.onClick(row.original)
+                }}
                 className={action.destructive ? 'text-red-500!' : undefined}
               >
                 {action.label}
