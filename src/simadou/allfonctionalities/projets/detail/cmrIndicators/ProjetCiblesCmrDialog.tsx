@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
@@ -130,7 +131,10 @@ export default function ProjetCiblesCmrDialog({
       )}
 
       <Dialog open={open && modal === 'list'} onOpenChange={handleOpenChange}>
-        <DialogContent className='gap-0 overflow-hidden p-0 sm:max-w-4xl'>
+        <DialogContent
+          className='gap-0 overflow-hidden p-0 sm:max-w-4xl'
+          aria-describedby={undefined}
+        >
           <DialogHeader className='border-b px-6 py-4'>
             <DialogTitle>Cibles CMR</DialogTitle>
           </DialogHeader>
@@ -180,7 +184,10 @@ export default function ProjetCiblesCmrDialog({
       </Dialog>
 
       <Dialog open={open && modal === 'view'} onOpenChange={(o) => !o && backToList()}>
-        <DialogContent className='gap-0 overflow-hidden p-0 sm:max-w-lg'>
+        <DialogContent
+          className='gap-0 overflow-hidden p-0 sm:max-w-lg'
+          aria-describedby={undefined}
+        >
           <DialogHeader className='border-b px-6 py-4'>
             <DialogTitle>Cible CMR projet</DialogTitle>
           </DialogHeader>
@@ -200,6 +207,11 @@ export default function ProjetCiblesCmrDialog({
                 ? 'Modifier la cible CMR projet'
                 : 'Ajouter une cible CMR projet'}
             </DialogTitle>
+            <DialogDescription>
+              {selectedCible
+                ? 'Mettez à jour la cible CMR associée au projet.'
+                : 'Définissez une nouvelle cible CMR pour ce projet.'}
+            </DialogDescription>
           </DialogHeader>
           <CibleCmrProjetFormDialog
             codeProjet={codeProjet}

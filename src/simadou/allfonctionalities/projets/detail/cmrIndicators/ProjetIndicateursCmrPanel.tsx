@@ -6,6 +6,7 @@ import { DataTableToolbarOutlineButton } from '@/components/data-table/toolbar-o
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
@@ -161,6 +162,11 @@ export default function ProjetIndicateursCmrPanel({ projet }: { projet: Projet }
                 ? "Modifier l'indicateur CMR"
                 : 'Créer un indicateur CMR'}
             </DialogTitle>
+            <DialogDescription>
+              {selectedIndicateur
+                ? "Mettez à jour les informations de l'indicateur CMR."
+                : 'Renseignez les informations du nouvel indicateur CMR.'}
+            </DialogDescription>
           </DialogHeader>
           <IndicateurCmrFormDialog
             indicateur={selectedIndicateur}
@@ -171,7 +177,10 @@ export default function ProjetIndicateursCmrPanel({ projet }: { projet: Projet }
       </Dialog>
 
       <Dialog open={modal === 'indicateurView'} onOpenChange={(o) => !o && closeAll()}>
-        <DialogContent className='gap-0 overflow-hidden p-0 sm:max-w-2xl'>
+        <DialogContent
+          className='gap-0 overflow-hidden p-0 sm:max-w-2xl'
+          aria-describedby={undefined}
+        >
           <DialogHeader className='border-b px-6 py-4'>
             <DialogTitle>Indicateur CMR</DialogTitle>
           </DialogHeader>

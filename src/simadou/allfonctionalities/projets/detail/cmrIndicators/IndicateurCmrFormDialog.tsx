@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { toast } from 'sonner'
 import { DynamicForm } from '@/Global/Forms/DynamicForm'
+import { getApiErrorMessage } from '@/lib/api-error-message'
 import { getIndicateurCmrFormConfigForDialog } from '@/simadou/allfieldsConfig/indicateurCmrForm'
 import type { IndicateurCmr } from '@/simadou/allTypes'
 import {
@@ -72,9 +73,12 @@ export default function IndicateurCmrFormDialog({
         toast.success(isEditing ? 'Indicateur CMR mis à jour' : 'Indicateur CMR créé')
         onSuccess()
       },
-      onError: () =>
+      onError: (error: unknown) =>
         toast.error(
-          isEditing ? 'Erreur lors de la mise à jour' : 'Erreur lors de la création'
+          getApiErrorMessage(
+            error,
+            isEditing ? 'Erreur lors de la mise à jour' : 'Erreur lors de la création'
+          )
         ),
     }
 
