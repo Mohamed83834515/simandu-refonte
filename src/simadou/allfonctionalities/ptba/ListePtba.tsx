@@ -14,6 +14,7 @@ import AddPtba from './AddPtba'
 import ActiviteTabbedDialog from './ActiviteTabbedDialog'
 import TacheActiviteManager from './tache-activite/TacheActiviteManager'
 import IndicateurTacheManager from './indicateur-tache/IndicateurTacheManager'
+
 const route = getRouteApi('/_authenticated/programmation/ptba/')
 
 function ListePtbas() {
