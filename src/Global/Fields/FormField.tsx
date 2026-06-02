@@ -637,15 +637,7 @@ export const FormField = ({
                                   'bg-green-50 hover:bg-green-100 dark:bg-green-950/40 dark:hover:bg-green-950/60'
                                 )}
                                 onSelect={() => {
-<<<<<<< HEAD
                                   controllerField.onChange(option.value)
-=======
-                                  const nextValue =
-                                    typeof option.value === 'number'
-                                      ? option.value
-                                      : option.value.toString()
-                                  controllerField.onChange(nextValue)
->>>>>>> 6bf4dd0 (feat(parametrage): ajout dictionnaire indicateurs, utilisateurs et gestion des titres)
                                   setComboboxOpen(false)
                                   setTouched(true)
 
