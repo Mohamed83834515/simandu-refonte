@@ -1201,22 +1201,12 @@ export const FormField = ({
           </div>
         )
 
-<<<<<<< HEAD
       // ========== TEL ==========
       case 'tel':
-=======
-      // ========== CHECKBOX / SWITCH ==========
-      case 'checkbox':
-      case 'switch': {
-        const isSwitch = field.type === 'switch'
-        const useCard = field.className?.includes('field-card')
-
->>>>>>> 6bf4dd0 (feat(parametrage): ajout dictionnaire indicateurs, utilisateurs et gestion des titres)
         return (
           <Controller
             name={field.name}
             control={control}
-<<<<<<< HEAD
             render={({ field: { onChange, value } }) => (
               <div className='relative'>
                 <PhoneInput
@@ -1293,130 +1283,6 @@ export const FormField = ({
             )}
           </div>
         )
-=======
-            render={({ field: { value, onChange } }) => (
-              <div
-                className={cn(
-                  'flex items-center justify-between gap-4',
-                  useCard &&
-                    'rounded-lg border border-border/60 bg-muted/20 px-4 py-3',
-                  field.className
-                )}
-              >
-                <div className='min-w-0 space-y-0.5'>
-                  <span className='text-sm font-medium leading-none'>
-                    {field.label}
-                    {field.required && (
-                      <span className='text-destructive'> *</span>
-                    )}
-                  </span>
-                  {field.helperText && (
-                    <p className='text-xs text-muted-foreground'>
-                      {field.helperText}
-                    </p>
-                  )}
-                </div>
-                {isSwitch ? (
-                  <Switch
-                    checked={!!value}
-                    onCheckedChange={(checked) => {
-                      onChange(checked)
-                      setTouched(true)
-                      if (trigger) void trigger(field.name)
-                    }}
-                    onBlur={handleBlur}
-                    aria-invalid={isInvalid}
-                  />
-                ) : (
-                  <Checkbox
-                    checked={!!value}
-                    onCheckedChange={(checked) => {
-                      onChange(checked === true)
-                      setTouched(true)
-                      if (trigger) void trigger(field.name)
-                    }}
-                    onBlur={handleBlur}
-                    aria-invalid={isInvalid}
-                  />
-                )}
-              </div>
-            )}
-          />
-        )
-      }
-
-   // ========== TEL ==========
-case 'tel':
-  return (
-    <Controller
-      name={field.name}
-      control={control}
-      render={({ field: { onChange, value } }) => (
-        <div className='relative'>
-          <PhoneInput
-            international
-            countryCallingCodeEditable={false}
-            defaultCountry={'GN'}
-            value={value || undefined}
-            onChange={(phoneValue:any) => {
-              onChange(phoneValue ?? '')
-              setTouched(true)
-              if (trigger) trigger(field.name)
-            }}
-            onBlur={handleBlur}
-            className={cn(
-              // base — matches your other inputs
-              'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background',
-              'placeholder:text-muted-foreground',
-              'focus-within:outline-none focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2',
-              isValid && 'border-green-500 focus-within:ring-green-500',
-              isInvalid && 'border-red-500 focus-within:ring-red-500',
-              // right padding for the status icon
-              'pr-10'
-            )}
-          />
-          {isValid && (
-            <div className='pointer-events-none absolute top-1/2 right-3 -translate-y-1/2'>
-              <Check className='h-5 w-5 text-green-500' />
-            </div>
-          )}
-          {isInvalid && (
-            <div className='pointer-events-none absolute top-1/2 right-3 -translate-y-1/2'>
-              <X className='h-5 w-5 text-red-500' />
-            </div>
-          )}
-        </div>
-      )}
-    />
-  )
-      // ========== DATE / HEURE ==========
-      case 'date':
-      case 'datetime-local':
-      case 'month':
-      case 'week':
-      case 'time': {
-        const PickerIcon = field.type === 'time' ? Clock : Calendar
-        return (
-          <div className='relative'>
-            <Input
-              type={field.type}
-              placeholder={field.placeholder}
-              {...register(field.name)}
-              onBlur={handleBlur}
-              className={cn(
-                dateInputPickerClasses,
-                isInvalid && 'border-red-500 focus:ring-red-500'
-              )}
-            />
-            <PickerIcon
-              className='pointer-events-none absolute end-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground'
-              aria-hidden
-            />
-          </div>
-        )
-      }
-
->>>>>>> 6bf4dd0 (feat(parametrage): ajout dictionnaire indicateurs, utilisateurs et gestion des titres)
       // ========== DEFAULT ==========
       default:
         return (
