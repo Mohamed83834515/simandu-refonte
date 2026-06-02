@@ -4,7 +4,6 @@ import { getDictionnaireIndicateurFormConfigForDialog } from '@/simadou/allfield
 import type { DictionnaireIndicateur } from '@/simadou/allTypes'
 import { useGetActeurs } from '@/simadou/allHooks/admin/sharedHooks'
 import { useGetTypeZones } from '@/simadou/allHooks/admin/typeZoneHooks'
-import { useGetUnitesIndicateur } from '@/simadou/allHooks/admin/uniteIndicateurHooks'
 import {
   dictionnaireIndicateurWriteSchema,
   type DictionnaireIndicateurWriteData,
@@ -14,6 +13,7 @@ import {
   useUpdateDictionnaireIndicateur,
 } from '@/simadou/allHooks/admin/dictionnaireIndicateurHooks'
 import { dictionnaireToFormValues } from './dictionnaireIndicateurFormUtils'
+import { useGetUniteIndicateurs } from '@/simadou/allHooks/admin/uniteIndicateurHooks'
 
 export default function DictionnaireIndicateurFormPanel({
   dictionnaire,
@@ -26,7 +26,7 @@ export default function DictionnaireIndicateurFormPanel({
 }) {
   const isEditing = !!dictionnaire
 
-  const { data: unites = [], isLoading: isLoadingUnites } = useGetUnitesIndicateur()
+  const { data: unites = [], isLoading: isLoadingUnites } = useGetUniteIndicateurs()
   const { data: typeZones = [], isLoading: isLoadingTypeZones } = useGetTypeZones()
   const { data: acteurs = [], isLoading: isLoadingActeurs } = useGetActeurs()
 

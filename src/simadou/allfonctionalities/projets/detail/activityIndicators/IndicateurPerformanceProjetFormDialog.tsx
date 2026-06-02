@@ -14,7 +14,7 @@ import {
   useUpdateIndicateurPerformanceProjet,
 } from '@/simadou/allHooks/admin/indicateurPerformanceProjetHooks'
 import { useGetAllProjets } from '@/simadou/allHooks/admin/projetHooks'
-import { useGetUnitesIndicateur } from '@/simadou/allHooks/admin/uniteIndicateurHooks'
+import { useGetUniteIndicateurs } from '@/simadou/allHooks/admin/uniteIndicateurHooks'
 
 function resolveCodeProjet(v: unknown): string | null {
   if (v == null || v === '') return null
@@ -62,7 +62,7 @@ export default function IndicateurPerformanceProjetFormDialog({
 
   const { data: activites = [], isLoading: isLoadingActivites } =
     useGetAllActivitesProjet()
-  const { data: unites = [], isLoading: isLoadingUnites } = useGetUnitesIndicateur()
+  const { data: unites = [], isLoading: isLoadingUnites } = useGetUniteIndicateurs()
   const { data: projets = [], isLoading: isLoadingProjets } = useGetAllProjets()
 
   const activiteOptions = useMemo(

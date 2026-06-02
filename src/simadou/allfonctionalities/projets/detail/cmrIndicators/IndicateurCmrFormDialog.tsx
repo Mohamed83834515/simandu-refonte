@@ -12,8 +12,8 @@ import {
   useCreateIndicateurCmr,
   useUpdateIndicateurCmr,
 } from '@/simadou/allHooks/admin/indicateurCmrHooks'
-import { useGetUnitesIndicateur } from '@/simadou/allHooks/admin/uniteIndicateurHooks'
 import { resolveRelationId } from '@/simadou/lib/resolveApiRelation'
+import { useGetUniteIndicateurs } from '@/simadou/allHooks/admin/uniteIndicateurHooks'
 
 export default function IndicateurCmrFormDialog({
   indicateur,
@@ -27,7 +27,7 @@ export default function IndicateurCmrFormDialog({
   const isEditing = !!indicateur
   const createMutation = useCreateIndicateurCmr()
   const updateMutation = useUpdateIndicateurCmr()
-  const { data: unites = [], isLoading: isLoadingUnites } = useGetUnitesIndicateur()
+  const { data: unites = [], isLoading: isLoadingUnites } = useGetUniteIndicateurs()
 
   const uniteOptions = useMemo(
     () =>

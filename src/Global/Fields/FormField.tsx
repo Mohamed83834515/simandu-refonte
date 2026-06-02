@@ -15,8 +15,6 @@ import {
   Trash2,
   ChevronsUpDown,
   FileText,
-  Calendar,
-  Clock,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -28,9 +26,7 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command'
-import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
-import { Switch } from '@/components/ui/switch'
 import { MultiSelect } from '@/components/ui/multi-select'
 import {
   Popover,
@@ -44,8 +40,8 @@ import PasswordChecker from '@/simadou/allfonctionalities/settings/profile/Passw
 // import { toast } from 'sonner'
 
 /** Calendrier natif invisible à droite ; icône Lucide visible au même endroit. */
-const dateInputPickerClasses =
-  'pr-10 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:end-0 [&::-webkit-calendar-picker-indicator]:top-0 [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:w-10 [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0'
+// const dateInputPickerClasses =
+//   'pr-10 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:end-0 [&::-webkit-calendar-picker-indicator]:top-0 [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:w-10 [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0'
 
 export interface RichSelectOption {
   value: string | number

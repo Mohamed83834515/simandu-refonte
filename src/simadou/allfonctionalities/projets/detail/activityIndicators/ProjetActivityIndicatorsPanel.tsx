@@ -17,13 +17,13 @@ import {
   useDeleteIndicateurPerformanceProjet,
   useGetAllIndicateursPerformanceProjet,
 } from '@/simadou/allHooks/admin/indicateurPerformanceProjetHooks'
-import { useGetUnitesIndicateur } from '@/simadou/allHooks/admin/uniteIndicateurHooks'
 import IndicateurPerformanceProjetFormDialog from './IndicateurPerformanceProjetFormDialog'
+import { useGetUniteIndicateurs } from '@/simadou/allHooks/admin/uniteIndicateurHooks'
 
 export default function ProjetActivityIndicatorsPanel({ projet: _projet }: { projet: Projet }) {
   const { data: indicateurs = [], dataUpdatedAt } =
     useGetAllIndicateursPerformanceProjet()
-  const { data: unites = [] } = useGetUnitesIndicateur()
+  const { data: unites = [] } = useGetUniteIndicateurs()
   const deleteMutation = useDeleteIndicateurPerformanceProjet()
   const { search, navigate } = useEmbeddedTableState()
 
@@ -44,7 +44,7 @@ export default function ProjetActivityIndicatorsPanel({ projet: _projet }: { pro
             ? Number((v as { id_unite: number }).id_unite)
             : null
       if (id == null) return '—'
-      const unite = unites.find((u) => u.id_unite === id)
+      const unite = unites.find((u:any) => u.id_unite === id)
       return unite ? `${unite.unite_ui} — ${unite.definition_ui}` : String(id)
     },
     [unites]
