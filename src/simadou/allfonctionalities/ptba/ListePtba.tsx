@@ -13,6 +13,7 @@ import AddPtba from './AddPtba'
 import ActiviteTabbedDialog from './ActiviteTabbedDialog'
 import TacheActiviteManager from './tache-activite/TacheActiviteManager'
 import IndicateurTacheManager from './indicateur-tache/IndicateurTacheManager'
+import { useActiveProgrammeCode } from '@/hooks/use-active-programme'
 const route = getRouteApi('/_authenticated/programmation/ptba/')
 
 function ListePtbas() {
@@ -63,19 +64,21 @@ function ListePtbas() {
     setShowPlanificationModal(true)
   }
 
+  const codeProgramme = useActiveProgrammeCode()
+
   // Options pour le filtre
   const versionOptions = versions
-  .filter((version: VersionPtba) => typeof version.programme === "object" && version.programme?.code_programme === "001")
-  .map((version: any) => ({
-    label: `${version.version_ptba || `Version ${version.id_version_ptba}`} - ${version.annee_ptba}`,
-    value: version.id_version_ptba.toString()
-  }))
+    .filter((version: VersionPtba) => typeof version.programme === "object" && version.programme?.code_programme === codeProgramme)
+    .map((version: any) => ({
+      label: `${version.version_ptba || `Version ${version.id_version_ptba}`} - ${version.annee_ptba}`,
+      value: version.id_version_ptba.toString()
+    }))
 
   const [open, setOpen] = useDialogState<'add' | 'edit' | 'delete'>(
     null
   )
   const [currentRow, setCurrentRow] = useState<Ptba | null>(null)
-  
+
   const columns = useMemo(
     () => buildPtbasColumns(setOpen, setCurrentRow,
       onOpenPlanification
@@ -142,7 +145,7 @@ function ListePtbas() {
                 content: (
                   <IndicateurTacheManager activite={planifierActivite} />
                 ),
-              
+
               }
             ]
             : []
