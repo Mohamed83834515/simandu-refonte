@@ -165,6 +165,11 @@ export const sidebarData: SidebarData = {
               url: '/programme/indicateurs-performance',
               icon: LineChart,
             },
+            {
+              title: 'Indicateurs du CMR',
+              url: '/programme/indicateurs-cmr',
+              icon: TrendingUp,
+            },
           ],
         },
 
