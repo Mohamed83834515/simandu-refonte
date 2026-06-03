@@ -1,4 +1,3 @@
-// simadou/allfonctionalities/parametrage/localite/ListeLocalite.tsx
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Plus, Settings } from 'lucide-react'
 import { toast } from 'sonner'
