@@ -137,11 +137,6 @@ export const sidebarData: SidebarData = {
               icon: BarChart2,
             },
             {
-              title: 'Indicateurs du CMR',
-              url: '/programme/indicateurs-cmr',
-              icon: TrendingUp,
-            },
-            {
               title: 'Cadre stratégique',
               url: '/programme/cadre-strategique',
               icon: Target,
@@ -150,6 +145,11 @@ export const sidebarData: SidebarData = {
               title: 'Indicateurs stratégiques',
               url: '/programme/indicateurs-performance',
               icon: LineChart,
+            },
+            {
+              title: 'Indicateurs du CMR',
+              url: '/programme/indicateurs-cmr',
+              icon: TrendingUp,
             },
           ],
         },

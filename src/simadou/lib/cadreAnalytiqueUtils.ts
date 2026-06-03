@@ -108,7 +108,7 @@ export function buildCadreAnalytiqueParentOptions({
         cadreNiveau != null &&
         cadreNiveau === niveauCodeNumber - 1 &&
         cadre.id_ca !== excludeCadreId
-      )
+      ) 
     })
     .map((cadre) => ({
       value: cadre.id_ca,
