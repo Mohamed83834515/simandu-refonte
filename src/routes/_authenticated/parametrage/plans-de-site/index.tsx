@@ -5,14 +5,3 @@ export const Route = createFileRoute(
 )({
   component: ListePlanSite,
 })
-
-// function RouteComponent() {
-//   return (
-//     <PageRouteLayout
-//       title="Plan de Site"
-//       icon={MapPin}
-//       showAddButton={false}
-//       listComponent={ListePlanSite}
-//     />
-//   )
-// }
