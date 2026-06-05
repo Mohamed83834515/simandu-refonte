@@ -1,5 +1,5 @@
-// components/SessionWarningDialog.tsx
-import { useEffect, useState } from 'react'
+
+
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Clock } from 'lucide-react'

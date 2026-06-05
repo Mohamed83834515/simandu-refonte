@@ -2,7 +2,7 @@ import { toast } from "sonner";
 import { apiClient } from "@/axios/api";
 import type { Personnel } from "../allTypes";
 import { PersonnelFormData } from "../allTypes/entities";
-import { UpdateProfilePictureInput } from "../schemas/personnelSchema";
+
 
 interface UpdateProfilePictureResponse {
   profilePicture: string  

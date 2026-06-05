@@ -1,6 +1,6 @@
 
 
-import UniteIndicateurDialog from '@/simadou/allfonctionalities/parametrage/autres/unite-indicateurs/UniteIndicateurDialog'
+
 import { createFileRoute, redirect } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/_authenticated/parametrage/autres/')({

@@ -1,19 +1,9 @@
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+
 import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
 import { useMe } from '@/simadou/allHooks/auth/authHooks'
 import {
   AlertCircle,
-  BadgeCheck,
-  Camera,
-  MessageCircleWarning,
   ShieldCheck,
 } from 'lucide-react'
 import { ProfileAvatar } from '../profile/profileAvatar'
@@ -25,7 +15,7 @@ type ContentSectionProps = {
   children: React.JSX.Element
 }
 
-export function ContentSection({ title, desc, children }: ContentSectionProps) {
+export function ContentSection({  children }: ContentSectionProps) {
   const { data: personnel, isLoading } = useMe()
   const isActive = personnel?.statut === 1
   const initials = personnel?.nom_perso?.charAt(0).toUpperCase() ?? 'U'

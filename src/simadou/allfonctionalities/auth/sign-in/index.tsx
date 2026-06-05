@@ -2,9 +2,8 @@ import { Link, useSearch } from '@tanstack/react-router'
 import { AuthLayout } from '../auth-layout'
 import { UserAuthForm } from './components/user-auth-form'
 import { Logo } from '@/assets/logo'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Button } from '@/components/ui/button'
-import { AlertTriangleIcon, ArrowRight, KeyRound } from 'lucide-react'
+
+import { ArrowRight, KeyRound } from 'lucide-react'
 
 export function SignIn() {
   const { redirect } = useSearch({ from: '/(auth)/sign-in' })

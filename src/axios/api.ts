@@ -74,7 +74,7 @@ api.interceptors.response.use(
 
       // Another request is already refreshing — queue this one
       if (isRefreshing) {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
           subscribeTokenRefresh((newToken) => {
             if (!originalRequest.headers) originalRequest.headers = {}
             originalRequest.headers.Authorization = `Bearer ${newToken}`

@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '@/axios/api'
 
 import type { Acteur, Localite, Personnel, TitrePersonnel } from '@/simadou/allTypes'
-import { PersonnelCreateData, UpdateProfilePictureInput } from '@/simadou/schemas/personnelSchema'
+import { PersonnelCreateData } from '@/simadou/schemas/personnelSchema'
 import { personnelService } from '@/simadou/allSercices/personnelService'
 import { fonctionService } from '@/simadou/allSercices/fonctionService'
 import { planSiteService } from '@/simadou/allSercices/planSiteService'
