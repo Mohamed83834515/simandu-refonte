@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { Link, useLocation }                         from '@tanstack/react-router'
-import { ChevronDown, Search, X }                    from 'lucide-react'
+import {  Search, X }                    from 'lucide-react'
 import { cn, getDisplayNameInitials }                                        from '@/lib/utils'
 import {
   DropdownMenu,
