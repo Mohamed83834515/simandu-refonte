@@ -1,23 +1,23 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
-import { Link, useLocation }                         from '@tanstack/react-router'
-import { ChevronDown, Search, X }                    from 'lucide-react'
-import { cn }                                        from '@/lib/utils'
+import { Link, useLocation } from '@tanstack/react-router'
+import { Search, X } from 'lucide-react'
+import { cn, getDisplayNameInitials } from '@/lib/utils'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { ConfigDrawer }                              from '@/components/others/config-drawer'
-import { ProfileDropdown }                           from '@/components/others/profile-dropdown'
-import { Search as SearchDesktop }                   from '@/components/others/search'
-import { ThemeSwitch }                               from '@/components/others/theme-switch'
-import { SidebarTrigger }                            from '@/components/ui/sidebar'
+import { ConfigDrawer } from '@/components/others/config-drawer'
+import { ProfileDropdown } from '@/components/others/profile-dropdown'
+import { Search as SearchDesktop } from '@/components/others/search'
+import { ThemeSwitch } from '@/components/others/theme-switch'
+import { SidebarTrigger } from '@/components/ui/sidebar'
 import { type NavCollapsible, type NavItem, type NavLink } from './types'
-import { HEADER_COLORS, useColorStore }              from '@/stores/others/color-store'
-import { useLayout }                                 from '@/stores/others/layout-store'
-import { sidebarData }                               from '../../../simadou/routescontantes/sidebar-data'
-import { ProgrammeSwitcher }                           from './programme-switcher'
+import { HEADER_COLORS, useColorStore } from '@/stores/others/color-store'
+import { useLayout } from '@/stores/others/layout-store'
+import { sidebarData } from '../../../simadou/routescontantes/sidebar-data'
+import { ProgrammeSwitcher } from './programme-switcher'
 import { SignOutDialog } from '@/components/others/sign-out-dialog'
 import useDialogState from '@/hooks/use-dialog-state'
 import { Button } from '@/components/ui/button'
@@ -185,8 +185,8 @@ function NavBadge({ value }: { value: string }) {
   return (
     <span style={{
       backgroundColor: '#FCD116',
-      color:           '#1a1200',
-      display:         'inline-flex', alignItems:'center', justifyContent:'center',
+      color: '#1a1200',
+      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
       minWidth: 18, height: 18, borderRadius: 999,
       padding: '0 5px', fontSize: 10, fontWeight: 700, lineHeight: 1,
     }}>
@@ -224,36 +224,36 @@ function MobileSearchModal({
       role="dialog"
       aria-modal="true"
       aria-label={t('Rechercher')}
-      style={{ position:'fixed', inset:0, zIndex:200, display:'flex', flexDirection:'column' }}
+      style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex', flexDirection: 'column' }}
     >
       <div
         onClick={onClose}
-        style={{ position:'absolute', inset:0, backgroundColor:'rgba(0,0,0,0.5)', backdropFilter:'blur(3px)' }}
+        style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(3px)' }}
       />
       <div
         className="_tb-modal-panel"
         style={{
-          position:'relative', zIndex:1,
+          position: 'relative', zIndex: 1,
           backgroundColor: headerBg,
-          padding:'12px 14px 16px',
-          boxShadow:'0 8px 32px rgba(0,0,0,0.28)',
+          padding: '12px 14px 16px',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.28)',
         }}
       >
         <div style={{
-          display:'flex', alignItems:'center', gap:10,
-          backgroundColor:'rgba(0,0,0,.25)',
-          border:'1px solid rgba(255,255,255,.2)',
-          borderRadius:10, padding:'8px 14px',
+          display: 'flex', alignItems: 'center', gap: 10,
+          backgroundColor: 'rgba(0,0,0,.25)',
+          border: '1px solid rgba(255,255,255,.2)',
+          borderRadius: 10, padding: '8px 14px',
         }}>
-          <Search size={16} aria-hidden style={{ color: headerText, opacity:.7, flexShrink:0 }} />
+          <Search size={16} aria-hidden style={{ color: headerText, opacity: .7, flexShrink: 0 }} />
           <input
             ref={inputRef}
             type="search"
             placeholder={t("Rechercher dans l'application…")}
-            style={{ flex:1, background:'transparent', border:'none', outline:'none', color: headerText, fontSize:14 }}
+            style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: headerText, fontSize: 14 }}
           />
-          <button onClick={onClose} className="_tb-ibtn" aria-label={t('Fermer')} style={{ width:24, height:24 }}>
-            <X size={14} style={{ color: headerText, opacity:.75 }} />
+          <button onClick={onClose} className="_tb-ibtn" aria-label={t('Fermer')} style={{ width: 24, height: 24 }}>
+            <X size={14} style={{ color: headerText, opacity: .75 }} />
           </button>
         </div>
       </div>
@@ -264,19 +264,21 @@ function MobileSearchModal({
 type UserProps = {
   user: {
     nom_perso?: string
-  prenom_perso?: string
-  email?: string
-   personnel_profile_picture : string | null
-     id_personnel_perso?: string;
-      statut?: number;
+    prenom_perso?: string
+    email?: string
+    personnel_profile_picture: string | null
+    id_personnel_perso?: string;
+    statut?: number;
   }
 }
 
 // ─── AppTopbar ────────────────────────────────────────────────────────────────
-export function AppTopbar({user} :UserProps) {
-  const href      = useLocation({ select: (l) => l.href })
+export function AppTopbar({ user }: UserProps) {
+  const href = useLocation({ select: (l) => l.href })
   const firstTeam = sidebarData.teams[0]
+  const subNavMode = useLayout((s) => s.subNavMode)
 
+  const [open, setOpen] = useDialogState()
   // ── Couleurs dynamiques — Header Color uniquement ──
   const headerColor = useColorStore((s) => s.headerColor)
   const { bg: headerBg, text: headerText } = HEADER_COLORS[headerColor]
@@ -285,7 +287,7 @@ export function AppTopbar({user} :UserProps) {
   const accentRgb = hexToRgb(headerBg)
 
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
-  const [logoFailed,       setLogoFailed]       = useState(false)
+  const [logoFailed, setLogoFailed] = useState(false)
 
   const routeGroup = useMemo((): NavCollapsible | null => {
     const allItems = sidebarData.navGroups.flatMap((g) => g.items)
@@ -301,7 +303,7 @@ export function AppTopbar({user} :UserProps) {
   }, [href])
 
   const [manualGroup, setManualGroup] = useState<NavCollapsible | null>(null)
-  const [lastHref,    setLastHref]    = useState(href)
+  const [lastHref, setLastHref] = useState(href)
 
   if (lastHref !== href) {
     setLastHref(href)
@@ -321,8 +323,8 @@ export function AppTopbar({user} :UserProps) {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  const navRef                    = useRef<HTMLDivElement>(null)
-  const [leftFade,  setLeftFade]  = useState(false)
+  const navRef = useRef<HTMLDivElement>(null)
+  const [leftFade, setLeftFade] = useState(false)
   const [rightFade, setRightFade] = useState(false)
 
   const checkFades = useCallback(() => {
@@ -343,9 +345,14 @@ export function AppTopbar({user} :UserProps) {
     }
   }, [checkFades])
 
-  const fadeBgLeft  = `linear-gradient(to right, ${headerBg2} 20%, transparent)`
+  const fadeBgLeft = `linear-gradient(to right, ${headerBg2} 20%, transparent)`
   const fadeBgRight = `linear-gradient(to left,  ${headerBg2} 20%, transparent)`
 
+  const userInitials = getDisplayNameInitials(user.nom_perso ?? '')
+
+  const handleGroupToggle = (item: NavCollapsible) => {
+    setManualGroup((prev) => (prev?.title === item.title ? null : item))
+  }
   return (
     <>
       <CSSInjector />
@@ -359,26 +366,26 @@ export function AppTopbar({user} :UserProps) {
       <header
         ref={headerRef}
         style={{
-          position:        'sticky',
-          top:             0,
-          zIndex:          50,
-          width:           '100%',
+          position: 'sticky',
+          top: 0,
+          zIndex: 50,
+          width: '100%',
           backgroundColor: headerBg,
-          color:           headerText,
-          borderBottom:    `1px solid rgba(${accentRgb},.2)`,
-          boxShadow:       '0 4px 20px rgba(0,0,0,.3)',
-          transition:      'background-color .35s ease, border-color .35s ease',
+          color: headerText,
+          borderBottom: `1px solid rgba(${accentRgb},.2)`,
+          boxShadow: '0 4px 20px rgba(0,0,0,.3)',
+          transition: 'background-color .35s ease, border-color .35s ease',
         }}
       >
 
         {/* ══ ROW 1 : Logo + Titre centré + contrôles ══ */}
         <div className="_tb-row1" style={{
-          display:    'flex',
+          display: 'flex',
           alignItems: 'center',
-          height:     60,
-          gap:        8,
-          padding:    '0 14px',
-          position:   'relative',
+          height: 60,
+          gap: 8,
+          padding: '0 14px',
+          position: 'relative',
         }}>
 
           <SidebarTrigger
@@ -398,21 +405,21 @@ export function AppTopbar({user} :UserProps) {
               />
             ) : (
               <div aria-hidden style={{
-                height:          48,
-                width:           44,
-                borderRadius:    8,
+                height: 48,
+                width: 44,
+                borderRadius: 8,
                 backgroundColor: 'rgba(255,255,255,.12)',
-                border:          '1px solid rgba(255,255,255,.25)',
-                display:         'flex',
-                flexDirection:   'column',
-                alignItems:      'center',
-                justifyContent:  'center',
-                fontSize:        11,
-                fontFamily:      "'Cinzel', serif",
-                fontWeight:      900,
-                color:           '#FCD116',
-                letterSpacing:   '1px',
-                lineHeight:      1.1,
+                border: '1px solid rgba(255,255,255,.25)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 11,
+                fontFamily: "'Cinzel', serif",
+                fontWeight: 900,
+                color: '#FCD116',
+                letterSpacing: '1px',
+                lineHeight: 1.1,
               }}>
                 {firstTeam.name?.slice(0, 2).toUpperCase() ?? 'AP'}
               </div>
@@ -421,30 +428,30 @@ export function AppTopbar({user} :UserProps) {
 
           {/* Séparateur */}
           <div aria-hidden style={{
-            width:           1,
-            height:          28,
-            flexShrink:      0,
+            width: 1,
+            height: 28,
+            flexShrink: 0,
             backgroundColor: 'rgba(255,255,255,.2)',
           }} />
 
           {/* Nom de l'app */}
-          <div className="_tb-brand" style={{ display:'flex', flexDirection:'column', justifyContent:'center', lineHeight:1.2, flexShrink:0 }}>
+          <div className="_tb-brand" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', lineHeight: 1.2, flexShrink: 0 }}>
             <span style={{
-              fontFamily:    "'Cinzel', serif",
-              fontSize:      13,
-              fontWeight:    900,
+              fontFamily: "'Cinzel', serif",
+              fontSize: 13,
+              fontWeight: 900,
               letterSpacing: '.06em',
-              color:         '#FCD116',
+              color: '#FCD116',
             }}>
               {firstTeam.name ?? 'SIMABOU'}
             </span>
             <span style={{
-              fontSize:      9,
-              fontWeight:    500,
+              fontSize: 9,
+              fontWeight: 500,
               letterSpacing: '.2em',
               textTransform: 'uppercase',
-              opacity:       0.55,
-              color:         headerText,
+              opacity: 0.55,
+              color: headerText,
             }}>
               2040
             </span>
@@ -461,7 +468,7 @@ export function AppTopbar({user} :UserProps) {
           <div style={{ flex: 1 }} />
 
           {/* Contrôles droite */}
-          <div className="_tb-ctrl" style={{ display:'flex', alignItems:'center', gap:3 }}>
+          <div className="_tb-ctrl" style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
             <button
               onClick={() => setMobileSearchOpen(true)}
               className="_tb-ibtn md:hidden"
@@ -478,18 +485,18 @@ export function AppTopbar({user} :UserProps) {
             <ConfigDrawer />
             {user && (
               <ProfileDropdown
-            user={user}
-            side={ "bottom" }
-            onLogout={() => setOpen(true)}
-            trigger={
-              <Button>
-                 <Avatar className='h-8 w-8'>
-                  <AvatarImage src={user.personnel_profile_picture ?? ''} alt='profile' />
-                  <AvatarFallback>{userInitials}</AvatarFallback>
-                </Avatar>
-              </Button>
-            }
-          />
+                user={user}
+                side={"bottom"}
+                onLogout={() => setOpen(true)}
+                trigger={
+                  <Button>
+                    <Avatar className='h-8 w-8'>
+                      <AvatarImage src={user.personnel_profile_picture ?? ''} alt='profile' />
+                      <AvatarFallback>{userInitials}</AvatarFallback>
+                    </Avatar>
+                  </Button>
+                }
+              />
             )}
           </div>
         </div>
@@ -498,23 +505,23 @@ export function AppTopbar({user} :UserProps) {
         <div
           className="_tb-row2"
           style={{
-            position:        'relative',
-            borderTop:       '1px solid rgba(255,255,255,.10)',
+            position: 'relative',
+            borderTop: '1px solid rgba(255,255,255,.10)',
             backgroundColor: headerBg2,
-            transition:      'background-color .35s ease',
+            transition: 'background-color .35s ease',
           }}
         >
           <div aria-hidden style={{
-            position: 'absolute', left:0, top:0, bottom:0, width:24,
+            position: 'absolute', left: 0, top: 0, bottom: 0, width: 24,
             background: fadeBgLeft,
-            zIndex:10, pointerEvents:'none',
-            opacity: leftFade ? 1 : 0, transition:'opacity .2s ease',
+            zIndex: 10, pointerEvents: 'none',
+            opacity: leftFade ? 1 : 0, transition: 'opacity .2s ease',
           }} />
           <div aria-hidden style={{
-            position: 'absolute', right:0, top:0, bottom:0, width:24,
+            position: 'absolute', right: 0, top: 0, bottom: 0, width: 24,
             background: fadeBgRight,
-            zIndex:10, pointerEvents:'none',
-            opacity: rightFade ? 1 : 0, transition:'opacity .2s ease',
+            zIndex: 10, pointerEvents: 'none',
+            opacity: rightFade ? 1 : 0, transition: 'opacity .2s ease',
           }} />
 
           <nav
@@ -522,12 +529,12 @@ export function AppTopbar({user} :UserProps) {
             className="_tb-scroll"
             aria-label={t('Navigation principale')}
             style={{
-              display:    'flex',
+              display: 'flex',
               alignItems: 'center',
-              height:     44,
-              gap:        2,
-              padding:    '0 10px',
-              overflowX:  'auto',
+              height: 44,
+              gap: 2,
+              padding: '0 10px',
+              overflowX: 'auto',
             }}
           >
             {sidebarData.navGroups
@@ -552,21 +559,21 @@ export function AppTopbar({user} :UserProps) {
           <div
             className="_tb-subnav"
             style={{
-              borderTop:       '1px solid rgba(255,255,255,.08)',
+              borderTop: '1px solid rgba(255,255,255,.08)',
               backgroundColor: headerBg3,
-              transition:      'background-color .35s ease',
+              transition: 'background-color .35s ease',
             }}
           >
             <nav
               className="_tb-scroll"
               aria-label={t(`Sous-navigation ${activeGroup.title}`)}
               style={{
-                display:    'flex',
+                display: 'flex',
                 alignItems: 'center',
-                height:     44,
-                gap:        2,
-                padding:    '0 10px',
-                overflowX:  'auto',
+                height: 44,
+                gap: 2,
+                padding: '0 10px',
+                overflowX: 'auto',
               }}
             >
               {activeGroup.items.map((sub, idx) => {
@@ -578,11 +585,11 @@ export function AppTopbar({user} :UserProps) {
                     className="_tb-sublink"
                     aria-current={isActive ? 'page' : undefined}
                     style={{
-                      color:           isActive ? '#fff' : `color-mix(in srgb, ${headerText} 65%, transparent)`,
+                      color: isActive ? '#fff' : `color-mix(in srgb, ${headerText} 65%, transparent)`,
                       backgroundColor: isActive ? 'rgba(255,255,255,.20)' : 'transparent',
-                      fontWeight:      isActive ? 700 : 400,
-                      boxShadow:       isActive ? 'inset 0 -2px 0 rgba(255,255,255,.6)' : 'none',
-                      animation:       `_tb-fade 0.18s ${0.02 + idx * 0.03}s both`,
+                      fontWeight: isActive ? 700 : 400,
+                      boxShadow: isActive ? 'inset 0 -2px 0 rgba(255,255,255,.6)' : 'none',
+                      animation: `_tb-fade 0.18s ${0.02 + idx * 0.03}s both`,
                     }}
                   >
                     {sub.icon && <sub.icon className="size-3.5" aria-hidden />}
@@ -596,14 +603,14 @@ export function AppTopbar({user} :UserProps) {
         )}
 
         {/* ══ Bande tricolore Guinée ══ */}
-        <div aria-hidden style={{ display:'flex', height:5 }}>
-          <div style={{ flex:1, backgroundColor:'#CE1126' }} />
-          <div style={{ flex:1, backgroundColor:'#FCD116' }} />
-          <div style={{ flex:1, backgroundColor:'#009460' }} />
+        <div aria-hidden style={{ display: 'flex', height: 5 }}>
+          <div style={{ flex: 1, backgroundColor: '#CE1126' }} />
+          <div style={{ flex: 1, backgroundColor: '#FCD116' }} />
+          <div style={{ flex: 1, backgroundColor: '#009460' }} />
         </div>
 
       </header>
-       <SignOutDialog open={!!open} onOpenChange={setOpen} />
+      <SignOutDialog open={!!open} onOpenChange={setOpen} />
     </>
   )
 }
@@ -631,11 +638,11 @@ function TopNavLink({
       className="_tb-link"
       aria-current={isActive ? 'page' : undefined}
       style={{
-        color:           isActive ? headerText : `color-mix(in srgb, ${headerText} 62%, transparent)`,
+        color: isActive ? headerText : `color-mix(in srgb, ${headerText} 62%, transparent)`,
         backgroundColor: isActive ? 'rgba(255,255,255,.18)' : 'transparent',
-        fontWeight:      isActive ? 700 : 400,
-        boxShadow:       isActive ? 'inset 0 -2px 0 rgba(255,255,255,.65)' : 'none',
-        animation:       `_tb-fade 0.25s ${animDelay}s both`,
+        fontWeight: isActive ? 700 : 400,
+        boxShadow: isActive ? 'inset 0 -2px 0 rgba(255,255,255,.65)' : 'none',
+        animation: `_tb-fade 0.25s ${animDelay}s both`,
       }}
     >
       {item.icon && <item.icon className="size-3.5" aria-hidden />}
@@ -669,11 +676,11 @@ function TopNavCollapsible({
   const isOpen = activeGroupTitle === item.title
 
   const activeStyle = {
-    color:           isRouteActive || isOpen ? headerText : `color-mix(in srgb, ${headerText} 62%, transparent)`,
+    color: isRouteActive || isOpen ? headerText : `color-mix(in srgb, ${headerText} 62%, transparent)`,
     backgroundColor: isRouteActive || isOpen ? 'rgba(255,255,255,.18)' : 'transparent',
-    fontWeight:      (isRouteActive || isOpen ? 700 : 400) as number,
-    boxShadow:       isRouteActive || isOpen ? 'inset 0 -2px 0 rgba(255,255,255,.65)' : 'none',
-    animation:       `_tb-fade 0.25s ${animDelay}s both`,
+    fontWeight: (isRouteActive || isOpen ? 700 : 400) as number,
+    boxShadow: isRouteActive || isOpen ? 'inset 0 -2px 0 rgba(255,255,255,.65)' : 'none',
+    animation: `_tb-fade 0.25s ${animDelay}s both`,
   }
 
   const chevron = (
@@ -686,7 +693,7 @@ function TopNavCollapsible({
         transform: isOpen && subNavMode === 'horizontal' ? 'rotate(180deg)' : 'rotate(0deg)',
       }}
     >
-      <path d="M1 3l4 4 4-4" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M1 3l4 4 4-4" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   )
 
