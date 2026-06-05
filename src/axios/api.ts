@@ -1,155 +1,152 @@
-import axios, { AxiosError, type AxiosRequestConfig } from "axios";
+// lib/axios.ts
+import axios, { AxiosError, type AxiosRequestConfig } from 'axios'
+import { useSessionStore } from '@/stores/others/session.store'
+import { getConfigDuration } from '@/lib/session-config'
 
 export const api = axios.create({
-  baseURL:
-    (import.meta.env.VITE_API_BASE_URL as string) ||
-    "https://api.ruche-sectoriel.net/api",
+  baseURL: (import.meta.env.VITE_API_BASE_URL as string) || 'https://api.ruche-sectoriel.net/api/',
   timeout: 30000,
-});
+  withCredentials: true,  // send cookies automatically if using httpOnly cookies
+})
 
-// ----- Gestion du refresh -----
-let isRefreshing = false;
-let refreshSubscribers: (() => void)[] = [];
-
-function subscribeTokenRefresh(cb: () => void) {
-  refreshSubscribers.push(cb);
-}
-
-function onRefreshed() {
-  refreshSubscribers.forEach((cb) => cb());
-  refreshSubscribers = [];
-}
-
-// Token management utilities
-const TOKEN_KEYS = {
-  ACCESS: "access_token",
-  REFRESH: "refresh_token",
-};
+// ─── Token manager ────────────────────────────────────────────────────────────
+// If you must use localStorage, at least centralise it here
+// Prefer httpOnly cookies set by the server — in that case delete this entirely
+const TOKEN_KEYS = { ACCESS: 'access_token', REFRESH: 'refresh_token' }
 
 export const tokenManager = {
-  getAccessToken: () => localStorage.getItem(TOKEN_KEYS.ACCESS),
+  getAccessToken:  () => localStorage.getItem(TOKEN_KEYS.ACCESS),
   getRefreshToken: () => localStorage.getItem(TOKEN_KEYS.REFRESH),
   setTokens: (access: string, refresh: string) => {
-    localStorage.setItem(TOKEN_KEYS.ACCESS, access);
-    localStorage.setItem(TOKEN_KEYS.REFRESH, refresh);
+    localStorage.setItem(TOKEN_KEYS.ACCESS, access)
+    localStorage.setItem(TOKEN_KEYS.REFRESH, refresh)
   },
   clearTokens: () => {
-    localStorage.removeItem(TOKEN_KEYS.ACCESS);
-    localStorage.removeItem(TOKEN_KEYS.REFRESH);
+    localStorage.removeItem(TOKEN_KEYS.ACCESS)
+    localStorage.removeItem(TOKEN_KEYS.REFRESH)
   },
-};
+}
 
+// ─── Refresh queue ────────────────────────────────────────────────────────────
+let isRefreshing = false
+let refreshSubscribers: Array<(token: string) => void> = []
+// Pass the new access token to queued requests instead of re-reading localStorage
+const subscribeTokenRefresh = (cb: (token: string) => void) => {
+  refreshSubscribers.push(cb)
+}
+const onRefreshed = (newToken: string) => {
+  refreshSubscribers.forEach(cb => cb(newToken))
+  refreshSubscribers = []
+}
+
+// ─── Excluded from refresh logic ──────────────────────────────────────────────
+const EXCLUDED = ['/token/', '/token/refresh/', '/auth/login', '/auth/refresh']
+const isExcluded = (url?: string) => EXCLUDED.some(e => url?.includes(e))
+
+// ─── Request interceptor — attach token ──────────────────────────────────────
+api.interceptors.request.use(config => {
+  const token = tokenManager.getAccessToken()
+  if (token) config.headers.Authorization = `Bearer ${token}`
+  return config
+})
+
+// ─── Response interceptor ─────────────────────────────────────────────────────
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Reset inactivity timer on every successful response
+    const { reset, intervalRef } = useSessionStore.getState()
+    const duration = getConfigDuration()
+    if (intervalRef && duration > 0) reset(duration)
+
+    return response
+  },
   async (error: AxiosError) => {
-    console.log(error);
+    const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean }
 
-    const originalRequest = error.config as AxiosRequestConfig & {
-      _retry?: boolean;
-    };
-
-    // Endpoints à ignorer
-    const excludedEndpoints = ["/token/", "/token/refresh/"];
-
-    const shouldIgnore =
-      excludedEndpoints.some((url) =>
-        originalRequest.url?.includes(url)
-      );
-
-    // Si c'est un endpoint exclu → laisser le catch du service gérer
-    if (shouldIgnore) {
-      return Promise.reject(error);
+    // Let excluded endpoints fall through to their own catch
+    if (isExcluded(originalRequest.url)) {
+      return Promise.reject(error)
     }
 
-    // Gestion normale des 401
+    // ── 401 handling ──────────────────────────────────────────────────────────
     if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
+      originalRequest._retry = true
 
+      // Another request is already refreshing — queue this one
       if (isRefreshing) {
-        return new Promise((resolve) => {
-          subscribeTokenRefresh(() => {
-            resolve(api(originalRequest));
-          });
-        });
+        return new Promise((resolve, reject) => {
+          subscribeTokenRefresh((newToken) => {
+            if (!originalRequest.headers) originalRequest.headers = {}
+            originalRequest.headers.Authorization = `Bearer ${newToken}`
+            resolve(api(originalRequest))
+          })
+        })
       }
 
-      isRefreshing = true;
-
-      const refreshToken = tokenManager.getRefreshToken();
+      isRefreshing = true
+      const refreshToken = tokenManager.getRefreshToken()
 
       if (!refreshToken) {
-        isRefreshing = false;
-        tokenManager.clearTokens();
-        window.location.href = "/sign-in";
-
-        return Promise.reject(error);
+        isRefreshing = false
+        tokenManager.clearTokens()
+        useSessionStore.getState().stop()   // stop timer only when truly logging out
+        window.location.href = '/sign-in'
+        return Promise.reject(error)
       }
 
       try {
-        const response = await api.post("/token/refresh/", {
-          refresh: refreshToken,
-        });
+        const { data } = await api.post('/token/refresh/', { refresh: refreshToken })
+        const { access } = data
 
-        const { access } = response.data;
+        tokenManager.setTokens(access, refreshToken)
+        isRefreshing = false
+        onRefreshed(access)   // unblock queued requests with new token
 
-        tokenManager.setTokens(access, refreshToken);
+        // Resume original request with new token
+        if (!originalRequest.headers) originalRequest.headers = {}
+        originalRequest.headers.Authorization = `Bearer ${access}`
+        return api(originalRequest)
 
-        isRefreshing = false;
-
-        onRefreshed();
-
-        return api(originalRequest);
       } catch (refreshError) {
-        isRefreshing = false;
-
-        tokenManager.clearTokens();
-
-        window.location.href = "/sign-in";
-
-        return Promise.reject(refreshError);
+        isRefreshing = false
+        tokenManager.clearTokens()
+        useSessionStore.getState().stop()   // now it's safe to stop
+        window.location.href = '/sign-in'
+        return Promise.reject(refreshError)
       }
     }
 
-    return Promise.reject(error);
+    return Promise.reject(error)
   }
-);
+)
 
-// ----- Client avec retry -----
+// ─── Client with retry ────────────────────────────────────────────────────────
+const RETRYABLE_STATUS = new Set([500, 502, 503, 504])
+
 export const apiClient = {
   async request<T>(
     endpoint: string,
     options: AxiosRequestConfig & { retries?: number } = {}
   ): Promise<T> {
-    const { retries = 3, ...axiosConfig } = options;
-
-    // Add auth token if required
-    const token = tokenManager.getAccessToken();
-    if (token) {
-      axiosConfig.headers = {
-        ...axiosConfig.headers,
-        Authorization: `Bearer ${token}`,
-      };
-    }
+    const { retries = 3, ...axiosConfig } = options
 
     for (let attempt = 0; attempt <= retries; attempt++) {
       try {
-        const res = await api.request<T>({ url: endpoint, ...axiosConfig });
-        return res.data;
-      } catch (err: unknown) {
-        if (
-          attempt < retries &&
-          err instanceof AxiosError &&
-          err.response?.status &&
-          err.response?.status >= 500
-        ) {
-          await new Promise((res) =>
-            setTimeout(res, Math.pow(2, attempt) * 1000)
-          );
-          continue;
+        const res = await api.request<T>({ url: endpoint, ...axiosConfig })
+        return res.data
+      } catch (err) {
+        const isAxiosErr  = err instanceof AxiosError
+        const status      = (err as AxiosError)?.response?.status
+        const shouldRetry = isAxiosErr && status !== undefined && RETRYABLE_STATUS.has(status)
+
+        if (attempt < retries && shouldRetry) {
+          // Exponential backoff: 1s, 2s, 4s
+          await new Promise(res => setTimeout(res, Math.pow(2, attempt) * 1000))
+          continue
         }
-        throw err;
+        throw err
       }
     }
-    throw new Error("Max retries exceeded");
+    throw new Error('Max retries exceeded')
   },
-};
+}

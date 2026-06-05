@@ -79,6 +79,7 @@ export function UserAuthForm({
               <FormMessage />
               <Link
                 to='/forgot-password'
+                  search={{ mode: 'forgot' }} 
                 className='absolute inset-e-0 -top-0.5 text-sm font-medium text-muted-foreground hover:opacity-75'
               >
                 Mot de passe oublié?

@@ -17,6 +17,7 @@ import { DirectionProvider } from './stores/others/direction-provider'
 import './styles/index.css'
 import { AuthProvider } from './simadou/allContext/authProvider'
 import { useAuthStore } from './stores/auth-store'
+import { SessionProvider } from './simadou/allContext/sessionProvider'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -103,10 +104,12 @@ if (!rootElement.innerHTML) {
   root.render(
      <StrictMode>
     <QueryClientProvider client={queryClient}>  
-      <AuthProvider>                           
+      <AuthProvider>     
+        <SessionProvider>                    
         <DirectionProvider>
           <RouterProvider router={router} />
         </DirectionProvider>
+        </SessionProvider>  
       </AuthProvider>
     </QueryClientProvider>
   </StrictMode>

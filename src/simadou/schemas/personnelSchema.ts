@@ -1,5 +1,7 @@
 import { z } from 'zod'
 import { isValidPhoneNumber } from 'react-phone-number-input'
+const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
+const MAX_SIZE_MB = 2
 
 // Schéma pour la création de personnel (PersonnelRequest)
 export const personnelCreateSchema = z.object({
@@ -86,6 +88,19 @@ export const UpdateRegionSchema = z.object({
   region_perso: z.string().min(1, ""),
 })
 
+
+export const profilePictureSchema = z.object({
+  file: z
+    .instanceof(File)
+    .refine(f => f.size <= MAX_SIZE_MB * 1024 * 1024, 
+      `Taille maximale : ${MAX_SIZE_MB} Mo`)
+    .refine(f => ACCEPTED_TYPES.includes(f.type), 
+      'Format accepté : JPG, PNG ou WEBP'),
+})
+
 export type UpdateTelephoneInput = z.infer<typeof UpdateTelephoneSchema>
 export type UpdateTitleInput     = z.infer<typeof UpdateTitleSchema>
 export type UpdateRegionInput    = z.infer<typeof UpdateRegionSchema>
+export type UpdateProfilePictureInput = z.infer<typeof profilePictureSchema>
+
+

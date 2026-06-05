@@ -43,6 +43,8 @@ interface DynamicFormProps {
   embedded?: boolean
   /** Largeur max. du formulaire embarqué (ex. modales suivi PTBA) */
   className?: string
+   hideFormFooter ? : boolean
+   formId ? : string
 }
 
 export interface DynamicFormHandle {
@@ -68,6 +70,8 @@ export const DynamicForm = forwardRef<DynamicFormHandle, DynamicFormProps>(
       backText = 'Précédent',
       embedded = false,
       className,
+    hideFormFooter,
+   formId
     },
     ref
   ) => {
@@ -158,7 +162,7 @@ export const DynamicForm = forwardRef<DynamicFormHandle, DynamicFormProps>(
 
         {/* ── Corps du formulaire ── */}
         <Form {...form}>
-          <form onSubmit={handleSubmit(onSubmit as any)}>
+          <form onSubmit={handleSubmit(onSubmit as any)}  id={formId}  >    
             <div className={cn(embedded ? 'px-0 pt-0 pb-1' : 'p-6')}>
               <div
                 className={cn(
@@ -197,13 +201,13 @@ export const DynamicForm = forwardRef<DynamicFormHandle, DynamicFormProps>(
               )}
             />
 
-            {/* ── Pied du formulaire (aligné StepDynamicForm / PTBA) ── */}
-            <div
-              className={cn(
-                'flex flex-wrap items-center gap-2',
-                embedded
-                  ? 'justify-end pt-3'
-                  : 'justify-between gap-x-4 px-6 py-4'
+            {/* ── Pied du formulaire (aligné StepDynamicForm / PTBA) ── Cacher si hideFormFooter */}
+           {!hideFormFooter && (
+             <div
+               className={cn(
+                'flex items-center gap-4',
+                embedded ? 'justify-end pt-3' : 'justify-between px-6 py-4',
+               
               )}
             >
                 {/* Indicateur de statut (masqué en modal embarqué sauf erreurs) */}
@@ -287,6 +291,7 @@ export const DynamicForm = forwardRef<DynamicFormHandle, DynamicFormProps>(
                   </Button>
                 </div>
             </div>
+           )}
           </form>
         </Form>
       </div>

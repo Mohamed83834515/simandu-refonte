@@ -4,10 +4,11 @@ import { authService } from './allSercices/authService'
 import { useAuthStore } from '@/stores/auth-store'
 
 export async function requireAuth() {
-    console.log("isAuthentificated :", authService.isAuthenticated)
+    console.log("isAuthentificated :", authService.isAuthenticated())
   if (!authService.isAuthenticated()) {
     // Try a silent refresh before hard-redirecting
     const refreshed = await authService.refreshToken()
+
     if (!refreshed) {
        throw redirect({
         to: '/sign-in',

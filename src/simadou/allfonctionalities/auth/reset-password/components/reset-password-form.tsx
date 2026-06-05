@@ -40,7 +40,7 @@ export function ResetPasswordForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const navigate = useNavigate()
 
-  const route = getRouteApi('/(auth)/reset-password/$uid/$token')
+  const route = getRouteApi('/(auth)/set-password/$uid/$token')
   const { uid, token } = route.useParams()
 
   const form = useForm<ResetPasswordCredentials>({

@@ -109,7 +109,7 @@ export const authService = {
   isAuthenticated(): boolean {
     const accessToken = tokenManager.getAccessToken();
     if (!accessToken) return false;
-
+  
     try {
       const payload = JSON.parse(atob(accessToken.split(".")[1]));
       const currentTime = Date.now() / 1000;
@@ -132,6 +132,8 @@ export const authService = {
           data: { refresh: refreshToken },
         }
       );
+
+    
 
       const { access } = response;
       tokenManager.setTokens(access, refreshToken);

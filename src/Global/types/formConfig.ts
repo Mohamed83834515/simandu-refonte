@@ -126,6 +126,7 @@ export interface FieldConfig {
   startName?: string;
   endName?: string;
   showPasswordChecker ? : boolean
+ 
 
 }
 

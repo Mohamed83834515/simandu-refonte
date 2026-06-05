@@ -3,6 +3,7 @@ import { BadgeCheck, Briefcase, Building2, Dna, KeyRound, LucideIcon, Mail, MapP
 import { useState } from 'react'
 import EditFieldDialog from './EditFieldDialog'
 import { useMe } from '@/simadou/allHooks/auth/authHooks'
+import { formatDate } from '@/lib/utils'
 
 export type EditableField =
   | "title"
@@ -91,7 +92,7 @@ export function ProfileForm() {
 
     {
       label: "Mot de passe",
-      value: "Dernière modification le 12 Avril 2026",
+      value: `Dernière modification le ${formatDate(new Date(personnel!.password_last_modified))}`,
       icon:KeyRound,
        isEditable : true,
         key :"password"

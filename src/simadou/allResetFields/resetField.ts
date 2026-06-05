@@ -503,3 +503,57 @@ export const ZONE_COLLECTE = {
   nom_zone: "",
   type_zone: "",
 };
+
+
+// =========GENERAL_PARAMS_IDENTITE==================
+export const GENERAL_PARAMS_IDENTITE = {
+  appName:          '',
+  systemSigle:      '',
+  systemTitle:      '',
+  structureSigle:   '',
+  structureName:    '',
+  structureAddress: '',
+  primaryColor:     '',
+}
+
+// =========GENERAL_PARAMS_CONTACTS==================
+export const GENERAL_PARAMS_CONTACTS = {
+  contactEmail:      '',
+  contactPhone:      '',
+  address:           '',
+  website:           '',
+  structureEmail:    '',
+  structurePhone:    '',
+  structureWhatsapp: '',
+}
+
+// =========GENERAL_PARAMS_FINANCE==================
+export const GENERAL_PARAMS_FINANCE = {
+  currencyCode: '',
+  baseCurrency: '',
+  exchangeRate: 0,
+}
+
+// =========GENERAL_PARAMS_SECURITE==================
+export const GENERAL_PARAMS_SECURITE = {
+  maintenanceMode:            false,
+  inactivityDelayMinutes:     30,
+  maxSessions:                2,
+  loginAttemptsLimit:         3,
+  tpCodeDelayMinutes:         5,
+  passwordChangeDelayMonths:  6,
+  deleteOrUpdateDelaySeconds: 5,
+}
+
+// =========GENERAL_PARAMS_NOTIFICATIONS==================
+export const GENERAL_PARAMS_NOTIFICATIONS = {
+  whatsappInstanceCode:      '',
+  notificationEmail:         '',
+  notificationEmailPassword: '',
+  smtpHost:                  '',
+}
+
+// =========GENERAL_PARAMS_INTEGRATIONS==================
+export const GENERAL_PARAMS_INTEGRATIONS = {
+  parentApiUrl: '',
+}

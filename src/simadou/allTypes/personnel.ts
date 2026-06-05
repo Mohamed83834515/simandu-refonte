@@ -29,4 +29,6 @@ export interface Personnel extends Record<string, unknown> {
   ugl_perso?: string | null;
   projet_active_perso?: ProjetActivePerso[];
   pass?: string;
+  password_last_modified : string
+  personnel_profile_picture : string | null
 }

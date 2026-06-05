@@ -42,7 +42,7 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter>
         {user && (
-          <NavUser user={{name : user.nom_perso ?? "Simadou", email : user.email ?? "hello@gmail.com", id : user.id_personnel_perso ?? "4", statut : user.statut ?? 1}} />
+          <NavUser user={{nom_perso : user.nom_perso ?? "Simadou", email : user.email ?? "hello@gmail.com", id_personnel_perso: user.id_personnel_perso ?? "4", statut : user.statut ?? 1, personnel_profile_picture : user.personnel_profile_picture, prenom_perso : user.prenom_perso}} />
         )}
         
       </SidebarFooter>
