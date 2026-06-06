@@ -12,6 +12,7 @@ import {
   useGetAllSuivisIndicateurs,
   useGetIndicateursByActivite,
 } from '@/simadou/allHooks/admin/suiviPtbaHooks'
+import ActiviteTabbedFormPanel from '../ActiviteTabbedFormPanel'
 import {
   ActiviteTabbedSubViewHeader,
   useActiviteTabbedSubView,
@@ -80,7 +81,7 @@ export default function SuiviIndicateurManager({
 
   if (isLoading) {
     return (
-      <div className='flex items-center justify-center py-12'>
+      <div className='flex items-center justify-center py-8'>
         <Loader2 className='h-8 w-8 animate-spin text-muted-foreground' />
       </div>
     )
@@ -88,77 +89,78 @@ export default function SuiviIndicateurManager({
 
   if (view === 'suivi-form' && selectedIndicateur) {
     return (
-      <div className='space-y-4 p-4'>
-        <ActiviteTabbedSubViewHeader sectionLabel='Suivi des indicateurs' />
+      <ActiviteTabbedFormPanel
+        header={
+          <ActiviteTabbedSubViewHeader
+            sectionLabel={`Suivi — ${selectedIndicateur.intitule_indicateur_tache}`}
+            className='shrink-0 border-0 px-0 pb-0 text-sm font-semibold text-foreground'
+          />
+        }
+      >
         <SuiviIndicateurForm
           indicateur={selectedIndicateur}
           suivi={editingSuivi}
           onClose={handleCloseSuiviForm}
           onSuccess={handleSuiviFormSuccess}
         />
-      </div>
+      </ActiviteTabbedFormPanel>
     )
   }
 
   return (
-    <div className='space-y-4'>
-      <div className='border-b px-4 py-3'>
-        <span className='text-lg font-semibold'>Suivi des indicateurs</span>
-      </div>
-
-      <div className='space-y-4 p-4'>
+    <div className='flex min-h-0 flex-1 flex-col overflow-hidden'>
+      <div className='min-h-0 flex-1 overflow-y-auto px-3 py-2 sm:px-4 sm:py-3'>
         {indicateurs.length === 0 ? (
-          <div className='rounded-lg bg-muted/50 py-8 text-center text-muted-foreground'>
-            <p className='font-medium'>Aucun indicateur pour cette activité</p>
-            <p className='mt-2 text-sm'>
+          <div className='rounded-lg bg-muted/50 py-6 text-center text-muted-foreground'>
+            <p className='text-sm font-medium'>Aucun indicateur pour cette activité</p>
+            <p className='mt-1 text-xs'>
               Les indicateurs doivent être créés dans la section Programmation.
             </p>
           </div>
         ) : (
-          indicateurs.map((indicateur) => (
-            <div
-              key={indicateur.id_indicateur_activite}
-              className='space-y-2 rounded-lg border p-3'
-            >
-              <div className='flex items-center justify-between gap-2 rounded-md bg-muted/60 px-4 py-2'>
-                <div className='min-w-0 flex-1'>
-                  <span className='font-medium'>
-                    {indicateur.intitule_indicateur_tache}
-                  </span>
-                  <span className='ml-2 text-sm text-muted-foreground'>
-                    (
-                    {typeof indicateur.abrege_unite === 'object'
-                      ? indicateur.abrege_unite?.unite_ui
-                      : 'Unité'}
-                    )
-                  </span>
-                  <span className='ml-2 text-xs text-muted-foreground'>
-                    Code: {indicateur.code_indicateur_activite}
-                  </span>
+          <div className='space-y-3'>
+            {indicateurs.map((indicateur) => (
+              <div
+                key={indicateur.id_indicateur_activite}
+                className='space-y-2 rounded-lg border p-2 sm:p-3'
+              >
+                <div className='flex items-center justify-between gap-2 rounded-md bg-muted/60 px-3 py-2'>
+                  <div className='min-w-0 flex-1'>
+                    <span className='text-sm font-medium'>
+                      {indicateur.intitule_indicateur_tache}
+                    </span>
+                    <span className='ml-2 text-xs text-muted-foreground'>
+                      (
+                      {typeof indicateur.abrege_unite === 'object'
+                        ? indicateur.abrege_unite?.unite_ui
+                        : 'Unité'}
+                      )
+                    </span>
+                  </div>
+                  <ThemedPrimaryButton
+                    onClick={() => handleAddSuivi(indicateur)}
+                    icon={Plus}
+                    className='h-8 shrink-0 px-3 text-sm'
+                  >
+                    Ajouter un suivi
+                  </ThemedPrimaryButton>
                 </div>
-                <ThemedPrimaryButton
-                  onClick={() => handleAddSuivi(indicateur)}
-                  icon={Plus}
-                  className='h-8 px-3 text-sm'
-                >
-                  Ajouter un suivi
-                </ThemedPrimaryButton>
-              </div>
 
-              <SuiviIndicateurList
-                suivis={suivis.filter(
-                  (s) =>
-                    (typeof s.indicateur_activite === 'string' &&
-                      s.indicateur_activite ===
-                        indicateur.code_indicateur_activite) ||
-                    (typeof s.indicateur_activite === 'object' &&
-                      s.indicateur_activite?.code_indicateur_activite ===
-                        indicateur.code_indicateur_activite)
-                )}
-                onEdit={handleEditSuivi}
-              />
-            </div>
-          ))
+                <SuiviIndicateurList
+                  suivis={suivis.filter(
+                    (s) =>
+                      (typeof s.indicateur_activite === 'string' &&
+                        s.indicateur_activite ===
+                          indicateur.code_indicateur_activite) ||
+                      (typeof s.indicateur_activite === 'object' &&
+                        s.indicateur_activite?.code_indicateur_activite ===
+                          indicateur.code_indicateur_activite)
+                  )}
+                  onEdit={handleEditSuivi}
+                />
+              </div>
+            ))}
+          </div>
         )}
       </div>
     </div>

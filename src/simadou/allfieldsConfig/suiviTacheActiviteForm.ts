@@ -46,9 +46,10 @@ export const getSuiviTacheActiviteFormConfig = (): FormConfig => ({
       multiple: true,
       accept: "application/pdf,image/*,.doc,.docx",
       maxSize: 10,
-      helperText: "PDF, images ou documents (max 10 Mo par fichier)",
+      helperText: "PDF, images ou documents (max 10 Mo)",
       required: false,
       gridCols: 1,
+      className: "compact-file",
     },
   ],
 });

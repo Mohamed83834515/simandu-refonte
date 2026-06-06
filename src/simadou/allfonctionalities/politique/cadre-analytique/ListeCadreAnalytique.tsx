@@ -30,7 +30,8 @@ import { useGetActeurs } from '@/simadou/allHooks/admin/acteurHooks'
 import {
   NiveauTabTrigger,
   NiveauTabsList,
-} from '@/simadou/allfonctionalities/projets/detail/NiveauTabs'
+  useNiveauTabsTheme,
+} from '@/components/ui/NiveauTabs'
 import {
   filterNiveauxByProgramme,
   getNiveauCadreAnalytiqueLibelle,
@@ -116,6 +117,7 @@ export default function ListeCadreAnalytique() {
   )
 
   const hasNiveaux = sortedNiveaux.length > 0
+  const { tabsStyle } = useNiveauTabsTheme()
 
   const [activeNiveauCode, setActiveNiveauCode] = useState<string>('')
   const [searchTerm, setSearchTerm] = useState('')
@@ -232,12 +234,15 @@ export default function ListeCadreAnalytique() {
   return (
     <div className='space-y-4'>
       <Tabs
+        orientation='vertical'
+        className='space-y-4'
+        style={tabsStyle}
         key={sortedNiveaux.length}
         value={String(currentNiveauCode)}
         onValueChange={handleTabChange}
       >
-        <div className='flex flex-col gap-4 border-b pb-3 lg:flex-row lg:items-center lg:justify-between'>
-          <div className='overflow-x-auto'>
+        <div className='flex items-center justify-between gap-4'>
+          <div className='flex-1 overflow-x-auto'>
             <NiveauTabsList>
               {sortedNiveaux.map((n) => (
                 <NiveauTabTrigger
@@ -251,7 +256,7 @@ export default function ListeCadreAnalytique() {
             </NiveauTabsList>
           </div>
 
-          <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
+          <div className='flex shrink-0 flex-col gap-2 sm:flex-row sm:items-center'>
             <div className='relative'>
               <Search className='absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
               <Input
@@ -272,7 +277,6 @@ export default function ListeCadreAnalytique() {
           <TabsContent
             key={n.id_nca}
             value={String(n.code_number_nca)}
-            className='mt-3'
           >
             {Number(n.code_number_nca) === currentNiveauCode && (
               <CadreAnalytiqueNiveauTable

@@ -17,9 +17,8 @@ import AddPlanSite from './AddPlanSite'
 import { GenericDeleteDialog } from '@/Global/Tableaux/GenericDeleteDialog'
 import useDialogState from '@/hooks/use-dialog-state'
 import type { PlanSite } from '@/simadou/allTypes/planSite'
-import { CHART_COLORS, useColor } from '@/stores/others/color-store'
 import { useGetNiveauxPlanSite } from '@/simadou/allHooks/admin/niveauPlanSiteHooks'
-import { NiveauTabsList, NiveauTabTrigger } from '@/components/ui/NiveauTabs'
+import { NiveauTabsList, NiveauTabTrigger, useNiveauTabsTheme } from '@/components/ui/NiveauTabs'
 import NiveauPlanSiteManager from './niveau/NiveauPlanSiteManager'
 
 type ModalState = 'form' | 'niveaux'
@@ -34,8 +33,7 @@ export default function ListePlanSite() {
     [niveaux]
   )
 
-  const { color } = useColor()
-  const { stroke } = CHART_COLORS[color]
+  const { tabsStyle } = useNiveauTabsTheme()
   const hasNiveaux = sortedNiveaux.length > 0
 
   const [activeNiveauId, setActiveNiveauId] = useState<string>('')
@@ -150,12 +148,7 @@ export default function ListePlanSite() {
       <Tabs
         orientation='vertical'
         className='space-y-4'
-        style={
-          {
-            '--tab-active-bg': stroke,
-            '--tab-active-color': '#ffffff',
-          } as React.CSSProperties
-        }
+        style={tabsStyle}
         key={sortedNiveaux.length}
         value={String(currentNiveauId)}
         onValueChange={setActiveNiveauId}

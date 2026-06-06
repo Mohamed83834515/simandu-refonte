@@ -245,11 +245,16 @@ export const FormField = ({
           <Controller
             name={field.name}
             control={control}
-            render={({ field: controllerField }) => (
-              <div className='space-y-2'>
+            render={({ field: controllerField }) => {
+              const isCompactFile = field.className?.includes('compact-file')
+              return (
+              <div className={cn('space-y-2', isCompactFile && 'space-y-1')}>
                 <div
                   className={cn(
-                    'relative rounded-lg border-2 border-dashed p-4 transition-colors',
+                    'relative rounded-lg border transition-colors',
+                    isCompactFile
+                      ? 'border-dashed p-2'
+                      : 'border-2 border-dashed p-4',
                     controllerField.value instanceof File
                       ? 'border-solid'
                       : 'cursor-pointer hover:border-primary/50',
@@ -288,7 +293,10 @@ export const FormField = ({
                             {controllerField.value.length}/3
                           </span>
                         </div>
-                        <div className='max-h-60 space-y-2 overflow-y-auto'>
+                        <div className={cn(
+                          'space-y-2 overflow-y-auto',
+                          isCompactFile ? 'max-h-28' : 'max-h-60'
+                        )}>
                           {controllerField.value.map(
                             (file: File, index: number) => (
                               <div
@@ -374,7 +382,10 @@ export const FormField = ({
                             {controllerField.value.length}/3
                           </span>
                         </div>
-                        <div className='max-h-60 space-y-2 overflow-y-auto'>
+                        <div className={cn(
+                          'space-y-2 overflow-y-auto',
+                          isCompactFile ? 'max-h-28' : 'max-h-60'
+                        )}>
                           {controllerField.value.map(
                             (url: string, index: number) => (
                               <div
@@ -466,7 +477,10 @@ export const FormField = ({
                       </div>
                     ) : (
                       <div
-                        className='flex w-full cursor-pointer flex-col items-center text-center'
+                        className={cn(
+                          'flex w-full cursor-pointer flex-col items-center text-center',
+                          isCompactFile && 'py-1'
+                        )}
                         onClick={() =>
                           document.getElementById(field.name)?.click()
                         }
@@ -474,22 +488,27 @@ export const FormField = ({
                         <div className='flex items-center justify-center'>
                           {getFileIcon()}
                         </div>
-                        <div className='mt-2'>
-                          <p className='text-sm font-medium text-gray-600'>
+                        <div className={cn(isCompactFile ? 'mt-1' : 'mt-2')}>
+                          <p
+                            className={cn(
+                              'font-medium text-gray-600',
+                              isCompactFile ? 'text-xs' : 'text-sm'
+                            )}
+                          >
                             Cliquez pour choisir{' '}
                             {field.multiple ? 'des fichiers' : 'un fichier'}
                           </p>
-                          {field.multiple && (
+                          {!isCompactFile && field.multiple && (
                             <p className='mt-1 text-xs text-gray-400'>
                               Maximum 3 fichiers
                             </p>
                           )}
-                          {field.accept && (
+                          {!isCompactFile && field.accept && (
                             <p className='mt-1 text-xs text-gray-400'>
                               Formats: {field.accept}
                             </p>
                           )}
-                          {field.maxSize && (
+                          {!isCompactFile && field.maxSize && (
                             <p className='text-xs text-gray-400'>
                               Taille max: {field.maxSize}MB{' '}
                               {field.multiple ? 'par fichier' : ''}
@@ -511,7 +530,8 @@ export const FormField = ({
                   )}
                 </div>
               </div>
-            )}
+              )
+            }}
           />
         )
 

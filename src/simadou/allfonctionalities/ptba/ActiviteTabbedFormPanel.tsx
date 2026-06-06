@@ -7,7 +7,7 @@ type ActiviteTabbedFormPanelProps = {
   className?: string
 }
 
-/** Conteneur pour les sous-vues formulaire dans le modal activité PTBA. */
+/** Conteneur pour les sous-vues formulaire dans le modal planification PTBA. */
 export default function ActiviteTabbedFormPanel({
   children,
   header,

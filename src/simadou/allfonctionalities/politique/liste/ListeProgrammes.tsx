@@ -10,14 +10,12 @@ import {
 } from '@/components/ui/dialog'
 import { GenericTable } from '@/Global/Generic/Generictable'
 import { GenericDeleteDialog } from '@/Global/Tableaux/GenericDeleteDialog'
-import { useProgrammeStore } from '@/stores/programme-store'
 import type { Programme } from '@/simadou/allTypes/programme'
 import {
   useDeleteProgramme,
   useGetProgrammes,
 } from '@/simadou/allHooks/admin/programmeHooks'
 import { buildProgrammeColumns } from '@/simadou/allColonnes/programme-columns'
-import { ProgrammeActiveSelect } from './ProgrammeActiveSelect'
 import ProgrammeFormPanel from './ProgrammeFormPanel'
 
 const route = getRouteApi('/_authenticated/programme/liste/')
@@ -29,34 +27,11 @@ export default function ListeProgrammes() {
   const { data: programmes = [] } = useGetProgrammes()
   const deleteMutation = useDeleteProgramme()
 
-  const setActiveProgramme = useProgrammeStore((s) => s.setActiveProgramme)
-
-  const [filterProgrammeId, setFilterProgrammeId] = useState<string | null>(null)
-
   const [editOpen, setEditOpen] = useState(false)
   const [currentRow, setCurrentRow] = useState<Programme | null>(null)
 
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [rowToDelete, setRowToDelete] = useState<Programme | null>(null)
-
-  const handleProgrammeFilterChange = useCallback(
-    (programmeId: string | null) => {
-      setFilterProgrammeId(programmeId)
-      if (!programmeId) return
-      const selected = programmes.find(
-        (p) => String(p.id_programme) === programmeId
-      )
-      if (selected) setActiveProgramme(selected)
-    },
-    [programmes, setActiveProgramme]
-  )
-
-  const filteredProgrammes = useMemo(() => {
-    if (!filterProgrammeId) return programmes
-    return programmes.filter(
-      (p) => String(p.id_programme) === filterProgrammeId
-    )
-  }, [programmes, filterProgrammeId])
 
   const closeEditModal = useCallback(() => {
     setEditOpen(false)
@@ -85,7 +60,7 @@ export default function ListeProgrammes() {
   return (
     <>
       <GenericTable<Programme>
-        data={filteredProgrammes}
+        data={programmes}
         columns={columns}
         search={search}
         navigate={navigate}
@@ -104,13 +79,6 @@ export default function ListeProgrammes() {
           },
         ]}
         showViewOptions={false}
-        toolbarEndSlot={
-          <ProgrammeActiveSelect
-            programmes={programmes}
-            value={filterProgrammeId}
-            onChange={handleProgrammeFilterChange}
-          />
-        }
         emptyMessage='Aucun programme.'
       />
 

@@ -14,7 +14,7 @@ import {
   Tabs,
   TabsContent,
 } from '@/components/ui/tabs'
-import { NiveauTabTrigger, NiveauTabsList } from '../NiveauTabs'
+import { NiveauTabTrigger, NiveauTabsList, useNiveauTabsTheme } from '@/components/ui/NiveauTabs'
 import { GenericTable } from '@/Global/Generic/Generictable'
 import { GenericDeleteDialog } from '@/Global/Tableaux/GenericDeleteDialog'
 import useDialogState from '@/hooks/use-dialog-state'
@@ -133,6 +133,7 @@ export default function ProjetActivitesPanel({ projet }: { projet: Projet }) {
   )
 
   const hasNiveaux = sortedNiveaux.length > 0
+  const { tabsStyle } = useNiveauTabsTheme()
 
   const [tabActive, setTabActive] = useState<string>('')
   const [addBoutonLabel, setAddBoutonLabel] = useState<string>('une activité')
@@ -252,6 +253,9 @@ export default function ProjetActivitesPanel({ projet }: { projet: Projet }) {
         </Card>
       ) : (
         <Tabs
+          orientation='vertical'
+          className='space-y-4'
+          style={tabsStyle}
           key={sortedNiveaux.length}
           value={String(currentNiveau)}
           onValueChange={(val) => {
@@ -261,7 +265,6 @@ export default function ProjetActivitesPanel({ projet }: { projet: Projet }) {
             setTabActive(val)
             setAddBoutonLabel(n?.libelle_niveau_activite_projet ?? 'une activité')
           }}
-          className='w-full'
         >
           <div className='overflow-x-auto'>
             <NiveauTabsList>
@@ -281,7 +284,7 @@ export default function ProjetActivitesPanel({ projet }: { projet: Projet }) {
             <TabsContent
               key={niveau.id_niveau_activite_projet}
               value={String(niveau.nombre_niveau_activite_projet)}
-              className='mt-3 focus-visible:outline-none'
+              className='focus-visible:outline-none'
             >
               {String(niveau.nombre_niveau_activite_projet) === String(currentNiveau) && (
                 <ActiviteProjetNiveauTable

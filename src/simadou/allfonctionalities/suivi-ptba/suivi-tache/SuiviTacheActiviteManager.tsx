@@ -95,7 +95,6 @@ export default function SuiviTacheActiviteManager({
     <div className='flex min-h-0 flex-1 flex-col overflow-hidden'>
         {showForm && selectedTache ? (
           <ActiviteTabbedFormPanel
-            maxWidth='lg'
             header={
               <ActiviteTabbedSubViewHeader
                 sectionLabel={`Suivi — ${selectedTache.intutile_tache_gt}`}
@@ -112,7 +111,7 @@ export default function SuiviTacheActiviteManager({
             />
           </ActiviteTabbedFormPanel>
         ) : (
-          <div className='min-h-0 flex-1 overflow-y-auto px-6 py-5'>
+          <div className='min-h-0 flex-1 overflow-y-auto px-3 py-2 sm:px-4 sm:py-3'>
             <SuiviTacheActiviteList
               taches={filteredTaches}
               suivis={suivisForTaches}
@@ -122,8 +121,8 @@ export default function SuiviTacheActiviteManager({
         )}
 
       {!showForm && (
-        <div className='shrink-0 border-t bg-muted/40 px-6 py-4 text-sm'>
-          <div className='flex flex-wrap items-center justify-between gap-6'>
+        <div className='shrink-0 border-t bg-muted/40 px-3 py-2 text-sm sm:px-4'>
+          <div className='flex flex-wrap items-center justify-between gap-3'>
             <TacheAvancementProgressBar percent={tauxAvancementGlobal} />
             {filteredTaches.length > 0 && (
               <div className='shrink-0 text-xs text-muted-foreground'>

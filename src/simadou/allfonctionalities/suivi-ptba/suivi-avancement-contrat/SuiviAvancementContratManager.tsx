@@ -66,7 +66,6 @@ export default function SuiviAvancementContratManager({
     <div className='flex min-h-0 flex-1 flex-col overflow-hidden'>
         {showForm ? (
           <ActiviteTabbedFormPanel
-            maxWidth='xl'
             header={
               <ActiviteTabbedSubViewHeader
                 sectionLabel="Observation globale sur l'activité"
@@ -82,7 +81,7 @@ export default function SuiviAvancementContratManager({
             />
           </ActiviteTabbedFormPanel>
         ) : (
-          <div className='min-h-0 flex-1 overflow-y-auto p-6'>
+          <div className='min-h-0 flex-1 overflow-y-auto px-3 py-2 sm:px-4 sm:py-3'>
             <SuiviAvancementContratList
               suivis={suivis}
               idActivite={activite.id_ptba}
@@ -93,16 +92,8 @@ export default function SuiviAvancementContratManager({
         )}
 
       {!showForm && (
-        <div className='shrink-0 border-t bg-muted/40 px-6 py-4 text-sm'>
-          <div className='flex flex-wrap items-center justify-between gap-4'>
-            <div>
-              <span className='font-medium'>Activité :</span>{' '}
-              {activite.code_activite_ptba} — {activite.intitule_activite_ptba}
-            </div>
-            <div className='text-xs text-muted-foreground'>
-              {suivis.length} observation(s) globale(s)
-            </div>
-          </div>
+        <div className='shrink-0 border-t bg-muted/40 px-3 py-2 text-xs text-muted-foreground sm:px-4'>
+          {suivis.length} observation(s) globale(s)
         </div>
       )}
     </div>
