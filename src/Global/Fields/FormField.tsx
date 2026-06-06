@@ -231,71 +231,19 @@ export const FormField = ({
             control={control}
             render={({ field: controllerField }) => {
               const isCompactFile = field.className?.includes('compact-file')
-              const maxFiles = field.multiple ? 3 : 1
-
-              const renderFileToolbar = (
-                count: number,
-                onAdd: () => void,
-                onClear: () => void
-              ) => (
-                <div className='mb-1.5 flex items-center justify-between gap-2'>
-                  <span className='text-xs text-muted-foreground'>
-                    {count} fichier{count > 1 ? 's' : ''}
-                    {field.multiple && (
-                      <span
-                        className={cn(
-                          'ms-1.5 rounded px-1.5 py-0.5 font-medium',
-                          count >= maxFiles
-                            ? 'bg-orange-100 text-orange-700'
-                            : 'bg-muted text-muted-foreground'
-                        )}
-                      >
-                        {count}/{maxFiles}
-                      </span>
-                    )}
-                  </span>
-                  <div className='flex shrink-0 items-center gap-0.5'>
-                    {field.multiple && count < maxFiles && (
-                      <Button
-                        type='button'
-                        variant='ghost'
-                        size='sm'
-                        className='h-7 px-2 text-xs'
-                        onClick={onAdd}
-                      >
-                        <Upload className='me-1 h-3 w-3' />
-                        Ajouter
-                      </Button>
-                    )}
-                    <Button
-                      type='button'
-                      variant='ghost'
-                      size='sm'
-                      className='h-7 px-2 text-xs text-destructive hover:text-destructive'
-                      onClick={onClear}
-                    >
-                      <Trash2 className='me-1 h-3 w-3' />
-                      {field.multiple ? 'Tout effacer' : 'Retirer'}
-                    </Button>
-                  </div>
-                </div>
-              )
-
-              const renderFileChip = ({
-                name,
-                meta,
-                href,
-                onRemove,
-              }: {
-                name: string
-                meta?: string
-                href?: string
-                onRemove?: () => void
-              }) => (
+              return (
+              <div className={cn('space-y-2', isCompactFile && 'space-y-1')}>
                 <div
                   className={cn(
-                    'flex items-center gap-2 rounded-md border bg-background/80',
-                    isCompactFile ? 'px-2 py-1' : 'px-2.5 py-1.5'
+                    'relative rounded-lg border transition-colors',
+                    isCompactFile
+                      ? 'border-dashed p-2'
+                      : 'border-2 border-dashed p-4',
+                    controllerField.value instanceof File
+                      ? 'border-solid'
+                      : 'cursor-pointer hover:border-primary/50',
+                    isValid ? 'border-green-500 bg-green-50' : '',
+                    isInvalid ? 'border-red-500 bg-red-50' : 'border-gray-300'
                   )}
                 >
                   <FileText className='h-3.5 w-3.5 shrink-0 text-primary/70' />
@@ -356,14 +304,45 @@ export const FormField = ({
                     />
 
                     {isFileArray(controllerField.value) ? (
-                      <div className='w-full'>
-                        {renderFileToolbar(
-                          controllerField.value.length,
-                          () => handleChangeFile(field.name),
-                          () =>
-                            handleRemoveFile(
-                              controllerField.onChange,
-                              field.name
+                      <div className='w-full space-y-3'>
+                        <div className='mb-2 flex items-center justify-between'>
+                          <p className='text-sm font-medium text-gray-700'>
+                            {controllerField.value.length} fichier
+                            {controllerField.value.length > 1 ? 's' : ''}{' '}
+                            sélectionné
+                            {controllerField.value.length > 1 ? 's' : ''}
+                          </p>
+                          <span
+                            className={cn(
+                              'rounded px-2 py-1 text-xs',
+                              controllerField.value.length >= 3
+                                ? 'bg-orange-100 text-orange-700'
+                                : 'bg-green-100 text-green-700'
+                            )}
+                          >
+                            {controllerField.value.length}/3
+                          </span>
+                        </div>
+                        <div className={cn(
+                          'space-y-2 overflow-y-auto',
+                          isCompactFile ? 'max-h-28' : 'max-h-60'
+                        )}>
+                          {controllerField.value.map(
+                            (file: File, index: number) => (
+                              <div
+                                key={index}
+                                className='flex items-center rounded-lg bg-gray-50 p-3'
+                              >
+                                <FileText className='mr-3 h-6 w-6 flex-shrink-0 text-blue-500' />
+                                <div className='min-w-0 flex-1 text-left'>
+                                  <p className='truncate text-sm font-medium text-gray-700'>
+                                    {file.name}
+                                  </p>
+                                  <p className='text-xs text-gray-500'>
+                                    {(file.size / 1024 / 1024).toFixed(2)} MB
+                                  </p>
+                                </div>
+                              </div>
                             )
                         )}
                         <div className='flex flex-col gap-1'>
@@ -463,14 +442,49 @@ export const FormField = ({
                         </div>
                       </div>
                     ) : isStringArray(controllerField.value) ? (
-                      <div className='w-full'>
-                        {renderFileToolbar(
-                          controllerField.value.length,
-                          () => handleChangeFile(field.name),
-                          () =>
-                            handleRemoveFile(
-                              controllerField.onChange,
-                              field.name
+                      <div className='w-full space-y-3'>
+                        <div className='mb-2 flex items-center justify-between'>
+                          <p className='text-sm font-medium text-gray-700'>
+                            {controllerField.value.length} fichier
+                            {controllerField.value.length > 1 ? 's' : ''} actuel
+                            {controllerField.value.length > 1 ? 's' : ''}
+                          </p>
+                          <span
+                            className={cn(
+                              'rounded px-2 py-1 text-xs',
+                              controllerField.value.length >= 3
+                                ? 'bg-orange-100 text-orange-700'
+                                : 'bg-blue-100 text-blue-700'
+                            )}
+                          >
+                            {controllerField.value.length}/3
+                          </span>
+                        </div>
+                        <div className={cn(
+                          'space-y-2 overflow-y-auto',
+                          isCompactFile ? 'max-h-28' : 'max-h-60'
+                        )}>
+                          {controllerField.value.map(
+                            (url: string, index: number) => (
+                              <div
+                                key={index}
+                                className='flex items-center rounded-lg bg-blue-50 p-3'
+                              >
+                                <FileText className='mr-3 h-6 w-6 flex-shrink-0 text-blue-500' />
+                                <div className='min-w-0 flex-1 text-left'>
+                                  <p className='text-sm font-medium text-gray-700'>
+                                    Bulletin {index + 1}
+                                  </p>
+                                  <a
+                                    href={url}
+                                    target='_blank'
+                                    rel='noopener noreferrer'
+                                    className='text-xs text-blue-600 hover:underline'
+                                  >
+                                    Voir le fichier
+                                  </a>
+                                </div>
+                              </div>
                             )
                         )}
                         <div className='flex flex-col gap-1'>
@@ -523,8 +537,8 @@ export const FormField = ({
                     ) : (
                       <div
                         className={cn(
-                          'flex w-full cursor-pointer items-center gap-2.5',
-                          isCompactFile ? 'py-1' : 'py-2'
+                          'flex w-full cursor-pointer flex-col items-center text-center',
+                          isCompactFile && 'py-1'
                         )}
                         onClick={() =>
                           document.getElementById(field.name)?.click()
@@ -541,25 +555,32 @@ export const FormField = ({
                             <Upload className='h-4 w-4 text-muted-foreground' />
                           )}
                         </div>
-                        <div className='min-w-0 flex-1 text-start'>
+                        <div className={cn(isCompactFile ? 'mt-1' : 'mt-2')}>
                           <p
                             className={cn(
-                              'font-medium text-foreground',
+                              'font-medium text-gray-600',
                               isCompactFile ? 'text-xs' : 'text-sm'
                             )}
                           >
-                            {field.multiple
-                              ? 'Choisir des fichiers'
-                              : 'Choisir un fichier'}
+                            Cliquez pour choisir{' '}
+                            {field.multiple ? 'des fichiers' : 'un fichier'}
                           </p>
-                          <p className='truncate text-[11px] text-muted-foreground'>
-                            {[
-                              field.multiple && `Max. ${maxFiles} fichiers`,
-                              field.maxSize && `${field.maxSize} Mo max`,
-                            ]
-                              .filter(Boolean)
-                              .join(' · ')}
-                          </p>
+                          {!isCompactFile && field.multiple && (
+                            <p className='mt-1 text-xs text-gray-400'>
+                              Maximum 3 fichiers
+                            </p>
+                          )}
+                          {!isCompactFile && field.accept && (
+                            <p className='mt-1 text-xs text-gray-400'>
+                              Formats: {field.accept}
+                            </p>
+                          )}
+                          {!isCompactFile && field.maxSize && (
+                            <p className='text-xs text-gray-400'>
+                              Taille max: {field.maxSize}MB{' '}
+                              {field.multiple ? 'par fichier' : ''}
+                            </p>
+                          )}
                         </div>
                       </div>
                     )}
@@ -576,6 +597,7 @@ export const FormField = ({
                     )}
                   </div>
                 </div>
+              </div>
               )
             }}
           />
