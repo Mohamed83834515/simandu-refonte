@@ -170,6 +170,38 @@ export const FormField = ({
     document.getElementById(fieldName)?.click()
   }
 
+  const handleRemoveFileAtIndex = (
+    index: number,
+    files: File[],
+    onChange: (file: File | File[] | null) => void,
+    fieldName: string
+  ) => {
+    const next = files.filter((_, i) => i !== index)
+    if (next.length === 0) {
+      handleRemoveFile(onChange, fieldName)
+      return
+    }
+    onChange(next)
+    setTouched(true)
+    if (trigger) trigger(field.name)
+  }
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} o`
+    if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} Ko`
+    return `${(bytes / 1024 / 1024).toFixed(1)} Mo`
+  }
+
+  const fileNameFromUrl = (url: string, index: number) => {
+    try {
+      const segment = url.split('/').pop()?.split('?')[0]
+      if (segment) return decodeURIComponent(segment)
+    } catch {
+      /* ignore */
+    }
+    return `Document ${index + 1}`
+  }
+
   const isFileArray = (value: any): value is File[] =>
     Array.isArray(value) &&
     value.length > 0 &&
@@ -179,54 +211,6 @@ export const FormField = ({
     Array.isArray(value) &&
     value.length > 0 &&
     value.every((item) => typeof item === 'string')
-
-  const getFileIcon = () => {
-    switch (field.type) {
-      case 'image':
-        return <Image className='h-8 w-8 text-gray-400' />
-      case 'video':
-        return <FileVideo className='h-8 w-8 text-gray-400' />
-      case 'audio':
-        return <FileAudio className='h-8 w-8 text-gray-400' />
-      default:
-        return <Upload className='h-8 w-8 text-gray-400' />
-    }
-  }
-
-  const renderFilePreview = (file: File) => {
-    if (field.type === 'image' && filePreview) {
-      return (
-        <img
-          src={filePreview}
-          alt='Preview'
-          className='max-h-48 rounded-lg shadow-md'
-        />
-      )
-    }
-    if (field.type === 'video' && filePreview) {
-      return (
-        <video
-          src={filePreview}
-          controls
-          className='max-h-48 rounded-lg shadow-md'
-        />
-      )
-    }
-    if (field.type === 'audio' && filePreview) {
-      return <audio src={filePreview} controls className='w-full' />
-    }
-    return (
-      <div className='flex items-center space-x-3'>
-        {getFileIcon()}
-        <div>
-          <p className='text-sm font-medium text-gray-700'>{file.name}</p>
-          <p className='text-xs text-gray-500'>
-            {(file.size / 1024 / 1024).toFixed(2)} MB
-          </p>
-        </div>
-      </div>
-    )
-  }
 
   const renderInput = () => {
     switch (field.type) {
@@ -247,289 +231,351 @@ export const FormField = ({
             control={control}
             render={({ field: controllerField }) => {
               const isCompactFile = field.className?.includes('compact-file')
-              return (
-              <div className={cn('space-y-2', isCompactFile && 'space-y-1')}>
+              const maxFiles = field.multiple ? 3 : 1
+
+              const renderFileToolbar = (
+                count: number,
+                onAdd: () => void,
+                onClear: () => void
+              ) => (
+                <div className='mb-1.5 flex items-center justify-between gap-2'>
+                  <span className='text-xs text-muted-foreground'>
+                    {count} fichier{count > 1 ? 's' : ''}
+                    {field.multiple && (
+                      <span
+                        className={cn(
+                          'ms-1.5 rounded px-1.5 py-0.5 font-medium',
+                          count >= maxFiles
+                            ? 'bg-orange-100 text-orange-700'
+                            : 'bg-muted text-muted-foreground'
+                        )}
+                      >
+                        {count}/{maxFiles}
+                      </span>
+                    )}
+                  </span>
+                  <div className='flex shrink-0 items-center gap-0.5'>
+                    {field.multiple && count < maxFiles && (
+                      <Button
+                        type='button'
+                        variant='ghost'
+                        size='sm'
+                        className='h-7 px-2 text-xs'
+                        onClick={onAdd}
+                      >
+                        <Upload className='me-1 h-3 w-3' />
+                        Ajouter
+                      </Button>
+                    )}
+                    <Button
+                      type='button'
+                      variant='ghost'
+                      size='sm'
+                      className='h-7 px-2 text-xs text-destructive hover:text-destructive'
+                      onClick={onClear}
+                    >
+                      <Trash2 className='me-1 h-3 w-3' />
+                      {field.multiple ? 'Tout effacer' : 'Retirer'}
+                    </Button>
+                  </div>
+                </div>
+              )
+
+              const renderFileChip = ({
+                name,
+                meta,
+                href,
+                onRemove,
+              }: {
+                name: string
+                meta?: string
+                href?: string
+                onRemove?: () => void
+              }) => (
                 <div
                   className={cn(
-                    'relative rounded-lg border transition-colors',
-                    isCompactFile
-                      ? 'border-dashed p-2'
-                      : 'border-2 border-dashed p-4',
-                    controllerField.value instanceof File
-                      ? 'border-solid'
-                      : 'cursor-pointer hover:border-primary/50',
-                    isValid ? 'border-green-500 bg-green-50' : '',
-                    isInvalid ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                    'flex items-center gap-2 rounded-md border bg-background/80',
+                    isCompactFile ? 'px-2 py-1' : 'px-2.5 py-1.5'
                   )}
                 >
-                  <input
-                    id={field.name}
-                    type='file'
-                    accept={field.accept}
-                    multiple={field.multiple}
-                    className='hidden'
-                    onChange={(e) =>
-                      handleFileChange(e, controllerField.onChange)
-                    }
-                  />
-                  <div className='flex flex-col items-center justify-center text-center'>
+                  <FileText className='h-3.5 w-3.5 shrink-0 text-primary/70' />
+                  <div className='min-w-0 flex-1'>
+                    {href ? (
+                      <a
+                        href={href}
+                        target='_blank'
+                        rel='noopener noreferrer'
+                        className='block truncate text-xs font-medium text-primary hover:underline'
+                      >
+                        {name}
+                      </a>
+                    ) : (
+                      <p className='truncate text-xs font-medium text-foreground'>
+                        {name}
+                      </p>
+                    )}
+                    {meta && (
+                      <p className='text-[10px] text-muted-foreground'>{meta}</p>
+                    )}
+                  </div>
+                  {onRemove && (
+                    <button
+                      type='button'
+                      onClick={onRemove}
+                      className='rounded p-0.5 text-muted-foreground transition-colors hover:bg-muted hover:text-destructive'
+                      aria-label={`Retirer ${name}`}
+                    >
+                      <X className='h-3.5 w-3.5' />
+                    </button>
+                  )}
+                </div>
+              )
+
+              return (
+                <div className={cn('space-y-1.5', isCompactFile && 'space-y-1')}>
+                  <div
+                    className={cn(
+                      'relative rounded-lg border transition-colors',
+                      isCompactFile ? 'p-2' : 'p-3',
+                      controllerField.value
+                        ? 'border-border bg-muted/20'
+                        : 'cursor-pointer border-dashed hover:border-primary/40 hover:bg-muted/30',
+                      isValid && 'border-green-500/60',
+                      isInvalid && 'border-red-500/60'
+                    )}
+                  >
+                    <input
+                      id={field.name}
+                      type='file'
+                      accept={field.accept}
+                      multiple={field.multiple}
+                      className='hidden'
+                      onChange={(e) =>
+                        handleFileChange(e, controllerField.onChange)
+                      }
+                    />
+
                     {isFileArray(controllerField.value) ? (
-                      <div className='w-full space-y-3'>
-                        <div className='mb-2 flex items-center justify-between'>
-                          <p className='text-sm font-medium text-gray-700'>
-                            {controllerField.value.length} fichier
-                            {controllerField.value.length > 1 ? 's' : ''}{' '}
-                            sélectionné
-                            {controllerField.value.length > 1 ? 's' : ''}
-                          </p>
-                          <span
-                            className={cn(
-                              'rounded px-2 py-1 text-xs',
-                              controllerField.value.length >= 3
-                                ? 'bg-orange-100 text-orange-700'
-                                : 'bg-green-100 text-green-700'
-                            )}
-                          >
-                            {controllerField.value.length}/3
-                          </span>
-                        </div>
-                        <div className={cn(
-                          'space-y-2 overflow-y-auto',
-                          isCompactFile ? 'max-h-28' : 'max-h-60'
-                        )}>
-                          {controllerField.value.map(
-                            (file: File, index: number) => (
-                              <div
-                                key={index}
-                                className='flex items-center rounded-lg bg-gray-50 p-3'
-                              >
-                                <FileText className='mr-3 h-6 w-6 flex-shrink-0 text-blue-500' />
-                                <div className='min-w-0 flex-1 text-left'>
-                                  <p className='truncate text-sm font-medium text-gray-700'>
-                                    {file.name}
-                                  </p>
-                                  <p className='text-xs text-gray-500'>
-                                    {(file.size / 1024 / 1024).toFixed(2)} MB
-                                  </p>
-                                </div>
-                              </div>
+                      <div className='w-full'>
+                        {renderFileToolbar(
+                          controllerField.value.length,
+                          () => handleChangeFile(field.name),
+                          () =>
+                            handleRemoveFile(
+                              controllerField.onChange,
+                              field.name
                             )
+                        )}
+                        <div className='flex flex-col gap-1'>
+                          {controllerField.value.map(
+                            (file: File, index: number) =>
+                              renderFileChip({
+                                name: file.name,
+                                meta: formatFileSize(file.size),
+                                onRemove: () =>
+                                  handleRemoveFileAtIndex(
+                                    index,
+                                    controllerField.value as File[],
+                                    controllerField.onChange,
+                                    field.name
+                                  ),
+                              })
                           )}
-                        </div>
-                        <div className='flex items-center justify-center gap-2 pt-2'>
-                          <button
-                            type='button'
-                            onClick={() => handleChangeFile(field.name)}
-                            className='flex items-center gap-2 rounded-lg bg-blue-50 px-4 py-2 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-100'
-                          >
-                            <Pencil className='h-4 w-4' /> Changer
-                          </button>
-                          <button
-                            type='button'
-                            onClick={() =>
-                              handleRemoveFile(
-                                controllerField.onChange,
-                                field.name
-                              )
-                            }
-                            className='flex items-center gap-2 rounded-lg bg-red-50 px-4 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-100'
-                          >
-                            <Trash2 className='h-4 w-4' /> Supprimer tout
-                          </button>
                         </div>
                       </div>
                     ) : controllerField.value instanceof File ? (
-                      <div className='w-full space-y-3'>
-                        {renderFilePreview(controllerField.value)}
-                        <div className='flex items-center justify-center gap-2 pt-2'>
-                          <button
+                      <div className='w-full space-y-2'>
+                        {(field.type === 'image' ||
+                          field.type === 'video' ||
+                          field.type === 'audio') &&
+                        filePreview ? (
+                          <div className='flex items-start gap-2'>
+                            {field.type === 'image' && (
+                              <img
+                                src={filePreview}
+                                alt=''
+                                className={cn(
+                                  'rounded object-cover',
+                                  isCompactFile
+                                    ? 'h-10 w-10'
+                                    : 'h-14 w-14'
+                                )}
+                              />
+                            )}
+                            {field.type === 'video' && (
+                              <video
+                                src={filePreview}
+                                className={cn(
+                                  'rounded object-cover',
+                                  isCompactFile
+                                    ? 'h-10 w-14'
+                                    : 'h-14 w-20'
+                                )}
+                              />
+                            )}
+                            {field.type === 'audio' && (
+                              <audio
+                                src={filePreview}
+                                controls
+                                className='h-8 max-w-full flex-1'
+                              />
+                            )}
+                            {field.type !== 'audio' &&
+                              renderFileChip({
+                                name: controllerField.value.name,
+                                meta: formatFileSize(
+                                  controllerField.value.size
+                                ),
+                              })}
+                          </div>
+                        ) : (
+                          renderFileChip({
+                            name: controllerField.value.name,
+                            meta: formatFileSize(controllerField.value.size),
+                          })
+                        )}
+                        <div className='flex justify-end gap-0.5'>
+                          <Button
                             type='button'
+                            variant='ghost'
+                            size='sm'
+                            className='h-7 px-2 text-xs'
                             onClick={() => handleChangeFile(field.name)}
-                            className='flex items-center gap-2 rounded-lg bg-blue-50 px-4 py-2 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-100'
                           >
-                            <Pencil className='h-4 w-4' />
-                          </button>
-                          <button
+                            <Pencil className='me-1 h-3 w-3' />
+                            Remplacer
+                          </Button>
+                          <Button
                             type='button'
+                            variant='ghost'
+                            size='sm'
+                            className='h-7 px-2 text-xs text-destructive hover:text-destructive'
                             onClick={() =>
                               handleRemoveFile(
                                 controllerField.onChange,
                                 field.name
                               )
                             }
-                            className='flex items-center gap-2 rounded-lg bg-red-50 px-4 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-100'
                           >
-                            <Trash2 className='h-4 w-4' />
-                          </button>
+                            <Trash2 className='me-1 h-3 w-3' />
+                            Retirer
+                          </Button>
                         </div>
                       </div>
                     ) : isStringArray(controllerField.value) ? (
-                      <div className='w-full space-y-3'>
-                        <div className='mb-2 flex items-center justify-between'>
-                          <p className='text-sm font-medium text-gray-700'>
-                            {controllerField.value.length} fichier
-                            {controllerField.value.length > 1 ? 's' : ''} actuel
-                            {controllerField.value.length > 1 ? 's' : ''}
-                          </p>
-                          <span
-                            className={cn(
-                              'rounded px-2 py-1 text-xs',
-                              controllerField.value.length >= 3
-                                ? 'bg-orange-100 text-orange-700'
-                                : 'bg-blue-100 text-blue-700'
-                            )}
-                          >
-                            {controllerField.value.length}/3
-                          </span>
-                        </div>
-                        <div className={cn(
-                          'space-y-2 overflow-y-auto',
-                          isCompactFile ? 'max-h-28' : 'max-h-60'
-                        )}>
-                          {controllerField.value.map(
-                            (url: string, index: number) => (
-                              <div
-                                key={index}
-                                className='flex items-center rounded-lg bg-blue-50 p-3'
-                              >
-                                <FileText className='mr-3 h-6 w-6 flex-shrink-0 text-blue-500' />
-                                <div className='min-w-0 flex-1 text-left'>
-                                  <p className='text-sm font-medium text-gray-700'>
-                                    Bulletin {index + 1}
-                                  </p>
-                                  <a
-                                    href={url}
-                                    target='_blank'
-                                    rel='noopener noreferrer'
-                                    className='text-xs text-blue-600 hover:underline'
-                                  >
-                                    Voir le fichier
-                                  </a>
-                                </div>
-                              </div>
+                      <div className='w-full'>
+                        {renderFileToolbar(
+                          controllerField.value.length,
+                          () => handleChangeFile(field.name),
+                          () =>
+                            handleRemoveFile(
+                              controllerField.onChange,
+                              field.name
                             )
+                        )}
+                        <div className='flex flex-col gap-1'>
+                          {controllerField.value.map(
+                            (url: string, index: number) =>
+                              renderFileChip({
+                                name: fileNameFromUrl(url, index),
+                                meta: 'Fichier existant',
+                                href: url,
+                              })
                           )}
-                        </div>
-                        <div className='flex items-center justify-center gap-2 pt-2'>
-                          <button
-                            type='button'
-                            onClick={() => handleChangeFile(field.name)}
-                            className='flex items-center gap-2 rounded-lg bg-blue-50 px-4 py-2 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-100'
-                          >
-                            <Pencil className='h-4 w-4' /> Changer
-                          </button>
-                          <button
-                            type='button'
-                            onClick={() =>
-                              handleRemoveFile(
-                                controllerField.onChange,
-                                field.name
-                              )
-                            }
-                            className='flex items-center gap-2 rounded-lg bg-red-50 px-4 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-100'
-                          >
-                            <Trash2 className='h-4 w-4' /> Supprimer tout
-                          </button>
                         </div>
                       </div>
                     ) : controllerField.value &&
                       typeof controllerField.value === 'string' ? (
-                      <div className='w-full space-y-3'>
-                        <div className='flex items-center justify-between rounded-lg bg-blue-50 p-4'>
-                          <div className='flex items-center space-x-3'>
-                            <FileText className='h-8 w-8 text-blue-500' />
-                            <div className='text-left'>
-                              <p className='text-sm font-medium text-gray-700'>
-                                Fichier actuel
-                              </p>
-                              <a
-                                href={controllerField.value}
-                                target='_blank'
-                                rel='noopener noreferrer'
-                                className='text-xs text-blue-600 hover:underline'
-                              >
-                                Voir le fichier
-                              </a>
-                            </div>
-                          </div>
-                        </div>
-                        <div className='flex items-center justify-center gap-2 pt-2'>
-                          <button
+                      <div className='w-full space-y-2'>
+                        {renderFileChip({
+                          name: 'Fichier actuel',
+                          meta: 'Cliquez pour ouvrir',
+                          href: controllerField.value,
+                        })}
+                        <div className='flex justify-end gap-0.5'>
+                          <Button
                             type='button'
+                            variant='ghost'
+                            size='sm'
+                            className='h-7 px-2 text-xs'
                             onClick={() => handleChangeFile(field.name)}
-                            className='flex items-center gap-2 rounded-lg bg-blue-50 px-4 py-2 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-100'
                           >
-                            <Pencil className='h-4 w-4' /> Changer
-                          </button>
-                          <button
+                            <Pencil className='me-1 h-3 w-3' />
+                            Remplacer
+                          </Button>
+                          <Button
                             type='button'
+                            variant='ghost'
+                            size='sm'
+                            className='h-7 px-2 text-xs text-destructive hover:text-destructive'
                             onClick={() =>
                               handleRemoveFile(
                                 controllerField.onChange,
                                 field.name
                               )
                             }
-                            className='flex items-center gap-2 rounded-lg bg-red-50 px-4 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-100'
                           >
-                            <Trash2 className='h-4 w-4' /> Supprimer
-                          </button>
+                            <Trash2 className='me-1 h-3 w-3' />
+                            Retirer
+                          </Button>
                         </div>
                       </div>
                     ) : (
                       <div
                         className={cn(
-                          'flex w-full cursor-pointer flex-col items-center text-center',
-                          isCompactFile && 'py-1'
+                          'flex w-full cursor-pointer items-center gap-2.5',
+                          isCompactFile ? 'py-1' : 'py-2'
                         )}
                         onClick={() =>
                           document.getElementById(field.name)?.click()
                         }
                       >
-                        <div className='flex items-center justify-center'>
-                          {getFileIcon()}
+                        <div className='flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted'>
+                          {field.type === 'image' ? (
+                            <Image className='h-4 w-4 text-muted-foreground' />
+                          ) : field.type === 'video' ? (
+                            <FileVideo className='h-4 w-4 text-muted-foreground' />
+                          ) : field.type === 'audio' ? (
+                            <FileAudio className='h-4 w-4 text-muted-foreground' />
+                          ) : (
+                            <Upload className='h-4 w-4 text-muted-foreground' />
+                          )}
                         </div>
-                        <div className={cn(isCompactFile ? 'mt-1' : 'mt-2')}>
+                        <div className='min-w-0 flex-1 text-start'>
                           <p
                             className={cn(
-                              'font-medium text-gray-600',
+                              'font-medium text-foreground',
                               isCompactFile ? 'text-xs' : 'text-sm'
                             )}
                           >
-                            Cliquez pour choisir{' '}
-                            {field.multiple ? 'des fichiers' : 'un fichier'}
+                            {field.multiple
+                              ? 'Choisir des fichiers'
+                              : 'Choisir un fichier'}
                           </p>
-                          {!isCompactFile && field.multiple && (
-                            <p className='mt-1 text-xs text-gray-400'>
-                              Maximum 3 fichiers
-                            </p>
-                          )}
-                          {!isCompactFile && field.accept && (
-                            <p className='mt-1 text-xs text-gray-400'>
-                              Formats: {field.accept}
-                            </p>
-                          )}
-                          {!isCompactFile && field.maxSize && (
-                            <p className='text-xs text-gray-400'>
-                              Taille max: {field.maxSize}MB{' '}
-                              {field.multiple ? 'par fichier' : ''}
-                            </p>
-                          )}
+                          <p className='truncate text-[11px] text-muted-foreground'>
+                            {[
+                              field.multiple && `Max. ${maxFiles} fichiers`,
+                              field.maxSize && `${field.maxSize} Mo max`,
+                            ]
+                              .filter(Boolean)
+                              .join(' · ')}
+                          </p>
                         </div>
                       </div>
                     )}
+
+                    {isValid && (
+                      <div className='absolute top-1.5 right-1.5'>
+                        <Check className='h-4 w-4 text-green-500' />
+                      </div>
+                    )}
+                    {isInvalid && (
+                      <div className='absolute top-1.5 right-1.5'>
+                        <X className='h-4 w-4 text-red-500' />
+                      </div>
+                    )}
                   </div>
-                  {isValid && (
-                    <div className='absolute top-2 right-2'>
-                      <Check className='h-5 w-5 text-green-500' />
-                    </div>
-                  )}
-                  {isInvalid && (
-                    <div className='absolute top-2 right-2'>
-                      <X className='h-5 w-5 text-red-500' />
-                    </div>
-                  )}
                 </div>
-              </div>
               )
             }}
           />
