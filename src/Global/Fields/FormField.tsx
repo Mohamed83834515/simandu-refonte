@@ -1504,7 +1504,7 @@ export const FormField = ({
         <label className='mb-2 block text-sm font-medium'>
           {field.label}
           {field.required && <span className='text-red-500'> *</span>}
-        </label>
+        </label> 
       )}
       {renderInput()}
       {field.type !== 'daterange' &&
