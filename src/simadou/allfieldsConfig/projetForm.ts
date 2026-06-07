@@ -137,7 +137,7 @@ export const getProjetFormConfig = (): FormConfig => ({
       type: 'multiselect',
       placeholder: "Sélectionner un ou plusieurs partenaires d'exécution",
       required: true,
-      options: [],
+      options: [], 
       gridCols: 2,
     },
     {
