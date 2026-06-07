@@ -78,6 +78,23 @@ const indicateurActivitePtbaService = {
   },
 
   /**
+   * Récupère les indicateurs pour une activité PTBA (code puis repli par id).
+   */
+  async getForActivite(activite: {
+    code_activite_ptba?: string
+    id_ptba?: number
+  }): Promise<IndicateurActivitePtba[]> {
+    if (activite.code_activite_ptba) {
+      const byCode = await this.getByActivite(activite.code_activite_ptba)
+      if (byCode.length > 0) return byCode
+    }
+    if (Number.isFinite(activite.id_ptba)) {
+      return this.getByActiviteId(activite.id_ptba!)
+    }
+    return []
+  },
+
+  /**
    * Crée un nouveau indicateur d'activité PTBA
    */
   async create(

@@ -4,9 +4,9 @@ import tacheActivitePtbaService from '@/simadou/allSercices/tacheActivitePtbaSer
 import suiviAvancementContratService from '@/simadou/allSercices/suiviAvancementContratService'
 import sourceVerificationSuiviAvancementContratService from '@/simadou/allSercices/sourceVerificationSuiviAvancementContratService'
 import observationPtbaService from '@/simadou/allSercices/observationPtbaService'
-import indicateurActivitePtbaService from '@/simadou/allSercices/indicateurActivitePtbaService'
 import suiviIndicateurActiviteService from '@/simadou/allSercices/suiviIndicateurActiviteService'
 export { useGetLocalites } from './sharedHooks'
+export { useGetIndicateursByActivite } from './indicateurTacheHooks'
 import type { SuiviTacheActivite, TacheActivitePtba } from '@/simadou/allTypes'
 import { resolveIdActivite } from '@/simadou/allTypes/tacheActivitePtba'
 import { tauxAvancementGlobalTaches } from '@/simadou/allTypes/suiviTacheActivite'
@@ -30,9 +30,9 @@ export const suiviPtbaQueryKeys = {
     ['suivi-avancement-sources', idSuivi] as const,
   observations: (codeActivite: string) =>
     ['observations-ptba', codeActivite] as const,
-  indicateurs: (codeActivite: string) =>
-    ['indicateurs-activite', codeActivite] as const,
   suivisIndicateurs: ['suivis-indicateurs-all'] as const,
+  suivisIndicateur: (codeIndicateur: string) =>
+    ['suivis-indicateurs', codeIndicateur] as const,
   localites: ['localites'] as const,
 }
 
@@ -136,18 +136,22 @@ export const useGetObservationsByActivite = (codeActivite: string) =>
     enabled: !!codeActivite,
   })
 
-export const useGetIndicateursByActivite = (codeActivite: string) =>
-  useQuery({
-    queryKey: suiviPtbaQueryKeys.indicateurs(codeActivite),
-    queryFn: () => indicateurActivitePtbaService.getByActivite(codeActivite),
-    enabled: !!codeActivite,
-  })
-
 export const useGetAllSuivisIndicateurs = (enabled = true) =>
   useQuery({
     queryKey: suiviPtbaQueryKeys.suivisIndicateurs,
     queryFn: () => suiviIndicateurActiviteService.getAll(),
     enabled,
+  })
+
+export const useGetSuivisIndicateurByIndicateur = (
+  codeIndicateur: string,
+  enabled = true
+) =>
+  useQuery({
+    queryKey: suiviPtbaQueryKeys.suivisIndicateur(codeIndicateur),
+    queryFn: () =>
+      suiviIndicateurActiviteService.getByIndicateur(codeIndicateur),
+    enabled: enabled && !!codeIndicateur,
   })
 
 export const useCreateSuiviTache = (idActivite: number) => {
@@ -190,7 +194,7 @@ export const useUpdateSuiviTache = (idActivite: number) => {
   })
 }
 
-export const useCreateSuiviIndicateur = () => {
+export const useCreateSuiviIndicateur = (codeIndicateur?: string) => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (data: SuiviIndicateurActiviteFormData) =>
@@ -199,11 +203,16 @@ export const useCreateSuiviIndicateur = () => {
       queryClient.invalidateQueries({
         queryKey: suiviPtbaQueryKeys.suivisIndicateurs,
       })
+      if (codeIndicateur) {
+        queryClient.invalidateQueries({
+          queryKey: suiviPtbaQueryKeys.suivisIndicateur(codeIndicateur),
+        })
+      }
     },
   })
 }
 
-export const useUpdateSuiviIndicateur = () => {
+export const useUpdateSuiviIndicateur = (codeIndicateur?: string) => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: ({
@@ -217,11 +226,16 @@ export const useUpdateSuiviIndicateur = () => {
       queryClient.invalidateQueries({
         queryKey: suiviPtbaQueryKeys.suivisIndicateurs,
       })
+      if (codeIndicateur) {
+        queryClient.invalidateQueries({
+          queryKey: suiviPtbaQueryKeys.suivisIndicateur(codeIndicateur),
+        })
+      }
     },
   })
 }
 
-export const useDeleteSuiviIndicateur = () => {
+export const useDeleteSuiviIndicateur = (codeIndicateur?: string) => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (id: number) => suiviIndicateurActiviteService.delete(id),
@@ -229,6 +243,11 @@ export const useDeleteSuiviIndicateur = () => {
       queryClient.invalidateQueries({
         queryKey: suiviPtbaQueryKeys.suivisIndicateurs,
       })
+      if (codeIndicateur) {
+        queryClient.invalidateQueries({
+          queryKey: suiviPtbaQueryKeys.suivisIndicateur(codeIndicateur),
+        })
+      }
     },
   })
 }

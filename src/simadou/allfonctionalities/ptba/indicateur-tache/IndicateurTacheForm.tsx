@@ -1,11 +1,16 @@
-// simadou/components/suivi/IndicateurTacheForm.tsx
 import { useMemo } from 'react'
 import { toast } from 'sonner'
 import { DynamicForm } from '@/Global/Forms/DynamicForm'
 import { getIndicateurTacheFormConfig } from '@/simadou/allfieldsConfig/indicateurTacheForm'
-import { indicateurTacheSchema, IndicateurTacheFormData } from '@/simadou/schemas/indicateurTacheSchemas'
-import { useCreateIndicateurTache, useUpdateIndicateurTache } from '@/simadou/allHooks/admin/indicateurTacheHooks'
-import type {  Ptba } from '@/simadou/allTypes'
+import {
+  indicateurTacheSchema,
+  type IndicateurTacheFormData,
+} from '@/simadou/schemas/indicateurTacheSchemas'
+import {
+  useCreateIndicateurTache,
+  useUpdateIndicateurTache,
+} from '@/simadou/allHooks/admin/indicateurTacheHooks'
+import type { Ptba } from '@/simadou/allTypes'
 import { IndicateurTache } from '@/simadou/allTypes/indicateurTache'
 
 interface IndicateurTacheFormProps {
@@ -39,12 +44,14 @@ export default function IndicateurTacheForm({
     }),
     [indicateur, idActivite]
   )
+
   const createMutation = useCreateIndicateurTache(idActivite)
   const updateMutation = useUpdateIndicateurTache(idActivite)
+
   const onSubmit = (data: IndicateurTache) => {
     if (isEditing && indicateur?.id_indicateur_tache) {
       updateMutation.mutate(
-        { id: indicateur.id_indicateur_tache, data: data },
+        { id: indicateur.id_indicateur_tache, data },
         {
           onSuccess: () => {
             toast.success('Indicateur mis à jour avec succès')
@@ -59,7 +66,7 @@ export default function IndicateurTacheForm({
           toast.success('Indicateur créé avec succès')
           onSuccess()
         },
-        onError: () => toast.error("Erreur lors de la création"),
+        onError: () => toast.error('Erreur lors de la création'),
       })
     }
   }

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { type Row } from '@tanstack/react-table'
-import { Pencil, Trash2 } from 'lucide-react'
+import { Loader2, Pencil, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   Table,
@@ -18,6 +18,7 @@ import { useDeleteSuiviIndicateur } from '@/simadou/allHooks/admin/suiviPtbaHook
 
 type SuiviIndicateurListProps = {
   suivis: SuiviIndicateurActivite[]
+  isLoading?: boolean
   onEdit: (suivi: SuiviIndicateurActivite) => void
 }
 
@@ -55,6 +56,7 @@ function SuiviIndicateurRowActions({
 
 export default function SuiviIndicateurList({
   suivis,
+  isLoading = false,
   onEdit,
 }: SuiviIndicateurListProps) {
   const [open, setOpen] = useDialogState<'delete'>(null)
@@ -62,7 +64,16 @@ export default function SuiviIndicateurList({
     null
   )
 
-  const deleteMutation = useDeleteSuiviIndicateur()
+  const codeIndicateur =
+    currentRow &&
+    (typeof currentRow.indicateur_activite === 'object' &&
+    currentRow.indicateur_activite
+      ? currentRow.indicateur_activite.code_indicateur_activite
+      : typeof currentRow.indicateur_activite === 'string'
+        ? currentRow.indicateur_activite
+        : undefined)
+
+  const deleteMutation = useDeleteSuiviIndicateur(codeIndicateur ?? undefined)
 
   const handleDeleteRequest = (suivi: SuiviIndicateurActivite) => {
     setCurrentRow(suivi)
@@ -76,10 +87,18 @@ export default function SuiviIndicateurList({
     })
   }
 
+  if (isLoading) {
+    return (
+      <div className='flex items-center justify-center py-8'>
+        <Loader2 className='h-6 w-6 animate-spin text-muted-foreground' />
+      </div>
+    )
+  }
+
   if (suivis.length === 0) {
     return (
-      <p className='py-4 text-center text-sm text-muted-foreground'>
-        Aucun suivi enregistré
+      <p className='rounded-lg border border-dashed py-8 text-center text-sm text-muted-foreground'>
+        Aucun suivi enregistré pour cet indicateur.
       </p>
     )
   }
@@ -90,7 +109,7 @@ export default function SuiviIndicateurList({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Localité</TableHead>
+              <TableHead>Commune</TableHead>
               <TableHead>Date suivi</TableHead>
               <TableHead>Valeur</TableHead>
               <TableHead className='w-[70px] text-center'>Actions</TableHead>
@@ -102,14 +121,14 @@ export default function SuiviIndicateurList({
                 <TableCell>
                   {typeof suivi.localite === 'object'
                     ? suivi.localite?.intitule_loca
-                    : suivi.localite || 'N/A'}
+                    : suivi.localite || '—'}
                 </TableCell>
                 <TableCell>
                   {new Date(suivi.date_suivi_indicateur).toLocaleDateString(
                     'fr-FR'
                   )}
                 </TableCell>
-                <TableCell className='font-semibold'>
+                <TableCell className='font-semibold tabular-nums'>
                   {suivi.valeur_suivi_indicateur}
                 </TableCell>
                 <TableCell className='text-center'>

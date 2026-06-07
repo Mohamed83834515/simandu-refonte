@@ -5,7 +5,7 @@ export const getSuiviIndicateurActiviteFormConfig = (): FormConfig => ({
   fields: [
     {
       name: 'date_suivi_indicateur',
-      label: 'Date suivi indicateur',
+      label: 'Date suivi',
       type: 'date',
       placeholder: 'AAAA-MM-JJ',
       required: true,
@@ -13,9 +13,9 @@ export const getSuiviIndicateurActiviteFormConfig = (): FormConfig => ({
     },
     {
       name: 'valeur_suivi_indicateur',
-      label: 'Valeur suivi indicateur',
+      label: 'Valeur',
       type: 'number',
-      placeholder: 'Ex: 100, 500, 1000.50...',
+      placeholder: 'Ex: 100, 500, 1000.50…',
       required: true,
       min: 0,
       gridCols: 1,
@@ -31,10 +31,10 @@ export const getSuiviIndicateurActiviteFormConfig = (): FormConfig => ({
     },
     {
       name: 'localite',
-      label: 'Localité',
+      label: 'Commune',
       type: 'select',
-      placeholder: 'Sélectionner une localité (optionnel)',
-      required: false,
+      placeholder: 'Sélectionner une commune',
+      required: true,
       options: [],
       gridCols: 1,
     },
@@ -51,7 +51,7 @@ export const getSuiviIndicateurActiviteFormConfigForSuivi = (
       field.name === 'localite'
         ? {
             ...field,
-            label: 'Localité',
+            label: 'Commune',
             options: localites.map((l) => ({
               value: l.code_loca,
               label: l.intitule_loca || l.code_loca,
