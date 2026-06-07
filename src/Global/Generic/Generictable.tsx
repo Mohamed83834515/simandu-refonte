@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useRouterState } from '@tanstack/react-router'
 import {
   type ColumnDef,
   type SortingState,
@@ -23,6 +24,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
+import { TableLoadingOverlay } from './table-loading-overlay'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -68,8 +70,11 @@ type GenericTableProps<TData> = {
   showPagination?: boolean
   toolbarEndSlot?: React.ReactNode
 
-  /** Clic sur la ligne (hors cellules qui stoppent la propagation). */
   onRowClick?: (row: TData) => void
+
+  //Prop optionnelle pour signaler un fetch/refetch externe 
+  // Indépendante du routerState couvre les cas où la navigation n'est pas impliquée
+  isLoading?: boolean
 
   initialState?: Partial<{
     columnVisibility: Record<string, boolean>
@@ -96,6 +101,8 @@ export function GenericTable<TData>({
   showPagination = true,
   toolbarEndSlot,
   onRowClick,
+  //Valeur par défaut false, pas de chargement si rien n'est passé
+  isLoading: isLoadingProp = false,
   initialState,
 }: GenericTableProps<TData>) {
   const [rowSelection, setRowSelection] = useState({})
@@ -105,6 +112,13 @@ export function GenericTable<TData>({
   const [sorting, setSorting] = useState<SortingState>(
     initialState?.sorting ?? []
   )
+
+  const routerState = useRouterState()
+  // chargement global déclenché si :
+  //   • la navigation est en cours (changement de route, de filtres URL...)
+  //   • ou si le parent signale un chargement via isLoadingProp (fetch/refetch des données)
+  const isRouterPending = routerState.status === 'pending'
+  const isLoading = isRouterPending || isLoadingProp
 
   const {
     columnFilters,
@@ -166,8 +180,16 @@ export function GenericTable<TData>({
         toolbarEndSlot={toolbarEndSlot}
       />
 
-      <div className='overflow-hidden rounded-md border'>
-        <Table>
+      <div className='relative overflow-hidden rounded-md border'>
+        {/* Seul isLoadingProp déclenche l'overlay de chargement, pas isRouterPending */}
+        {isLoadingProp && <TableLoadingOverlay />}
+
+        <Table
+          className={cn(
+            'transition-opacity duration-200',
+            isLoading && 'opacity-40 pointer-events-none select-none'
+          )}
+        >
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id} className='group/row'>
