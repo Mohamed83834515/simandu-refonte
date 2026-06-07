@@ -4,9 +4,10 @@ import {
   useEffect,
   type ReactNode,
 } from 'react'
+import type { DialogSize } from '@/Global/Forms/dialog'
 
 type ActiviteTabbedDialogContextValue = {
-  setSubViewActive: (active: boolean) => void
+  setSubViewActive: (active: boolean, size?: DialogSize) => void
 }
 
 const ActiviteTabbedDialogContext =
@@ -23,14 +24,17 @@ export function ActiviteTabbedDialogProvider({
   )
 }
 
-export function useActiviteTabbedSubView(active: boolean) {
+export function useActiviteTabbedSubView(
+  active: boolean,
+  size: DialogSize = 'form'
+) {
   const ctx = useContext(ActiviteTabbedDialogContext)
 
   useEffect(() => {
     if (!ctx) return
-    ctx.setSubViewActive(active)
+    ctx.setSubViewActive(active, size)
     return () => ctx.setSubViewActive(false)
-  }, [active, ctx])
+  }, [active, size, ctx])
 }
 
 export function ActiviteTabbedSubViewHeader({

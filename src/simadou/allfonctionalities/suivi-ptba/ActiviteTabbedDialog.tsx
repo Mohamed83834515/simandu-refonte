@@ -11,7 +11,7 @@ import {
   NiveauTabsList,
   useNiveauTabsTheme,
 } from '@/components/ui/NiveauTabs'
-import { DIALOG_SIZES } from '@/Global/Forms/dialog'
+import { DIALOG_SIZES, type DialogSize } from '@/Global/Forms/dialog'
 import type { Ptba } from '@/simadou/allTypes'
 import {
   activiteModalTitle,
@@ -43,6 +43,7 @@ export default function ActiviteTabbedDialog({
   title,
 }: ActiviteTabbedDialogProps) {
   const [subViewActive, setSubViewActive] = useState(false)
+  const [subViewSize, setSubViewSize] = useState<DialogSize>('form')
   const [activeTab, setActiveTab] = useState(defaultTab ?? tabs[0]?.value ?? '')
   const { tabsStyle } = useNiveauTabsTheme()
   const initialTab = defaultTab ?? tabs[0]?.value ?? ''
@@ -54,9 +55,15 @@ export default function ActiviteTabbedDialog({
   const handleOpenChange = (next: boolean) => {
     if (!next) {
       setSubViewActive(false)
+      setSubViewSize('form')
       setActiveTab(initialTab)
     }
     onOpenChange(next)
+  }
+
+  const handleSetSubViewActive = (active: boolean, size: DialogSize = 'form') => {
+    setSubViewActive(active)
+    setSubViewSize(active ? size : 'form')
   }
 
   return (
@@ -65,7 +72,7 @@ export default function ActiviteTabbedDialog({
         className={cn(
           'flex max-h-[95vh] flex-col gap-2 overflow-hidden p-4 sm:p-5',
           'transition-[max-width] duration-200',
-          subViewActive ? DIALOG_SIZES.form : DIALOG_SIZES.full
+          subViewActive ? DIALOG_SIZES[subViewSize] : DIALOG_SIZES.full
         )}
         aria-describedby={undefined}
       >
@@ -74,7 +81,7 @@ export default function ActiviteTabbedDialog({
         </DialogTitle>
 
         {activite && tabs.length > 0 && (
-          <ActiviteTabbedDialogProvider setSubViewActive={setSubViewActive}>
+          <ActiviteTabbedDialogProvider setSubViewActive={handleSetSubViewActive}>
             {!subViewActive && (
               <ActiviteTableHeading activite={activite} className='rounded-t-md border-0 bg-transparent px-0 py-1' />
             )}

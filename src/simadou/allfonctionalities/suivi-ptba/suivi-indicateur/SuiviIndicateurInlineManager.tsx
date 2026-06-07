@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { Plus, Save, Trash2 } from 'lucide-react'
+import { Plus, Save, Trash2, ArrowLeft } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -78,7 +78,7 @@ function rowHasData(row: SuiviRow): boolean {
 type SuiviIndicateurInlineManagerProps = {
   activite: Ptba
   indicateur: IndicateurTache
-  open: boolean
+  onClose: () => void
 }
 
 function syncRowsFromSuivis(suivis: SuiviIndicateurActivite[]): SuiviRow[] {
@@ -90,7 +90,7 @@ function syncRowsFromSuivis(suivis: SuiviIndicateurActivite[]): SuiviRow[] {
 export default function SuiviIndicateurInlineManager({
   activite,
   indicateur,
-  open,
+  onClose,
 }: SuiviIndicateurInlineManagerProps) {
   const queryClient = useQueryClient()
   const codeIndicateur = indicateur.code_indicateur_ptba
@@ -99,7 +99,7 @@ export default function SuiviIndicateurInlineManager({
     isLoading,
     isFetching,
     refetch,
-  } = useGetSuivisIndicateurByIndicateur(codeIndicateur, open)
+  } = useGetSuivisIndicateurByIndicateur(codeIndicateur, true)
   const { data: localites = [] } = useGetLocalites()
   const createMutation = useCreateSuiviIndicateur(codeIndicateur)
   const updateMutation = useUpdateSuiviIndicateur(codeIndicateur)
@@ -110,17 +110,10 @@ export default function SuiviIndicateurInlineManager({
   const [isSaving, setIsSaving] = useState(false)
 
   useEffect(() => {
-    if (!open) {
-      setInitialized(false)
-      setRows([createEmptyRow()])
-    }
-  }, [open])
-
-  useEffect(() => {
-    if (!open || initialized || isLoading || isFetching) return
+    if (initialized || isLoading || isFetching) return
     setRows(syncRowsFromSuivis(suivis))
     setInitialized(true)
-  }, [open, initialized, isLoading, isFetching, suivis])
+  }, [initialized, isLoading, isFetching, suivis])
 
   const refreshSuivis = async () => {
     await Promise.all([
@@ -230,6 +223,15 @@ export default function SuiviIndicateurInlineManager({
           Saisissez la commune, la date et la valeur pour chaque suivi.
         </p>
         <div className='flex flex-col gap-2 sm:flex-row'>
+          <Button
+            type='button'
+            variant='outline'
+            onClick={onClose}
+            disabled={isSaving}
+          >
+            <ArrowLeft className='h-4 w-4' />
+            Retour
+          </Button>
           <Button
             type='button'
             variant='outline'

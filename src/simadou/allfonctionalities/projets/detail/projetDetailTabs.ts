@@ -2,6 +2,7 @@ import {
   BarChart3,
   Briefcase,
   ClipboardList,
+  Eye,
   Layout,
   LayoutDashboard,
   Target,
@@ -11,6 +12,8 @@ import {
 export type ProjetDetailTabKey =
   | 'dashboard'
   | 'activities'
+  | 'ptba'
+  | 'suivi_ptba'
   | 'activity_indicators'
   | 'results_framework'
   | 'results_framework_indicators'
@@ -35,6 +38,18 @@ export const projetDetailTabs: ProjetDetailTab[] = [
     name: 'Activités',
     icon: Briefcase,
     description: 'Liste et suivi des activités rattachées au projet.',
+  },
+  {
+    key: 'ptba',
+    name: 'PTBA',
+    icon: ClipboardList,
+    description: 'Planification PTBA des activités du projet.',
+  },
+  {
+    key: 'suivi_ptba',
+    name: 'Suivi PTBA',
+    icon: Eye,
+    description: "Suivi d'avancement des activités PTBA du projet.",
   },
   {
     key: 'activity_indicators',

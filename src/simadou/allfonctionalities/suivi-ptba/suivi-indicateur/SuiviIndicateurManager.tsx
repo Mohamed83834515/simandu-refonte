@@ -2,12 +2,16 @@ import { useState } from 'react'
 import { Loader2 } from 'lucide-react'
 import type { Ptba } from '@/simadou/allTypes'
 import { IndicateurTache } from '@/simadou/allTypes/indicateurTache'
+import { getValeurCibleIndicateur } from '@/simadou/allColonnes/suivi-indicateur-columns'
 import { useGetIndicateursByActivite } from '@/simadou/allHooks/admin/indicateurTacheHooks'
+import { useGetAllSuivisIndicateurs } from '@/simadou/allHooks/admin/suiviPtbaHooks'
+import ActiviteTabbedFormPanel from '../ActiviteTabbedFormPanel'
 import {
-  useGetAllSuivisIndicateurs,
-} from '@/simadou/allHooks/admin/suiviPtbaHooks'
+  ActiviteTabbedSubViewHeader,
+  useActiviteTabbedSubView,
+} from '../ActiviteTabbedDialogContext'
 import SuiviIndicateurActiviteTable from './SuiviIndicateurActiviteTable'
-import SuiviIndicateurSuiviDialog from './SuiviIndicateurSuiviDialog'
+import SuiviIndicateurInlineManager from './SuiviIndicateurInlineManager'
 
 type SuiviIndicateurManagerProps = {
   activite: Ptba
@@ -18,7 +22,9 @@ export default function SuiviIndicateurManager({
 }: SuiviIndicateurManagerProps) {
   const [selectedIndicateur, setSelectedIndicateur] =
     useState<IndicateurTache | null>(null)
-  const [showSuiviDialog, setShowSuiviDialog] = useState(false)
+
+  const showForm = selectedIndicateur != null
+  useActiviteTabbedSubView(showForm, 'formWide')
 
   const { data: indicateurs = [], isLoading } = useGetIndicateursByActivite(
     activite.id_ptba
@@ -29,7 +35,10 @@ export default function SuiviIndicateurManager({
 
   const handleSuivre = (indicateur: IndicateurTache) => {
     setSelectedIndicateur(indicateur)
-    setShowSuiviDialog(true)
+  }
+
+  const handleCloseForm = () => {
+    setSelectedIndicateur(null)
   }
 
   if (isLoading) {
@@ -42,23 +51,37 @@ export default function SuiviIndicateurManager({
 
   return (
     <div className='flex min-h-0 flex-1 flex-col overflow-hidden'>
-      <div className='min-h-0 flex-1 overflow-y-auto px-3 py-2 sm:px-4 sm:py-3'>
-        <SuiviIndicateurActiviteTable
-          indicateurs={indicateurs}
-          suivis={suivis}
-          onSuivre={handleSuivre}
-        />
-      </div>
-
-      <SuiviIndicateurSuiviDialog
-        activite={activite}
-        indicateur={selectedIndicateur}
-        open={showSuiviDialog}
-        onOpenChange={(open) => {
-          setShowSuiviDialog(open)
-          if (!open) setSelectedIndicateur(null)
-        }}
-      />
+      {showForm && selectedIndicateur ? (
+        <ActiviteTabbedFormPanel
+          header={
+            <ActiviteTabbedSubViewHeader
+              sectionLabel={buildSuiviIndicateurHeader(selectedIndicateur)}
+              className='shrink-0 border-0 px-0 pb-0 text-base font-semibold text-foreground'
+            />
+          }
+        >
+          <SuiviIndicateurInlineManager
+            key={selectedIndicateur.code_indicateur_ptba}
+            activite={activite}
+            indicateur={selectedIndicateur}
+            onClose={handleCloseForm}
+          />
+        </ActiviteTabbedFormPanel>
+      ) : (
+        <div className='min-h-0 flex-1 overflow-y-auto px-3 py-2 sm:px-4 sm:py-3'>
+          <SuiviIndicateurActiviteTable
+            indicateurs={indicateurs}
+            suivis={suivis}
+            onSuivre={handleSuivre}
+          />
+        </div>
+      )}
     </div>
   )
+}
+
+function buildSuiviIndicateurHeader(indicateur: IndicateurTache): string {
+  const valeurCible = getValeurCibleIndicateur(indicateur)
+  const base = `Suivi — ${indicateur.intitule_indicateur_tache}`
+  return valeurCible ? `${base} · Valeur cible : ${valeurCible}` : base
 }
