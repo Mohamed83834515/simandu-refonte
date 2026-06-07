@@ -11,6 +11,7 @@ import { ProfileDropdown } from '@/components/others/profile-dropdown'
 import { Search } from '@/components/others/search'
 import { SkipToMain } from '@/components/others/skip-to-main'
 import { ThemeSwitch } from '@/components/others/theme-switch'
+import { LogoGroup } from '@/components/others/logo-group'
 import { AppTopbar } from './top-nav'
 import { ActiveProgrammeProvider } from './active-programme-provider'
 import { useSearchStore } from '@/stores/others/search-store'
@@ -85,7 +86,9 @@ function AuthenticatedLayoutInner({
         )}
       >
         <Header fixed>
-          <Search className='me-auto' />
+          <LogoGroup logoHeight={30} className="flex py-0 gap-2 px-1" />
+          <Search />
+          <div className="flex-1" />
           <ThemeSwitch />
           <ConfigDrawer />
           <ProfileDropdown />
