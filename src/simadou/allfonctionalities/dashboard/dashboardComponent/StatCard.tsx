@@ -9,7 +9,7 @@ interface StatRow {
 
 interface StatCardProps {
   title: string;
-  icon: LucideIcon;
+  icon?: LucideIcon; // Rend l'icône optionnelle
   color: string;
   rows: StatRow[];
   progressValue?: number;
@@ -75,19 +75,18 @@ const colorMap: Record<
 };
 
 const valueColors: Record<string, string> = {
-  red: "text-red-600",
-  orange: "text-orange-500",
-  emerald: "text-emerald-600",
-  green: "text-green-600",
-  purple: "text-purple-600",
-  blue: "text-blue-600",
-  rose: "text-rose-600",
-  slate: "text-slate-600",
+  red: "text-red-600 dark:text-red-400",
+  orange: "text-orange-500 dark:text-orange-400",
+  emerald: "text-emerald-600 dark:text-emerald-400",
+  green: "text-green-600 dark:text-green-400",
+  purple: "text-purple-600 dark:text-purple-400",
+  blue: "text-blue-600 dark:text-blue-400",
+  rose: "text-rose-600 dark:text-rose-400",
+  slate: "text-slate-600 dark:text-slate-400",
 };
 
 export default function StatCard({
   title,
-  icon: Icon,
   color,
   rows,
   progressValue,
@@ -112,27 +111,14 @@ export default function StatCard({
         dark:border-gray-700
       `}
     >
-      {/* Icône en arrière-plan */}
-      <div className="absolute -right-4 -top-4 opacity-10">
-        <Icon className="h-24 w-24 text-gray-900 dark:text-white" strokeWidth={1} />
-      </div>
+      {/* Barre de couleur en haut */}
+      <div className={`absolute top-0 left-0 right-0 h-1 ${progressTheme}`} />
 
-      {/* Header avec titre et icône mini */}
-      <div className="relative flex items-center gap-3 mb-4">
-        <div
-          className={`
-            flex h-10 w-10 items-center justify-center
-            rounded-xl ${theme.iconBg}
-            ${theme.text}
-          `}
-        >
-          <Icon className="h-5 w-5" strokeWidth={1.5} />
-        </div>
-        <div>
-          <p className={`text-xs font-semibold uppercase tracking-wider ${theme.text}`}>
-            {title}
-          </p>
-        </div>
+      {/* Header avec titre seulement */}
+      <div className="relative mb-4">
+        <p className={`text-xs font-semibold uppercase tracking-wider ${theme.text}`}>
+          {title}
+        </p>
       </div>
 
       {/* Trend */}

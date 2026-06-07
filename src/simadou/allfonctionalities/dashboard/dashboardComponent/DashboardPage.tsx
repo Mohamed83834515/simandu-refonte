@@ -640,9 +640,9 @@ const DashboardPage: React.FC = () => {
             {/* ── Cartes statistiques ── */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                 {/* Carte 1 : Projet Programme */}
+                {/* Carte 1 : Projet Programme */}
                 <StatCard
                     title="Projet Programme"
-                    icon={ClipboardListIcon}
                     color="blue"
                     rows={[
                         { label: "Nombre total du projet", value: projetProgrammeStats.total },
@@ -654,7 +654,6 @@ const DashboardPage: React.FC = () => {
                 {/* Carte 2 : PTBA Programme */}
                 <StatCard
                     title={`PTBA ${ptbaProgrammeStats.annee} Programme`}
-                    icon={TrendingUpIcon}
                     color="emerald"
                     rows={[
                         { label: "Montant Total Prévu", value: ptbaProgrammeStats.montantPrevu.toLocaleString('fr-FR'), suffix: "GNF" },
@@ -668,7 +667,6 @@ const DashboardPage: React.FC = () => {
                 {/* Carte 3 : PTBA Département */}
                 <StatCard
                     title={`PTBA ${ptbaDepartementStats.annee} Département`}
-                    icon={CheckCircle2Icon}
                     color="purple"
                     rows={[
                         { label: "Montant Total Prévu", value: ptbaDepartementStats.montantPrevu.toLocaleString('fr-FR'), suffix: "GNF" },
@@ -682,7 +680,6 @@ const DashboardPage: React.FC = () => {
                 {/* Carte 4 : Points de blocage */}
                 <StatCard
                     title="Points de blocage"
-                    icon={AlertCircleIcon}
                     color="rose"
                     rows={[
                         { label: "Nombre Total", value: pointsBlocageStats.total },
