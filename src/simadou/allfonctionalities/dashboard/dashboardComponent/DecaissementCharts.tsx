@@ -14,6 +14,8 @@ import {
   PieLabelRenderProps,
 } from "recharts";
 
+import { CHART_COLORS, useColor } from "@/stores/others/color-store";
+
 export interface DecaissementBailleurRow {
   bailleur: string;
   montant_prevu: number;
@@ -96,6 +98,9 @@ const DecaissementCharts: React.FC<DecaissementChartsProps> = ({
   dataBailleur,
   dataMensuel,
 }) => {
+  const { color } = useColor();
+  const { stroke } = CHART_COLORS[color];
+  
   const pieData = dataBailleur.map((d) => ({
     name: d.bailleur,
     value: d.montant_decaisse,
@@ -104,12 +109,12 @@ const DecaissementCharts: React.FC<DecaissementChartsProps> = ({
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Décaissement par bailleur - barres groupées */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-5">
         <div className="mb-4">
-          <h3 className="text-sm font-semibold text-gray-900">
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
             Décaissement par bailleur
           </h3>
-          <p className="text-xs text-gray-400">Prévu vs Décaissé (GNF)</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500">Prévu vs Décaissé (GNF)</p>
         </div>
         <ResponsiveContainer width="100%" height={280}>
           <BarChart
@@ -136,18 +141,18 @@ const DecaissementCharts: React.FC<DecaissementChartsProps> = ({
             <Tooltip content={<CustomTooltipBailleur />} cursor={{ fill: "#f9fafb" }} />
             <Legend wrapperStyle={{ fontSize: 11 }} iconType="circle" iconSize={8} />
             <Bar dataKey="montant_prevu" name="Prévu" fill="#D1D5DB" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="montant_decaisse" name="Décaissé" fill="#3B82F6" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="montant_decaisse" name="Décaissé" fill={stroke} radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>
 
       {/* Répartition des décaissements - camembert */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-5">
         <div className="mb-4">
-          <h3 className="text-sm font-semibold text-gray-900">
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
             Répartition des décaissements
           </h3>
-          <p className="text-xs text-gray-400">Par bailleur de fonds</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500">Par bailleur de fonds</p>
         </div>
         {pieData.length > 0 ? (
           <div className="flex items-center gap-4">
@@ -179,8 +184,8 @@ const DecaissementCharts: React.FC<DecaissementChartsProps> = ({
                     className="w-2.5 h-2.5 rounded-full flex-shrink-0"
                     style={{ background: COLORS[i % COLORS.length] }}
                   />
-                  <span className="text-xs text-gray-600 truncate">{entry.name}</span>
-                  <span className="text-xs font-semibold text-gray-900 ml-auto">
+                  <span className="text-xs text-gray-600 dark:text-gray-400 truncate">{entry.name}</span>
+                  <span className="text-xs font-semibold text-gray-900 dark:text-gray-100 ml-auto">
                     {formatMontant(entry.value)}
                   </span>
                 </div>
@@ -194,13 +199,13 @@ const DecaissementCharts: React.FC<DecaissementChartsProps> = ({
         )}
       </div>
 
-      {/* Évolution mensuelle - pleine largeur */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 lg:col-span-2">
+      {/* Évolution mensuelle */}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-5 lg:col-span-2">
         <div className="mb-4">
-          <h3 className="text-sm font-semibold text-gray-900">
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
             Évolution mensuelle des décaissements
           </h3>
-          <p className="text-xs text-gray-400">Montants décaissés par mois (GNF)</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500">Montants décaissés par mois (GNF)</p>
         </div>
         <ResponsiveContainer width="100%" height={220}>
           <BarChart
@@ -228,7 +233,7 @@ const DecaissementCharts: React.FC<DecaissementChartsProps> = ({
             <Bar
               dataKey="montant"
               name="Montant décaissé"
-              fill="#3B82F6"
+              fill={stroke}
               radius={[6, 6, 0, 0]}
             />
           </BarChart>

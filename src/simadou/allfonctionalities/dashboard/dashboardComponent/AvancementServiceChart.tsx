@@ -11,6 +11,7 @@ import {
   Cell,
 } from "recharts";
 import { CalendarIcon } from "lucide-react";
+import { CHART_COLORS, useColor } from "@/stores/others/color-store";
 
 export interface ServiceData {
   service: string;
@@ -39,13 +40,13 @@ const getBarColor = (value: number): string => {
 const CustomTooltip: React.FC<any> = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-white border border-gray-200 rounded-xl shadow-lg p-3 text-sm min-w-[160px]">
-      <p className="font-semibold text-gray-800 mb-2 truncate max-w-[200px]">{label}</p>
+    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg p-3 text-sm min-w-[160px]">
+      <p className="font-semibold text-gray-800 dark:text-gray-200 mb-2 truncate max-w-[200px]">{label}</p>
       {payload.map((entry: any) => (
         <div key={entry.dataKey} className="flex items-center gap-2 mb-1">
           <div className="w-2.5 h-2.5 rounded-full" style={{ background: entry.fill || entry.color }} />
-          <span className="text-gray-600">{entry.name}:</span>
-          <span className="font-semibold text-gray-900">
+          <span className="text-gray-600 dark:text-gray-400">{entry.name}:</span>
+          <span className="font-semibold text-gray-900 dark:text-gray-100">
             {entry.value}{entry.dataKey === "pourcentage" ? "%" : ""}
           </span>
         </div>
@@ -62,16 +63,17 @@ const AvancementServiceChart: React.FC<AvancementServiceChartProps> = ({
   onAnneeChange,
   title,
   subtitle,
-  // barColor = "#3B82F6",
 }) => {
   const truncatedData = data.slice(0, 10);
+  const { color } = useColor();
+  const { stroke } = CHART_COLORS[color];
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+    <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
-          {subtitle && <p className="text-xs text-gray-400">{subtitle}</p>}
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">{title}</h3>
+          {subtitle && <p className="text-xs text-gray-400 dark:text-gray-500">{subtitle}</p>}
         </div>
         <div className="flex items-center gap-2">
           <CalendarIcon className="w-4 h-4 text-gray-400" />
@@ -81,7 +83,7 @@ const AvancementServiceChart: React.FC<AvancementServiceChartProps> = ({
               const v = Number(e.target.value);
               onAnneeChange(v === 0 ? null : v);
             }}
-            className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700"
+            className="text-xs border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1.5 bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700 dark:text-gray-300"
           >
             <option value={0}>Toutes les années</option>
             {anneesDisponibles.map((a) => (
@@ -127,7 +129,7 @@ const AvancementServiceChart: React.FC<AvancementServiceChartProps> = ({
               dataKey="pourcentage"
               name="Taux de réalisation"
               radius={[4, 4, 0, 0]}
-              label={{ position: "top", fontSize: 10, fill: "#6b7280", formatter: (value) => `${value}%`, }}
+              label={{ position: "top", fontSize: 10, fill: "#6b7280", formatter: (value) => `${value}%` }}
             >
               {truncatedData.map((entry, index) => (
                 <Cell key={index} fill={getBarColor(entry.pourcentage)} />
@@ -138,7 +140,7 @@ const AvancementServiceChart: React.FC<AvancementServiceChartProps> = ({
               <Bar
                 dataKey="tachesTerminees"
                 name="Tâches terminées"
-                fill="#3B82F6"
+                fill={stroke}
                 radius={[4, 4, 0, 0]}
               />
               <Bar
