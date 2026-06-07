@@ -1,13 +1,5 @@
 import React, { useMemo, useState } from "react";
 // import { useQuery } from "@tanstack/react-query";
-import {
-    ClipboardListIcon,
-    CheckCircle2Icon,
-    TrendingUpIcon,
-    AlertCircleIcon,
-    // CoinsIcon,
-    // UsersIcon,
-} from "lucide-react";
 import { PlanSite, Projet, Ptba, TacheActivitePtba, VersionPtba } from "@/simadou/allTypes";
 import ProjectTable, { ProjetRow } from "./ProjectTable";
 import DashboardHeader from "./DashboardHeader";
