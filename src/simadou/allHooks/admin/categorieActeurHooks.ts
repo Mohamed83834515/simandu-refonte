@@ -22,7 +22,7 @@ export const useSaveCategorieActeur = (isEdit: boolean, currentRow?: any, onSucc
   return useMutation({
     mutationFn: (data: CategorieActeur) =>
       isEdit && currentRow?.id_categorie
-        ? categorieActeurService.update(data)
+        ? categorieActeurService.update(data, currentRow?.id_categorie)
         : categorieActeurService.create(data),
 
     onSuccess: async () => {

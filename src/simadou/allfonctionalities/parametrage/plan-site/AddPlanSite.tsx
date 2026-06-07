@@ -25,7 +25,7 @@ export default function AddPlanSite({ currentRow, niveauId, onClose, onSuccess }
   const parentPlans = useMemo(() => {
     if (!parentNiveau) return []
     return allPlans.filter((plan: any) => {
-      const planNiveauId = typeof plan.niveau_structure === 'object'
+      const planNiveauId = typeof plan.niveau_structure === 'object' 
         ? (plan.niveau_structure as any)?.id_nsc
         : plan.niveau_structure
       return planNiveauId === parentNiveau.id_nsc
@@ -59,7 +59,7 @@ export default function AddPlanSite({ currentRow, niveauId, onClose, onSuccess }
     code_ds: currentRow?.code_ds || '',
     code_relai_ds: currentRow?.code_relai_ds || '',
     intutile_ds: currentRow?.intutile_ds || '',
-    parent_ds: typeof currentRow?.parent_ds === 'object'
+    parent_ds: typeof currentRow?.parent_ds === 'object' && currentRow?.parent_ds !== null
       ? (currentRow.parent_ds as any).id_ds
       : currentRow?.parent_ds || null,
     niveau_ds: niveauId,

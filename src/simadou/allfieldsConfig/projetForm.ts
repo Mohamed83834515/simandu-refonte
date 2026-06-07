@@ -50,7 +50,7 @@ export const getProjetFormConfig = (): FormConfig => ({
       type: 'text',
       placeholder: 'Ex: PRJ001, PROJ01...',
       required: true,
-      gridCols: 1,
+      gridCols: 2,
     },
     {
       name: 'sigle_projet',
@@ -58,23 +58,14 @@ export const getProjetFormConfig = (): FormConfig => ({
       type: 'text',
       placeholder: 'Ex: PAD, PEF, PAS...',
       required: true,
-      gridCols: 1,
+      gridCols: 2,
     },
     {
       name: 'intitule_projet',
       label: 'Intitulé projet',
-      type: 'text',
+      type: 'textarea',
       placeholder: 'Intitulé complet du projet',
       required: true,
-      gridCols: 2,
-    },
-    {
-      name: 'duree_projet',
-      label: 'Durée projet',
-      type: 'number',
-      placeholder: 'Durée en mois',
-      required: true,
-      min: 1,
       gridCols: 1,
     },
     {
@@ -83,7 +74,7 @@ export const getProjetFormConfig = (): FormConfig => ({
       type: 'date',
       placeholder: 'AAAA-MM-JJ',
       required: true,
-      gridCols: 1,
+      gridCols: 2,
     },
     {
       name: 'date_demarrage_projet',
@@ -91,7 +82,17 @@ export const getProjetFormConfig = (): FormConfig => ({
       type: 'date',
       placeholder: 'AAAA-MM-JJ',
       required: true,
-      gridCols: 1,
+      gridCols: 2,
+    },
+
+    {
+      name: 'duree_projet',
+      label: 'Durée projet',
+      type: 'number',
+      placeholder: 'Durée en mois',
+      required: true,
+      min: 1,
+      gridCols: 2,
     },
     {
       name: 'partenaire_projet',
@@ -102,6 +103,7 @@ export const getProjetFormConfig = (): FormConfig => ({
       options: [],
       gridCols: 1,
     },
+    
     {
       name: 'programme_projet',
       label: 'Programme projet',
@@ -118,7 +120,7 @@ export const getProjetFormConfig = (): FormConfig => ({
       placeholder: 'Sélectionner une structure',
       required: true,
       options: [],
-      gridCols: 1,
+      gridCols: 2,
     },
     {
       name: 'signataires_projet',

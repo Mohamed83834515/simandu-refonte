@@ -24,6 +24,7 @@ export default function AddCategorieActeur({
   const defaultValues = {
     code_cat: currentRow?.code_cat || "",
     nom_categorie: currentRow?.nom_categorie || "",
+    id_categorie: currentRow?.id_categorie || 0,
   }
 
   const mutation = useSaveCategorieActeur(isEdit, currentRow, onSuccess)
@@ -31,7 +32,6 @@ export default function AddCategorieActeur({
   const handleSubmit = (data: CategorieActeur) => {
     mutation.mutate(data)
   }
-
   return (
     <DynamicForm
       config={formConfig}

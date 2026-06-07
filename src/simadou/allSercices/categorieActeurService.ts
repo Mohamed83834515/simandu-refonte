@@ -19,9 +19,10 @@ export const categorieActeurService = {
   },
 
   // Mettre à jour une catégorie
-  async update(data: CategorieActeur): Promise<CategorieActeur> {
+  async update(data: CategorieActeur, id: number): Promise<CategorieActeur> {
     const { id_categorie, ...form } = data;
-    return await apiClient.request<CategorieActeur>(`${BASE_URL}${id_categorie}/`, {
+    console.log('data update', data);
+    return await apiClient.request<CategorieActeur>(`${BASE_URL}${id}/`, {
       method: "PUT",
       data: form,
     });

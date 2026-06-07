@@ -41,7 +41,7 @@ export const acteurService = {
 
   // Create new acteur
   create: async (data: ActeurFormData): Promise<Acteur> => {
-    return await apiClient.request<Acteur>("/acteur/", {
+    return await apiClient.request<Acteur>(BASE_URL, {
       method: "POST",
       data,
     });
@@ -67,7 +67,7 @@ export const acteurService = {
 
   // Toggle status (if applicable)
   toggleStatus: async (id: number): Promise<Acteur> => {
-    return await apiClient.request<Acteur>(`/acteur/${id}/toggle_status/`, {
+    return await apiClient.request<Acteur>(`${BASE_URL}${id}/toggle_status/`, {
       method: "PATCH",
     });
   },

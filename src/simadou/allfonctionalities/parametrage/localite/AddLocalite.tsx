@@ -54,7 +54,7 @@ export default function AddLocalite({ currentRow, niveauId, onClose, onSuccess }
     code_loca: currentRow?.code_loca || '',
     code_national_loca: currentRow?.code_national_loca || '',
     intitule_loca: currentRow?.intitule_loca || '',
-    parent_loca: typeof currentRow?.parent_loca === 'object'
+    parent_loca: typeof currentRow?.parent_loca === 'object' && currentRow?.parent_loca !== null
       ? (currentRow.parent_loca as any).id_loca
       : currentRow?.parent_loca || null,
     niveau_loca: niveauId,
