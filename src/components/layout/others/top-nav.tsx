@@ -1252,6 +1252,11 @@ export function AppTopbar({ user }: UserProps) {
             <div className="_tb-center-divider" />
           </div>
 
+          {/* ── Logo 1 & Logo 2 ── */}
+          <img src="/src/assets/images/logo1.png" alt="Logo 1" style={{ height: 40, width: 'auto', objectFit: 'contain', flexShrink: 0 }} />
+          <img src="/src/assets/images/logo2.png" alt="Logo 2" style={{ height: 40, width: 'auto', objectFit: 'contain', flexShrink: 0 }} />
+
+          {/* Spacer */}
           <div style={{ flex: 1 }} />
 
           {/* Contrôles droite */}
