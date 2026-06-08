@@ -1,7 +1,7 @@
 import { apiClient } from "@/axios/api";
 import { Localite } from "../allTypes/localite";
 
-const LOCALITE_URL = "/localite/";
+const LOCALITE_URL = "/localites/";
 export const localiteService = {
   async getAll(): Promise<Localite[]> {
     return await apiClient.request<Localite[]>(LOCALITE_URL)

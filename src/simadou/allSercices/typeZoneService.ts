@@ -7,7 +7,7 @@ export const typeZoneService = {
   // Récupérer tous les types de zone
   async getAll(): Promise<TypeZone[]> {
     try {
-      const response = await apiClient.request<TypeZone[]>("/type_zone/");
+      const response = await apiClient.request<TypeZone[]>("/types-zones/");
       return response || [];
     } catch (error) {
       toast.error("Erreur lors de la récupération des types de zone");
@@ -18,7 +18,7 @@ export const typeZoneService = {
   // Récupérer un type de zone par ID
   async getById(id: number): Promise<TypeZone> {
     try {
-      const response = await apiClient.request<TypeZone>(`/type_zone/${id}/`);
+      const response = await apiClient.request<TypeZone>(`/types-zones/${id}/`);
       return response;
     } catch (error) {
       toast.error("Erreur lors de la récupération du type de zone");
@@ -29,7 +29,7 @@ export const typeZoneService = {
   // Créer un nouveau type de zone
   async create(data: TypeZoneFormData): Promise<TypeZone> {
     try {
-      const response = await apiClient.request<TypeZone>("/type_zone/", {
+      const response = await apiClient.request<TypeZone>("/types-zones/", {
         method: "POST",
         data,
       });
@@ -44,7 +44,7 @@ export const typeZoneService = {
   // Mettre à jour un type de zone
   async update(id: number, data: TypeZoneFormData): Promise<TypeZone> {
     try {
-      const response = await apiClient.request<TypeZone>(`/type_zone/${id}/`, {
+      const response = await apiClient.request<TypeZone>(`/types-zones/${id}/`, {
         method: "PUT",
         data,
       });
@@ -59,7 +59,7 @@ export const typeZoneService = {
   // Supprimer un type de zone
   async delete(id: number): Promise<void> {
     try {
-      await apiClient.request<void>(`/type_zone/${id}/`, {
+      await apiClient.request<void>(`/types-zones/${id}/`, {
         method: "DELETE",
       });
       toast.success("Type de zone supprimé avec succès");
@@ -73,7 +73,7 @@ export const typeZoneService = {
   async search(query: string): Promise<TypeZone[]> {
     try {
       const response = await apiClient.request<TypeZone[]>(
-        `/type_zone/search/?q=${encodeURIComponent(query)}`,
+        `/types-zones/search/?q=${encodeURIComponent(query)}`,
       );
       return response || [];
     } catch (error) {

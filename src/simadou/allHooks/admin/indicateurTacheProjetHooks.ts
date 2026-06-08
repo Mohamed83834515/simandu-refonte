@@ -2,7 +2,7 @@ import indicateurTacheService from "@/simadou/allSercices/indicateurTacheService
 import { IndicateurTache } from "@/simadou/allTypes/indicateurTache";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-const BASE_URL = "indicateurs-taches"
+const BASE_URL = "/indicateurs-taches-projets/"
 
 export const suiviPtbaQueryKeys = {
     indicateurs: (id_ptba: number) =>
@@ -10,14 +10,14 @@ export const suiviPtbaQueryKeys = {
     localites: ['localites'] as const,
 }
 
-export const useGetIndicateursByActivite = (id_ptba: number) =>
+export const useGetIndicateursProjetByActivite = (id_ptba: number) =>
   useQuery({
     queryKey: suiviPtbaQueryKeys.indicateurs(id_ptba),
     queryFn: () => indicateurTacheService.getByActivite(BASE_URL, id_ptba),
     enabled: !!id_ptba,
   })
 
-export const useCreateIndicateurTache = (id_ptba: number) => {
+export const useCreateIndicateurTacheProjet = (id_ptba: number) => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (data: IndicateurTache) =>
@@ -30,7 +30,7 @@ export const useCreateIndicateurTache = (id_ptba: number) => {
   })
 }
 
-export const useUpdateIndicateurTache = (id_ptba: number) => {
+export const useUpdateIndicateurTacheProjet = (id_ptba: number) => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: ({
@@ -48,7 +48,7 @@ export const useUpdateIndicateurTache = (id_ptba: number) => {
   })
 }
 
-export const useDeleteSuiviIndicateur = (id_ptba: number) => {
+export const useDeleteSuiviIndicateurProjet = (id_ptba: number) => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (id: number) => indicateurTacheService.delete(BASE_URL, id),

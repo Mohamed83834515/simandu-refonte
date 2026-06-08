@@ -2,7 +2,7 @@ import tacheActivitePtbaService from "@/simadou/allSercices/tacheActivitePtbaSer
 import { TacheActivitePtbaFormData } from "@/simadou/schemas/tacheActivitePtbaSchemas";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-const BASE_URL = "/tache_activite_ptba/"
+const BASE_URL = "/tache-activite-ptba-projets/"
 
 export const suiviPtbaQueryKeys = {
     tachesAll: ['taches-activite-all'] as const,
@@ -10,14 +10,14 @@ export const suiviPtbaQueryKeys = {
         ['taches-activite', idActivite] as const,
 }
 
-export const useGetAllTachesActivite = (enabled = true) =>
+export const useGetAllTachesActiviteProjet = (enabled = true) =>
     useQuery({
         queryKey: suiviPtbaQueryKeys.tachesAll,
         queryFn: () => tacheActivitePtbaService.getAll(BASE_URL),
         enabled,
     })
 
-export const useGetTachesByActivite = (idActivite: number) =>
+export const useGetTachesByActiviteProjet = (idActivite: number) =>
     useQuery({
         queryKey: suiviPtbaQueryKeys.tachesActivite(idActivite),
         queryFn: () => tacheActivitePtbaService.getByActivite(BASE_URL, idActivite),
@@ -25,7 +25,7 @@ export const useGetTachesByActivite = (idActivite: number) =>
     })
 
 
-export const useCreateTacheActivite = (idActivite: number) => {
+export const useCreateTacheActiviteProjet = (idActivite: number) => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (
@@ -40,7 +40,7 @@ export const useCreateTacheActivite = (idActivite: number) => {
   })
 }
 
-export const useUpdateTacheActivite = (idActivite: number) => {
+export const useUpdateTacheActiviteProjet = (idActivite: number) => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: ({
@@ -60,7 +60,7 @@ export const useUpdateTacheActivite = (idActivite: number) => {
 }
 
 
-export const useDeleteTachePtba = (id_ptba: number) => {
+export const useDeleteTachePtbaProjet = (id_ptba: number) => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (id: number) => tacheActivitePtbaService.delete(BASE_URL, id),

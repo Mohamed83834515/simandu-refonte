@@ -1,7 +1,7 @@
 import { apiClient } from "@/axios/api";
 import { NiveauStructure } from "../allTypes/niveauStructure";
 
-const BASE_URL = "/niveau_structure_config/";
+const BASE_URL = "/niveaux-structure-config/";
 
 export const niveauStructureService = {
   // Récupérer tous les niveaux de structures

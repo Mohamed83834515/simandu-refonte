@@ -1,6 +1,6 @@
 import { apiClient } from "@/axios/api";
 import type { NiveauStructure, PlanSite } from "../allTypes";
-const BASE_URL = '/plan_site/'
+const BASE_URL = '/plan-sites/'
 
 export const planSiteService = {
   async getAll(): Promise<PlanSite[]> {
@@ -33,7 +33,7 @@ export const planSiteService = {
 }
 
 
-const BASE_URL_NIVEAU = '/niveaux-niveau_structure_config/'
+const BASE_URL_NIVEAU = '/niveaux-niveaux-structure-config/'
 
 export const NiveauStructureService = {
   async getAll(): Promise<NiveauStructure[]> {

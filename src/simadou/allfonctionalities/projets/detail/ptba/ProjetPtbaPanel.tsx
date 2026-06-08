@@ -14,9 +14,9 @@ import {
   useGetPtbasProjet,
 } from '@/simadou/allHooks/admin/ptbaProjetHooks'
 import ActiviteTabbedDialog from '@/simadou/allfonctionalities/ptba/ActiviteTabbedDialog'
-import IndicateurTacheManager from '@/simadou/allfonctionalities/ptba/indicateur-tache/IndicateurTacheManager'
-import TacheActiviteManager from '@/simadou/allfonctionalities/ptba/tache-activite/TacheActiviteManager'
 import AddPtbaProjet from './AddPtbaProjet'
+import TacheActiviteProjetManager from './tache-activite-projet/TacheActiviteManager'
+import IndicateurTacheProjetManager from './indicateur-tache-projet/IndicateurTacheManager'
 
 type ProjetPtbaPanelProps = {
   projet: Projet
@@ -90,14 +90,14 @@ export default function ProjetPtbaPanel({ projet }: ProjetPtbaPanelProps) {
                   value: 'taches',
                   label: 'Planification des tâches',
                   content: (
-                    <TacheActiviteManager activite={planifierActivite} />
+                    <TacheActiviteProjetManager activite={planifierActivite} />
                   ),
                 },
                 {
                   value: 'indicateurs',
                   label: 'Planification des indicateurs',
                   content: (
-                    <IndicateurTacheManager activite={planifierActivite} />
+                    <IndicateurTacheProjetManager activite={planifierActivite} />
                   ),
                 },
               ]

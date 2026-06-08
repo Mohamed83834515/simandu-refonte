@@ -8,7 +8,7 @@ export const uniteIndicateurService = {
   getAll: async (): Promise<UniteIndicateur[]> => {
     try {
       const response =
-        await apiClient.request<UniteIndicateur[]>("/unite_indicateur/");
+        await apiClient.request<UniteIndicateur[]>("unite-indicateurs");
       return Array.isArray(response) ? response : [];
     } catch (error) {
       toast.error("Erreur lors de la récupération des unités d'indicateur");
@@ -20,7 +20,7 @@ export const uniteIndicateurService = {
   getById: async (id: number): Promise<UniteIndicateur> => {
     try {
       return await apiClient.request<UniteIndicateur>(
-        `/unite_indicateur/${id}/`,
+        `unite-indicateurs${id}/`,
       );
     } catch (error) {
       toast.error("Erreur lors de la récupération de l'unité d'indicateur");
@@ -32,7 +32,7 @@ export const uniteIndicateurService = {
   create: async (data: UniteIndicateurFormData): Promise<UniteIndicateur> => {
     try {
       const response = await apiClient.request<UniteIndicateur>(
-        "/unite_indicateur/",
+        "unite-indicateurs",
         {
           method: "POST",
           data,
@@ -53,7 +53,7 @@ export const uniteIndicateurService = {
   ): Promise<UniteIndicateur> => {
     try {
       const response = await apiClient.request<UniteIndicateur>(
-        `/unite_indicateur/${id}/`,
+        `unite-indicateurs${id}/`,
         {
           method: "PUT",
           data,
@@ -70,7 +70,7 @@ export const uniteIndicateurService = {
   // Delete unité
   delete: async (id: number): Promise<void> => {
     try {
-      await apiClient.request(`/unite_indicateur/${id}/`, {
+      await apiClient.request(`unite-indicateurs${id}/`, {
         method: "DELETE",
       });
       toast.success("Unité d'indicateur supprimée avec succès");

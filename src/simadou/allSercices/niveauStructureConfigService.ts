@@ -10,7 +10,7 @@ export const niveauStructureConfigService = {
   async getAll(): Promise<NiveauStructureConfig[]> {
     try {
       const response = await apiClient.request<NiveauStructureConfig[]>(
-        "/niveau_structure_config/",
+        "/niveaux-structure-config/",
       );
       return Array.isArray(response) ? response : [];
     } catch (error) {
@@ -25,7 +25,7 @@ export const niveauStructureConfigService = {
   async getById(id: number): Promise<NiveauStructureConfig> {
     try {
       const response = await apiClient.request<NiveauStructureConfig>(
-        `/niveau_structure_config/${id}/`,
+        `/niveaux-structure-config/${id}/`,
       );
       return response;
     } catch (error) {
@@ -40,7 +40,7 @@ export const niveauStructureConfigService = {
   ): Promise<NiveauStructureConfig> {
     try {
       const response = await apiClient.request<NiveauStructureConfig>(
-        "/niveau_structure_config/",
+        "/niveaux-structure-config/",
         {
           method: "POST",
           data,
@@ -61,7 +61,7 @@ export const niveauStructureConfigService = {
   ): Promise<NiveauStructureConfig> {
     try {
       const response = await apiClient.request<NiveauStructureConfig>(
-        `/niveau_structure_config/${id}/`,
+        `/niveaux-structure-config/${id}/`,
         {
           method: "PUT",
           data,
@@ -78,7 +78,7 @@ export const niveauStructureConfigService = {
   // Supprimer une configuration
   async delete(id: number): Promise<void> {
     try {
-      await apiClient.request<void>(`/niveau_structure_config/${id}/`, {
+      await apiClient.request<void>(`/niveaux-structure-config/${id}/`, {
         method: "DELETE",
       });
       toast.success("Configuration de niveau supprimée avec succès");
@@ -92,7 +92,7 @@ export const niveauStructureConfigService = {
   async search(query: string): Promise<NiveauStructureConfig[]> {
     try {
       const response = await apiClient.request<NiveauStructureConfig[]>(
-        `/niveau_structure_config/search/?q=${encodeURIComponent(query)}`,
+        `/niveaux-structure-config/search/?q=${encodeURIComponent(query)}`,
       );
       return Array.isArray(response) ? response : [];
     } catch (error) {
@@ -105,7 +105,7 @@ export const niveauStructureConfigService = {
   async validateLevelOrder(configs: NiveauStructureConfig[]): Promise<boolean> {
     try {
       const response = await apiClient.request<{ valid: boolean }>(
-        "/niveau_structure_config/validate/",
+        "/niveaux-structure-config/validate/",
         {
           method: "POST",
           data: { configs },

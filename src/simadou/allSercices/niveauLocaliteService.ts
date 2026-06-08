@@ -1,7 +1,7 @@
 import { apiClient } from "@/axios/api";
 import { NiveauLocalite } from "../allTypes/niveauLocalite";
 
-const BASE_URL = "/niveau_localite_config/";
+const BASE_URL = "/niveaux-localite-config/";
 
 export const niveauLocaliteService = {
   // Récupérer tous les niveaux de localités

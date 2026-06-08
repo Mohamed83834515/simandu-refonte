@@ -15,9 +15,9 @@ import { useGetPtbasProjet } from '@/simadou/allHooks/admin/ptbaProjetHooks'
 import { useSuiviPtbaActivitesProgress } from '@/simadou/allHooks/admin/suiviPtbaHooks'
 import ActiviteTabbedDialog from '@/simadou/allfonctionalities/suivi-ptba/ActiviteTabbedDialog'
 import ObservationPtbaManager from '@/simadou/allfonctionalities/suivi-ptba/observations/ObservationPtbaManager'
-import SuiviAvancementContratManager from '@/simadou/allfonctionalities/suivi-ptba/suivi-avancement-contrat/SuiviAvancementContratManager'
-import SuiviIndicateurManager from '@/simadou/allfonctionalities/suivi-ptba/suivi-indicateur/SuiviIndicateurManager'
-import SuiviTacheActiviteManager from '@/simadou/allfonctionalities/suivi-ptba/suivi-tache/SuiviTacheActiviteManager'
+import SuiviTacheActiviteProjetManager from './suivi-tache/SuiviTacheActiviteManager'
+import SuiviIndicateurProjetManager from './suivi-indicateur/SuiviIndicateurManager'
+import SuiviAvancementContratProjetManager from './suivi-avancement-contrat/SuiviAvancementContratManager'
 
 type ProjetSuiviPtbaPanelProps = {
   projet: Projet
@@ -105,21 +105,21 @@ export default function ProjetSuiviPtbaPanel({ projet }: ProjetSuiviPtbaPanelPro
                   value: 'taches',
                   label: 'Suivi des tâches',
                   content: (
-                    <SuiviTacheActiviteManager activite={suiviActivite} />
+                    <SuiviTacheActiviteProjetManager activite={suiviActivite} />
                   ),
                 },
                 {
                   value: 'indicateurs',
                   label: 'Suivi des indicateurs',
                   content: (
-                    <SuiviIndicateurManager activite={suiviActivite} />
+                    <SuiviIndicateurProjetManager activite={suiviActivite} />
                   ),
                 },
                 {
                   value: 'avancement-contrat',
                   label: "Observation globale sur l'activité",
                   content: (
-                    <SuiviAvancementContratManager activite={suiviActivite} />
+                    <SuiviAvancementContratProjetManager activite={suiviActivite} />
                   ),
                 },
               ]
