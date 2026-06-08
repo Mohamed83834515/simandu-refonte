@@ -309,8 +309,8 @@ export const NIVEAU_STRUCTURE = {
   id_programme: null,
 };
 
-// =========niveaux-structure-config==================
-export const niveaux-structure-config = {
+// =========niveaux_structure_config==================
+export const niveaux_structure_config = {
   nombre_nsc: "",
   libelle_nsc: "",
   code_number_nsc: "",

@@ -18,6 +18,9 @@ import type {
   SuiviAvancementWithSourcesInput,
 } from '@/simadou/allSercices/suiviAvancementContratService'
 
+
+const BASE_URL = "/tache_activite_ptba/"
+
 export const suiviPtbaQueryKeys = {
   tachesAll: ['taches-activite-all'] as const,
   suiviTache: (idActivite: number) =>
@@ -39,14 +42,14 @@ export const suiviPtbaQueryKeys = {
 export const useGetAllTachesActivite = (enabled = true) =>
   useQuery({
     queryKey: suiviPtbaQueryKeys.tachesAll,
-    queryFn: () => tacheActivitePtbaService.getAll(),
+    queryFn: () => tacheActivitePtbaService.getAll(BASE_URL),
     enabled,
   })
 
 export const useGetTachesByActivite = (idActivite: number) =>
   useQuery({
     queryKey: suiviPtbaQueryKeys.tachesActivite(idActivite),
-    queryFn: () => tacheActivitePtbaService.getByActivite(idActivite),
+    queryFn: () => tacheActivitePtbaService.getByActivite(BASE_URL, idActivite),
     enabled: Number.isFinite(idActivite),
   })
 
