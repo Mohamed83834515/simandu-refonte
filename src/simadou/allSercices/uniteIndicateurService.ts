@@ -2,13 +2,15 @@ import { toast } from "sonner";
 import { apiClient } from "@/axios/api";
 import type { UniteIndicateur } from "../allTypes";
 import { UniteIndicateurFormData } from "../allTypes/entities";
+ 
+const BASE_URL = "/unite-indicateurs/"
 
 export const uniteIndicateurService = {
   // Get all unités d'indicateur
   getAll: async (): Promise<UniteIndicateur[]> => {
     try {
       const response =
-        await apiClient.request<UniteIndicateur[]>("unite-indicateurs");
+        await apiClient.request<UniteIndicateur[]>(BASE_URL);
       return Array.isArray(response) ? response : [];
     } catch (error) {
       toast.error("Erreur lors de la récupération des unités d'indicateur");
@@ -20,7 +22,7 @@ export const uniteIndicateurService = {
   getById: async (id: number): Promise<UniteIndicateur> => {
     try {
       return await apiClient.request<UniteIndicateur>(
-        `unite-indicateurs${id}/`,
+        `${BASE_URL}${id}/`,
       );
     } catch (error) {
       toast.error("Erreur lors de la récupération de l'unité d'indicateur");
@@ -32,7 +34,7 @@ export const uniteIndicateurService = {
   create: async (data: UniteIndicateurFormData): Promise<UniteIndicateur> => {
     try {
       const response = await apiClient.request<UniteIndicateur>(
-        "unite-indicateurs",
+       BASE_URL,
         {
           method: "POST",
           data,
@@ -53,7 +55,7 @@ export const uniteIndicateurService = {
   ): Promise<UniteIndicateur> => {
     try {
       const response = await apiClient.request<UniteIndicateur>(
-        `unite-indicateurs${id}/`,
+        `${BASE_URL}${id}/`,
         {
           method: "PUT",
           data,
@@ -70,7 +72,7 @@ export const uniteIndicateurService = {
   // Delete unité
   delete: async (id: number): Promise<void> => {
     try {
-      await apiClient.request(`unite-indicateurs${id}/`, {
+      await apiClient.request(`${BASE_URL}${id}/`, {
         method: "DELETE",
       });
       toast.success("Unité d'indicateur supprimée avec succès");
