@@ -4,8 +4,9 @@ import { DynamicForm } from '@/Global/Forms/DynamicForm'
 import type { Ptba, TacheActivitePtba } from '@/simadou/allTypes'
 import { TacheActivitePtbaFormData, tacheActivitePtbaSchema } from '@/simadou/schemas/tacheActivitePtbaSchemas'
 import { useCreateTacheActivite, useUpdateTacheActivite } from '@/simadou/allHooks/admin/tacheActiviteHooks'
-import { getTacheActivitePtbaFormConfig } from '@/simadou/allfieldsConfig/tacheActivitePtbaForm'
+import { getTacheActivitePtbaFormConfigForDialog } from '@/simadou/allfieldsConfig/tacheActivitePtbaForm'
 import { useMe } from '@/simadou/allHooks/auth/authHooks'
+import { useGetPersonnels } from '@/simadou/allHooks/admin/personnelHooks'
 
 interface TacheActivitePtbaFormProps {
   tache?: TacheActivitePtba;
@@ -22,7 +23,18 @@ export default function TacheActiviteForm({
 }: TacheActivitePtbaFormProps) {
   const isEditing = !!tache
   const { data: user } = useMe()
-  const formConfig = useMemo(() => getTacheActivitePtbaFormConfig(), [])
+  const { data: personnels = [], isLoading: isLoadingPersonnels } = useGetPersonnels()
+  const formConfig = useMemo(
+    () =>
+      getTacheActivitePtbaFormConfigForDialog({
+        personnelOptions: personnels.map((p) => ({
+          value: p.n_personnel!,
+          label: `${p.prenom_perso ?? ''} ${p.nom_perso ?? ''}`.trim(),
+        })),
+        isLoadingPersonnels,
+      }),
+    [personnels, isLoadingPersonnels]
+  )
   const idActivite = activite.id_ptba
   const defaultValues = useMemo(
     (): TacheActivitePtbaFormData => ({

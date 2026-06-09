@@ -1,7 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
-import { Target } from 'lucide-react'
 import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
 import { DataTableToolbarOutlineButton } from '@/components/data-table/toolbar-outline-button'
 import {
   Dialog,
@@ -20,9 +18,9 @@ import {
   useDeleteIndicateurCmr,
   useGetIndicateursCmr,
 } from '@/simadou/allHooks/admin/indicateurCmrHooks'
+import CiblesCmrIndicateurDialog from './CiblesCmrIndicateurDialog'
 import IndicateurCmrFormDialog from './IndicateurCmrFormDialog'
 import IndicateurCmrDetailView from './IndicateurCmrDetailView'
-import ProjetCiblesCmrDialog from './ProjetCiblesCmrDialog'
 
 type ModalState = 'indicateur' | 'indicateurView'
 
@@ -35,6 +33,8 @@ export default function ProjetIndicateursCmrPanel({ projet }: { projet: Projet }
 
   const [modal, setModal] = useState<ModalState | null>(null)
   const [ciblesOpen, setCiblesOpen] = useState(false)
+  const [indicateurForCibles, setIndicateurForCibles] =
+    useState<IndicateurCmr | null>(null)
   const [selectedIndicateurId, setSelectedIndicateurId] = useState<number | null>(
     null
   )
@@ -67,14 +67,30 @@ export default function ProjetIndicateursCmrPanel({ projet }: { projet: Projet }
     [setIndDeleteOpen]
   )
 
+  const handleOpenCibles = useCallback((ind: IndicateurCmr) => {
+    setIndicateurForCibles(ind)
+    setCiblesOpen(true)
+  }, [])
+
+  const handleCloseCibles = useCallback((open: boolean) => {
+    setCiblesOpen(open)
+    if (!open) setIndicateurForCibles(null)
+  }, [])
+
   const indicateurColumns = useMemo(
     () =>
       buildIndicateurCmrColumns({
         onView: handleViewIndicateur,
         onEdit: handleEditIndicateur,
         onDeleteRequest: handleDeleteIndicateurRequest,
+        onOpenCibles: handleOpenCibles,
       }),
-    [handleViewIndicateur, handleEditIndicateur, handleDeleteIndicateurRequest]
+    [
+      handleViewIndicateur,
+      handleEditIndicateur,
+      handleDeleteIndicateurRequest,
+      handleOpenCibles,
+    ]
   )
 
   const handleConfirmDeleteIndicateur = (ind: IndicateurCmr) => {
@@ -113,26 +129,14 @@ export default function ProjetIndicateursCmrPanel({ projet }: { projet: Projet }
         defaultPageSize={10}
         showViewOptions={false}
         toolbarEndSlot={
-          <div className='ms-auto flex flex-col gap-2 sm:flex-row'>
-            <Button
-              type='button'
-              variant='outline'
-              size='sm'
-              className='h-8 border-dashed'
-              onClick={() => setCiblesOpen(true)}
-            >
-              <Target className='h-4 w-4' />
-              Cibles CMR
-            </Button>
-            <DataTableToolbarOutlineButton
-              onClick={() => {
-                setSelectedIndicateur(null)
-                setModal('indicateur')
-              }}
-            >
-              Ajouter
-            </DataTableToolbarOutlineButton>
-          </div>
+          <DataTableToolbarOutlineButton
+            onClick={() => {
+              setSelectedIndicateur(null)
+              setModal('indicateur')
+            }}
+          >
+            Ajouter
+          </DataTableToolbarOutlineButton>
         }
         emptyMessage='Aucun indicateur CMR'
       />
@@ -148,10 +152,11 @@ export default function ProjetIndicateursCmrPanel({ projet }: { projet: Projet }
         />
       )}
 
-      <ProjetCiblesCmrDialog
-        codeProjet={codeProjet}
+      <CiblesCmrIndicateurDialog
         open={ciblesOpen}
-        onOpenChange={setCiblesOpen}
+        onOpenChange={handleCloseCibles}
+        indicateur={indicateurForCibles}
+        codeProjet={codeProjet}
       />
 
       <Dialog open={modal === 'indicateur'} onOpenChange={(o) => !o && closeAll()}>

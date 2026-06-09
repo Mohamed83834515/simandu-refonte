@@ -96,6 +96,20 @@ export function useGetAllCiblesCmrProjet() {
   })
 }
 
+export function useGetCiblesCmrByIndicateurCrp(
+  indicateurCrpId: number | null | undefined
+) {
+  return useQuery({
+    queryKey: [
+      ...cibleCmrProjetQueryKeys.all,
+      'by-indicateur-crp',
+      indicateurCrpId,
+    ] as const,
+    queryFn: () => cibleCmrProjetService.getByIndicateur(indicateurCrpId!),
+    enabled: indicateurCrpId != null,
+  })
+}
+
 export function useCreateCibleCmrProjet(codeProjet: string | undefined) {
   const queryClient = useQueryClient()
   return useMutation({

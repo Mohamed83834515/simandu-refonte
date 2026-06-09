@@ -1,6 +1,8 @@
 import { type ColumnDef } from '@tanstack/react-table'
+import { ClipboardList } from 'lucide-react'
 import { DataTableColumnHeader } from '@/components/data-table'
 import { LongText } from '@/components/others/long-text'
+import { Button } from '@/components/ui/button'
 import { buildEditDeleteActionsColumn } from '@/Global/Tableaux/buildEditDeleteActionsColumn'
 import type { IndicateurCmr } from '@/simadou/allTypes'
 import { resolveRelationCode } from '@/simadou/lib/resolveApiRelation'
@@ -18,10 +20,12 @@ export function buildIndicateurCmrColumns({
   onView,
   onEdit,
   onDeleteRequest,
+  onOpenCibles,
 }: {
   onView?: (row: IndicateurCmr) => void
   onEdit: (row: IndicateurCmr) => void
   onDeleteRequest: (row: IndicateurCmr) => void
+  onOpenCibles?: (row: IndicateurCmr) => void
 }): ColumnDef<IndicateurCmr>[] {
   const actionsColumn = buildEditDeleteActionsColumn({
     onView,
@@ -85,17 +89,21 @@ export function buildIndicateurCmrColumns({
       ),
       enableHiding: false,
     },
-    {
-      id: 'cible_cmr',
-      accessorKey: 'cible_cmr',
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title='Cible' />
-      ),
-      cell: ({ row }) => (
-        <span className='text-sm'>{displayValue(row.original.cible_cmr)}</span>
-      ),
-      enableHiding: false,
-    },
+    ...(onOpenCibles
+      ? []
+      : [
+          {
+            id: 'cible_cmr',
+            accessorKey: 'cible_cmr',
+            header: ({ column }) => (
+              <DataTableColumnHeader column={column} title='Cible' />
+            ),
+            cell: ({ row }) => (
+              <span className='text-sm'>{displayValue(row.original.cible_cmr)}</span>
+            ),
+            enableHiding: false,
+          } satisfies ColumnDef<IndicateurCmr>,
+        ]),
     {
       id: 'fonction_agregat_cmr',
       accessorKey: 'fonction_agregat_cmr',
@@ -138,6 +146,43 @@ export function buildIndicateurCmrColumns({
       enableSorting: false,
       enableHiding: false,
     },
+    ...(onOpenCibles
+      ? [
+          {
+            id: 'cibles',
+            header: ({ column }) => (
+              <DataTableColumnHeader
+                column={column}
+                title='Cibles'
+                className='flex w-full justify-center'
+              />
+            ),
+            cell: ({ row }) => (
+              <div className='flex justify-center'>
+                <Button
+                  type='button'
+                  variant='outline'
+                  size='sm'
+                  className='gap-2 border-blue-200 bg-blue-50 text-blue-700 transition-all duration-200 hover:bg-blue-100 hover:text-blue-800 dark:border-blue-800 dark:bg-blue-950/30 dark:text-blue-400 dark:hover:bg-blue-950/50'
+                  onClick={() => onOpenCibles(row.original)}
+                  aria-label='Gérer les cibles CMR'
+                  title='Cibles CMR'
+                >
+                  <ClipboardList className='h-4 w-4' />
+                  <span className='text-xs font-medium'>Planifier</span>
+                </Button>
+              </div>
+            ),
+            meta: {
+              thClassName: 'text-center w-[120px] pe-12',
+              className: 'text-center align-middle pe-12',
+            },
+            size: 120,
+            enableSorting: false,
+            enableHiding: false,
+          } satisfies ColumnDef<IndicateurCmr>,
+        ]
+      : []),
     actionsColumn,
   ]
 }

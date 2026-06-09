@@ -25,6 +25,7 @@ import {
 } from '@/simadou/allHooks/admin/cadreResultatHooks'
 import CadreResultatFormDialog from './CadreResultatFormDialog'
 import NiveauCadreResultatManager from './NiveauCadreResultatManager'
+import IndicateurCadreResultatCadreDialog from '../resultsFrameworkIndicators/IndicateurCadreResultatCadreDialog'
 import { resolveNiveauCrId, sortNiveauxCadreResultat } from '@/simadou/lib/cadreResultatUtils'
 
 type ModalState = 'form' | 'niveaux'
@@ -35,18 +36,27 @@ function CadreResultatNiveauTable({
   tableKey,
   onEdit,
   onDeleteRequest,
+  onOpenIndicateurs,
 }: {
   niveauId: number
   cadres: CadreResultat[]
   tableKey: string
   onEdit: (row: CadreResultat) => void
   onDeleteRequest: (row: CadreResultat) => void
+  onOpenIndicateurs: (row: CadreResultat) => void
 }) {
   const { search, navigate } = useEmbeddedTableState()
 
   const columns = useMemo(
-    () => buildCadreResultatColumns({ cadres, onEdit, onDeleteRequest }),
-    [cadres, onEdit, onDeleteRequest]
+    () =>
+      buildCadreResultatColumns({
+        cadres,
+        onEdit,
+        onDeleteRequest,
+        onOpenIndicateurs,
+        hideProjetColumn: true,
+      }),
+    [cadres, onEdit, onDeleteRequest, onOpenIndicateurs]
   )
 
   const rows = useMemo(
@@ -91,6 +101,10 @@ export default function ProjetCadreResultatsPanel({ projet }: { projet: Projet }
   const [activeNiveauId, setActiveNiveauId] = useState<string>('')
   const [showModal, setShowModal] = useState<ModalState | null>(null)
   const [selectedCadre, setSelectedCadre] = useState<CadreResultat | null>(null)
+  const [indicateursOpen, setIndicateursOpen] = useState(false)
+  const [cadreForIndicateurs, setCadreForIndicateurs] = useState<CadreResultat | null>(
+    null
+  )
   const [deleteOpen, setDeleteOpen] = useDialogState<'delete'>(null)
   const [cadreToDelete, setCadreToDelete] = useState<CadreResultat | null>(null)
 
@@ -124,6 +138,16 @@ export default function ProjetCadreResultatsPanel({ projet }: { projet: Projet }
     },
     [setDeleteOpen]
   )
+
+  const handleOpenIndicateurs = useCallback((cadre: CadreResultat) => {
+    setCadreForIndicateurs(cadre)
+    setIndicateursOpen(true)
+  }, [])
+
+  const handleCloseIndicateurs = useCallback((open: boolean) => {
+    setIndicateursOpen(open)
+    if (!open) setCadreForIndicateurs(null)
+  }, [])
 
   const handleConfirmDelete = (cadre: CadreResultat) => {
     deleteMutation.mutate(cadre.id_cr, {
@@ -212,6 +236,7 @@ export default function ProjetCadreResultatsPanel({ projet }: { projet: Projet }
                   tableKey={`cadres-${n.id_ncr}-${dataUpdatedAt}-${cadres.length}`}
                   onEdit={handleEdit}
                   onDeleteRequest={handleDeleteRequest}
+                  onOpenIndicateurs={handleOpenIndicateurs}
                 />
               )}
             </TabsContent>
@@ -229,6 +254,13 @@ export default function ProjetCadreResultatsPanel({ projet }: { projet: Projet }
           onDelete={handleConfirmDelete}
         />
       )}
+
+      <IndicateurCadreResultatCadreDialog
+        open={indicateursOpen}
+        onOpenChange={handleCloseIndicateurs}
+        cadre={cadreForIndicateurs}
+        codeProjet={codeProjet}
+      />
 
       <Dialog open={showModal === 'niveaux'} onOpenChange={(o) => !o && handleClose()}>
         <DialogContent className='sm:max-w-3xl'>

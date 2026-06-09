@@ -1,5 +1,4 @@
 import {
-  BarChart3,
   Briefcase,
   ClipboardList,
   Eye,
@@ -16,7 +15,6 @@ export type ProjetDetailTabKey =
   | 'suivi_ptba'
   | 'activity_indicators'
   | 'results_framework'
-  | 'results_framework_indicators'
   | 'cmr_indicators'
 
 export type ProjetDetailTab = {
@@ -61,13 +59,7 @@ export const projetDetailTabs: ProjetDetailTab[] = [
     key: 'results_framework',
     name: 'Cadre de résultats',
     icon: Layout,
-    description: 'Structure du cadre de résultats du projet.',
-  },
-  {
-    key: 'results_framework_indicators',
-    name: 'Indicateurs de résultats',
-    icon: BarChart3,
-    description: 'Indicateurs associés au cadre de résultats.',
+    description: 'Structure du cadre de résultats et indicateurs associés.',
   },
   {
     key: 'cmr_indicators',

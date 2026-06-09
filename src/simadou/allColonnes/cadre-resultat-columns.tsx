@@ -1,6 +1,8 @@
 import { type ColumnDef } from '@tanstack/react-table'
+import { BarChart3 } from 'lucide-react'
 import { DataTableColumnHeader } from '@/components/data-table'
 import { LongText } from '@/components/others/long-text'
+import { Button } from '@/components/ui/button'
 import { buildEditDeleteActionsColumn } from '@/Global/Tableaux/buildEditDeleteActionsColumn'
 import type { CadreResultat } from '@/simadou/allTypes'
 import {
@@ -44,10 +46,14 @@ export function buildCadreResultatColumns({
   cadres,
   onEdit,
   onDeleteRequest,
+  onOpenIndicateurs,
+  hideProjetColumn = false,
 }: {
   cadres: CadreResultat[]
   onEdit: (row: CadreResultat) => void
   onDeleteRequest: (row: CadreResultat) => void
+  onOpenIndicateurs?: (row: CadreResultat) => void
+  hideProjetColumn?: boolean
 }): ColumnDef<CadreResultat>[] {
   const actionsColumn = buildEditDeleteActionsColumn({
     onEdit,
@@ -139,22 +145,63 @@ export function buildCadreResultatColumns({
       enableSorting: false,
       enableHiding: false,
     },
-    {
-      id: 'projet_cr',
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title='Projet' />
-      ),
-      cell: ({ row }) => {
-        const code = resolveProjetCr(row.original.projet_cr)
-        return (
-          <span className='font-mono text-sm'>
-            {code ?? '—'}
-          </span>
-        )
-      },
-      enableSorting: false,
-      enableHiding: false,
-    },
+    ...(hideProjetColumn
+      ? []
+      : [
+          {
+            id: 'projet_cr',
+            header: ({ column }) => (
+              <DataTableColumnHeader column={column} title='Projet' />
+            ),
+            cell: ({ row }) => {
+              const code = resolveProjetCr(row.original.projet_cr)
+              return (
+                <span className='font-mono text-sm'>
+                  {code ?? '—'}
+                </span>
+              )
+            },
+            enableSorting: false,
+            enableHiding: false,
+          } satisfies ColumnDef<CadreResultat>,
+        ]),
+    ...(onOpenIndicateurs
+      ? [
+          {
+            id: 'indicateurs',
+            header: ({ column }) => (
+              <DataTableColumnHeader
+                column={column}
+                title='Indicateurs'
+                className='flex w-full justify-center'
+              />
+            ),
+            cell: ({ row }) => (
+              <div className='flex justify-center'>
+                <Button
+                  type='button'
+                  variant='outline'
+                  size='sm'
+                  className='gap-2 border-blue-200 bg-blue-50 text-blue-700 transition-all duration-200 hover:bg-blue-100 hover:text-blue-800 dark:border-blue-800 dark:bg-blue-950/30 dark:text-blue-400 dark:hover:bg-blue-950/50'
+                  onClick={() => onOpenIndicateurs(row.original)}
+                  aria-label='Gérer les indicateurs de résultats'
+                  title='Indicateurs de résultats'
+                >
+                  <BarChart3 className='h-4 w-4' />
+                  <span className='text-xs font-medium'>Planifier</span>
+                </Button>
+              </div>
+            ),
+            meta: {
+              thClassName: 'text-center w-[120px] pe-12',
+              className: 'text-center align-middle pe-12',
+            },
+            size: 120,
+            enableSorting: false,
+            enableHiding: false,
+          } satisfies ColumnDef<CadreResultat>,
+        ]
+      : []),
     actionsColumn,
   ]
 }

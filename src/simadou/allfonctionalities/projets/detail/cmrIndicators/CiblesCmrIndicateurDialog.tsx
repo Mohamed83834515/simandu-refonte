@@ -14,42 +14,68 @@ import { GenericTable } from '@/Global/Generic/Generictable'
 import { GenericDeleteDialog } from '@/Global/Tableaux/GenericDeleteDialog'
 import useDialogState from '@/hooks/use-dialog-state'
 import { useEmbeddedTableState } from '@/hooks/use-embedded-table-state'
-import type { CibleCmrProjet } from '@/simadou/allTypes'
+import type { CibleCmrProjet, IndicateurCmr } from '@/simadou/allTypes'
 import { buildCibleCmrProjetColumns } from '@/simadou/allColonnes/cible-cmr-projet-columns'
 import {
   useDeleteCibleCmrProjet,
-  useGetCiblesCmrProjet,
+  useGetAllCiblesCmrProjet,
 } from '@/simadou/allHooks/admin/indicateurCmrHooks'
 import { useGetIndicateursCadreResultat } from '@/simadou/allHooks/admin/indicateurCadreResultatHooks'
 import { uglService } from '@/simadou/allSercices/uglService'
-import { formatAnneeCible, formatValeurCible } from '@/simadou/schemas/cibleCmrProjetSchema'
-import CibleCmrProjetFormDialog from './CibleCmrProjetFormDialog'
+import {
+  formatAnneeCible,
+  formatValeurCible,
+} from '@/simadou/schemas/cibleCmrProjetSchema'
 import CibleCmrProjetDetailView from './CibleCmrProjetDetailView'
+import CibleCmrProjetFormDialog from './CibleCmrProjetFormDialog'
+import {
+  filterCiblesForIndicateurCmr,
+  resolveFixedCodeIndicateurCrpFromCmr,
+} from './cmrIndicateurFormUtils'
 
-type CiblesModal = 'list' | 'form' | 'view'
+type Modal = 'list' | 'form' | 'view'
 
-export default function ProjetCiblesCmrDialog({
-  codeProjet,
-  open,
-  onOpenChange,
-}: {
-  codeProjet: string
+type Props = {
   open: boolean
   onOpenChange: (open: boolean) => void
-}) {
-  const { data: cibles = [], dataUpdatedAt } = useGetCiblesCmrProjet(codeProjet)
-  const { data: indicateurs = [] } = useGetIndicateursCadreResultat()
+  indicateur: IndicateurCmr | null
+  codeProjet: string
+}
+
+export default function CiblesCmrIndicateurDialog({
+  open,
+  onOpenChange,
+  indicateur,
+  codeProjet,
+}: Props) {
+  const { data: allCibles = [], dataUpdatedAt } = useGetAllCiblesCmrProjet()
+  const { data: indicateursCadreResultat = [] } = useGetIndicateursCadreResultat()
   const { data: ugls = [] } = useQuery({
     queryKey: ['ugls'],
     queryFn: () => uglService.getAll(),
   })
-  const deleteMutation = useDeleteCibleCmrProjet(codeProjet)
+  const deleteMutation = useDeleteCibleCmrProjet()
   const tableState = useEmbeddedTableState()
 
-  const [modal, setModal] = useState<CiblesModal>('list')
+  const [modal, setModal] = useState<Modal>('list')
   const [selectedCible, setSelectedCible] = useState<CibleCmrProjet | null>(null)
   const [deleteOpen, setDeleteOpen] = useDialogState<'delete'>(null)
   const [cibleToDelete, setCibleToDelete] = useState<CibleCmrProjet | null>(null)
+
+  const fixedCodeIndicateurCrp = useMemo(
+    () => (indicateur ? resolveFixedCodeIndicateurCrpFromCmr(indicateur) : null),
+    [indicateur]
+  )
+
+  const filteredCibles = useMemo(() => {
+    if (!indicateur) return []
+    return filterCiblesForIndicateurCmr(
+      allCibles,
+      indicateur,
+      indicateursCadreResultat,
+      codeProjet
+    )
+  }, [allCibles, indicateur, indicateursCadreResultat, codeProjet])
 
   useEffect(() => {
     if (!open) {
@@ -57,12 +83,6 @@ export default function ProjetCiblesCmrDialog({
       setSelectedCible(null)
     }
   }, [open])
-
-  const closeDialog = () => {
-    onOpenChange(false)
-    setModal('list')
-    setSelectedCible(null)
-  }
 
   const backToList = () => {
     setModal('list')
@@ -93,17 +113,24 @@ export default function ProjetCiblesCmrDialog({
         onView: handleView,
         onEdit: handleEdit,
         onDeleteRequest: handleDeleteRequest,
+        hideIndicateurColumn: true,
         hideProjetColumn: true,
-        indicateurs,
+        indicateurs: indicateursCadreResultat,
         ugls,
       }),
-    [handleView, handleEdit, handleDeleteRequest, indicateurs, ugls]
+    [
+      handleView,
+      handleEdit,
+      handleDeleteRequest,
+      indicateursCadreResultat,
+      ugls,
+    ]
   )
 
   const handleConfirmDelete = (cible: CibleCmrProjet) => {
     deleteMutation.mutate(cible.id_cible_indicateur_crp, {
       onSuccess: () => {
-        toast.success('Cible supprimée')
+        toast.success('Cible CMR projet supprimée')
         setCibleToDelete(null)
         setDeleteOpen(null)
       },
@@ -111,9 +138,7 @@ export default function ProjetCiblesCmrDialog({
     })
   }
 
-  const handleOpenChange = (isOpen: boolean) => {
-    if (!isOpen) closeDialog()
-  }
+  if (!indicateur) return null
 
   return (
     <>
@@ -122,7 +147,7 @@ export default function ProjetCiblesCmrDialog({
           open={deleteOpen === 'delete'}
           onOpenChange={(isOpen) => setDeleteOpen(isOpen ? 'delete' : null)}
           currentRow={cibleToDelete}
-          entityName='la cible CMR'
+          entityName='la cible CMR projet'
           getEntityLabel={(row) =>
             `cible ${formatAnneeCible(row.annee)} (${formatValeurCible(Number(row.valeur_cible_indcateur_crp ?? 0))})`
           }
@@ -130,36 +155,27 @@ export default function ProjetCiblesCmrDialog({
         />
       )}
 
-      <Dialog open={open && modal === 'list'} onOpenChange={handleOpenChange}>
+      <Dialog open={open && modal === 'list'} onOpenChange={onOpenChange}>
         <DialogContent
           className='gap-0 overflow-hidden p-0 sm:max-w-4xl'
           aria-describedby={undefined}
         >
           <DialogHeader className='border-b px-6 py-4'>
             <DialogTitle>Cibles CMR</DialogTitle>
+            <DialogDescription>
+              {indicateur.code_ref_ind} — {indicateur.intitule_ref_ind}
+              {` · Projet ${codeProjet}`}
+            </DialogDescription>
           </DialogHeader>
 
           <div className='px-6 py-4'>
             <GenericTable<CibleCmrProjet>
-              key={`cibles-cmr-${dataUpdatedAt}-${cibles.length}`}
-              data={cibles}
+              key={`cibles-cmr-ind-${indicateur.id_ref_ind_cmr}-${dataUpdatedAt}-${filteredCibles.length}`}
+              data={filteredCibles}
               columns={columns}
               search={tableState.search}
               navigate={tableState.navigate}
-              searchKey='code_indicateur_crp'
-              searchPlaceholder='Filtrer par intitulé indicateur…'
-              urlFilterConfig={[
-                {
-                  columnId: 'code_indicateur_crp',
-                  searchKey: 'code_indicateur_crp',
-                  type: 'string',
-                },
-                {
-                  columnId: 'annee',
-                  searchKey: 'annee',
-                  type: 'string',
-                },
-              ]}
+              showSearch={false}
               defaultPageSize={10}
               showViewOptions={false}
               toolbarEndSlot={
@@ -177,7 +193,7 @@ export default function ProjetCiblesCmrDialog({
                   Ajouter une cible
                 </Button>
               }
-              emptyMessage='Aucune cible pour ce projet'
+              emptyMessage='Aucune cible pour cet indicateur'
             />
           </div>
         </DialogContent>
@@ -189,7 +205,7 @@ export default function ProjetCiblesCmrDialog({
           aria-describedby={undefined}
         >
           <DialogHeader className='border-b px-6 py-4'>
-            <DialogTitle>Cible CMR projet</DialogTitle>
+            <DialogTitle>Détails de la cible CMR projet</DialogTitle>
           </DialogHeader>
           <div className='px-6 py-5'>
             {selectedCible ? (
@@ -208,14 +224,15 @@ export default function ProjetCiblesCmrDialog({
                 : 'Ajouter une cible CMR projet'}
             </DialogTitle>
             <DialogDescription>
-              {selectedCible
-                ? 'Mettez à jour la cible CMR associée au projet.'
-                : 'Définissez une nouvelle cible CMR pour ce projet.'}
+              Indicateur : {indicateur.code_ref_ind} — {indicateur.intitule_ref_ind}
+              {` · Projet ${codeProjet}`}
             </DialogDescription>
           </DialogHeader>
           <CibleCmrProjetFormDialog
+            key={selectedCible?.id_cible_indicateur_crp ?? `new-${indicateur.id_ref_ind_cmr}`}
             codeProjet={codeProjet}
             cible={selectedCible}
+            fixedIndicateurCrpId={fixedCodeIndicateurCrp}
             onClose={backToList}
             onSuccess={backToList}
           />

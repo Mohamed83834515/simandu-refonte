@@ -120,7 +120,10 @@ export const DynamicForm = forwardRef<DynamicFormHandle, DynamicFormProps>(
       return true
     }
 
-    const visibleFields = config.fields.filter(shouldShowField)
+    const visibleFields = config.fields.filter(
+      (field) => field.type !== 'hidden' && shouldShowField(field)
+    )
+    const hiddenFields = config.fields.filter((field) => field.type === 'hidden')
     const hasErrors = Object.keys(errors).length > 0
     const errorCount = Object.keys(errors).length
 
@@ -163,6 +166,9 @@ export const DynamicForm = forwardRef<DynamicFormHandle, DynamicFormProps>(
         {/* ── Corps du formulaire ── */}
         <Form {...form}>
           <form onSubmit={handleSubmit(onSubmit as any)} id={formId}  >
+            {hiddenFields.map((field) => (
+              <input key={field.name} type='hidden' {...register(field.name)} />
+            ))}
             <div className={cn(embedded ? 'px-0 pt-0 pb-1' : 'p-6')}>
               <div
                 className={cn(

@@ -18,9 +18,13 @@ function resolveCodeCrIop(value: IndicateurCadreResultat['code_cr_iop']): string
 export function buildIndicateurCadreResultatColumns({
   onEdit,
   onDeleteRequest,
+  hideCadreColumn = false,
+  getResponsableLabel,
 }: {
   onEdit: (row: IndicateurCadreResultat) => void
   onDeleteRequest: (row: IndicateurCadreResultat) => void
+  hideCadreColumn?: boolean
+  getResponsableLabel?: (row: IndicateurCadreResultat) => string
 }): ColumnDef<IndicateurCadreResultat>[] {
   const actionsColumn = buildEditDeleteActionsColumn({
     onEdit,
@@ -41,19 +45,23 @@ export function buildIndicateurCadreResultatColumns({
       ),
       enableHiding: false,
     },
-    {
-      id: 'code_cr_iop',
-      accessorKey: 'code_cr_iop',
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title='Code CR' />
-      ),
-      cell: ({ row }) => (
-        <span className='font-mono text-sm'>
-          {resolveCodeCrIop(row.original.code_cr_iop)}
-        </span>
-      ),
-      enableHiding: false,
-    },
+    ...(hideCadreColumn
+      ? []
+      : [
+          {
+            id: 'code_cr_iop',
+            accessorKey: 'code_cr_iop',
+            header: ({ column }) => (
+              <DataTableColumnHeader column={column} title='Code CR' />
+            ),
+            cell: ({ row }) => (
+              <span className='font-mono text-sm'>
+                {resolveCodeCrIop(row.original.code_cr_iop)}
+              </span>
+            ),
+            enableHiding: false,
+          } satisfies ColumnDef<IndicateurCadreResultat>,
+        ]),
     {
       id: 'intitule_indicateur_cr_iop',
       accessorKey: 'intitule_indicateur_cr_iop',
@@ -112,7 +120,9 @@ export function buildIndicateurCadreResultatColumns({
       ),
       cell: ({ row }) => (
         <LongText className='max-w-xs text-sm'>
-          {displayValue(row.original.responsable_iop)}
+          {getResponsableLabel
+            ? getResponsableLabel(row.original)
+            : displayValue(row.original.responsable_iop)}
         </LongText>
       ),
       enableSorting: false,

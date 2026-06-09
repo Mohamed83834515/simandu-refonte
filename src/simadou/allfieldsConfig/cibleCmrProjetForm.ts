@@ -34,6 +34,7 @@ export const getCibleCmrProjetFormConfigForDialog = ({
   isLoadingIndicateurs,
   isLoadingUgls,
   showProjetField = false,
+  hideIndicateurField = false,
 }: {
   anneeOptions: SelectOption[];
   indicateurOptions: SelectOption[];
@@ -41,6 +42,7 @@ export const getCibleCmrProjetFormConfigForDialog = ({
   isLoadingIndicateurs?: boolean;
   isLoadingUgls?: boolean;
   showProjetField?: boolean;
+  hideIndicateurField?: boolean;
 }): FormConfig => ({
   fields: [
     {
@@ -62,16 +64,20 @@ export const getCibleCmrProjetFormConfigForDialog = ({
       step: 1,
       gridCols: 2,
     },
-    {
-      name: "code_indicateur_crp",
-      label: "Indicateur de résultat du projet",
-      type: "select",
-      placeholder: "Sélectionnez un indicateur (optionnel)",
-      required: false,
-      options: indicateurOptions,
-      isLoading: isLoadingIndicateurs,
-      gridCols: 1,
-    },
+    ...(hideIndicateurField
+      ? []
+      : [
+          {
+            name: "code_indicateur_crp",
+            label: "Indicateur de résultat du projet",
+            type: "select" as const,
+            placeholder: "Sélectionnez un indicateur (optionnel)",
+            required: false,
+            options: indicateurOptions,
+            isLoading: isLoadingIndicateurs,
+            gridCols: 1 as const,
+          },
+        ]),
     {
       name: "code_ug",
       label: "UGL (Unité de Gestion Locale)",

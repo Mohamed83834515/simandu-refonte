@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { toast } from 'sonner'
 import { DynamicForm } from '@/Global/Forms/DynamicForm'
+import { getApiErrorMessage } from '@/lib/api-error-message'
 import { getIndicateurCadreResultatFormConfigForDialog } from '@/simadou/allfieldsConfig/indicateurCadreResultatForm'
 import {
   indicateurCadreResultatCreateSchema,
@@ -8,34 +9,46 @@ import {
 } from '@/simadou/schemas/indicateursSchemas'
 import type { IndicateurCadreResultat } from '@/simadou/allTypes'
 import { useGetActeurs } from '@/simadou/allHooks/admin/acteurHooks'
-import { useGetCadresResultat } from '@/simadou/allHooks/admin/cadreResultatHooks'
-import { useGetProjets } from '@/simadou/allHooks/admin/projetHooks'
+import {
+  useGetCadresResultat,
+  useGetNiveauxCadreResultat,
+} from '@/simadou/allHooks/admin/cadreResultatHooks'
+import { useGetPersonnels } from '@/simadou/allHooks/admin/personnelHooks'
 import {
   useCreateIndicateurCadreResultat,
   useUpdateIndicateurCadreResultat,
 } from '@/simadou/allHooks/admin/indicateurCadreResultatHooks'
+import { sortNiveauxCadreResultat } from '@/simadou/lib/cadreResultatUtils'
 import {
-  resolveRelationCode,
-  resolveRelationId,
-} from '@/simadou/lib/resolveApiRelation'
+  buildIndicateurCadreResultatPayload,
+  indicateurCadreResultatToFormValues,
+} from './indicateurCadreResultatFormUtils'
 
 export default function IndicateurCadreResultatFormDialog({
   codeProjet,
+  fixedCadreCrCode,
+  fixedNiveauIop,
   indicateur,
   onClose,
   onSuccess,
 }: {
   codeProjet: string
+  fixedCadreCrCode?: string | null
+  fixedNiveauIop?: number | null
   indicateur?: IndicateurCadreResultat | null
   onClose: () => void
   onSuccess: () => void
 }) {
   const isEditing = !!indicateur
+  const hideCadreField = fixedCadreCrCode != null
+  const hideNiveauField = fixedNiveauIop != null
   const createMutation = useCreateIndicateurCadreResultat(codeProjet)
   const updateMutation = useUpdateIndicateurCadreResultat()
   const { data: cadres = [], isLoading: isLoadingCadres } = useGetCadresResultat()
+  const { data: niveaux = [], isLoading: isLoadingNiveaux } =
+    useGetNiveauxCadreResultat()
   const { data: acteurs = [], isLoading: isLoadingActeurs } = useGetActeurs()
-  const { data: projets = [], isLoading: isLoadingProjets } = useGetProjets()
+  const { data: personnels = [], isLoading: isLoadingPersonnels } = useGetPersonnels()
 
   const cadreOptions = useMemo(
     () =>
@@ -44,6 +57,27 @@ export default function IndicateurCadreResultatFormDialog({
         label: `${c.code_cr} - ${c.intutile_cr}`,
       })),
     [cadres]
+  )
+
+  const niveauOptions = useMemo(
+    () =>
+      sortNiveauxCadreResultat(niveaux).map((n) => ({
+        value: n.nombre_ncr,
+        label: `${n.nombre_ncr} - ${n.libelle_ncr}`,
+      })),
+    [niveaux]
+  )
+
+  const personnelOptions = useMemo(
+    () =>
+      personnels
+        .filter((p) => p.id_personnel_perso != null)
+        .map((p) => ({
+          value: String(p.id_personnel_perso),
+          label:
+            [p.prenom_perso, p.nom_perso].filter(Boolean).join(' ') || '—',
+        })),
+    [personnels]
   )
 
   const acteurOptions = useMemo(
@@ -55,73 +89,66 @@ export default function IndicateurCadreResultatFormDialog({
     [acteurs]
   )
 
-  const projetOptions = useMemo(
-    () =>
-      projets.map((p) => ({
-        value: p.code_projet,
-        label: `${p.code_projet} - ${p.intitule_projet}`,
-      })),
-    [projets]
-  )
-
   const config = useMemo(
     () =>
       getIndicateurCadreResultatFormConfigForDialog({
         cadreOptions,
         acteurOptions,
-        projetOptions,
+        personnelOptions,
+        niveauOptions,
         isLoadingCadres,
+        isLoadingNiveaux,
         isLoadingActeurs,
-        isLoadingProjets,
-        showProjet: true,
+        isLoadingPersonnels,
+        hideCadreField,
+        hideNiveauField,
       }),
     [
       cadreOptions,
       acteurOptions,
-      projetOptions,
+      personnelOptions,
+      niveauOptions,
       isLoadingCadres,
+      isLoadingNiveaux,
       isLoadingActeurs,
-      isLoadingProjets,
+      isLoadingPersonnels,
+      hideCadreField,
+      hideNiveauField,
     ]
   )
 
   const defaultValues = useMemo(
-    (): Partial<IndicateurCadreResultatCreateData> => ({
-      niveau_iop: indicateur?.niveau_iop,
-      code_indicateur_cr_iop: indicateur?.code_indicateur_cr_iop ?? '',
-      code_cr_iop: resolveRelationCode(indicateur?.code_cr_iop, 'code_cr') ?? '',
-      intitule_indicateur_cr_iop: indicateur?.intitule_indicateur_cr_iop ?? '',
-      periodicite_iop: indicateur?.periodicite_iop ?? '',
-      source_iop: indicateur?.source_iop ?? '',
-      responsable_iop: indicateur?.responsable_iop ?? '',
-      description_iop: indicateur?.description_iop ?? '',
-      structure_iop:
-        resolveRelationId(indicateur?.structure_iop, 'id_acteur')?.toString() ||
-        undefined,
-      projet_iop:
-        resolveRelationCode(indicateur?.projet_iop, 'code_projet') ??
-        (indicateur ? undefined : codeProjet),
-    }),
-    [codeProjet, indicateur]
+    () =>
+      indicateurCadreResultatToFormValues({
+        indicateur,
+        codeProjet,
+        fixedCadreCrCode,
+        fixedNiveauIop,
+      }),
+    [codeProjet, indicateur, fixedCadreCrCode, fixedNiveauIop]
   )
 
   const onSubmit = (data: IndicateurCadreResultatCreateData) => {
-    const payload: IndicateurCadreResultatCreateData = {
-      ...data,
-      projet_iop: data.projet_iop || (isEditing ? undefined : codeProjet),
-      structure_iop: data.structure_iop || undefined,
-    }
+    const payload = buildIndicateurCadreResultatPayload({
+      data,
+      codeProjet,
+      fixedCadreCrCode,
+      fixedNiveauIop,
+    })
 
     const callbacks = {
       onSuccess: () => {
         toast.success(isEditing ? 'Indicateur mis à jour' : 'Indicateur créé')
         onSuccess()
       },
-      onError: () =>
+      onError: (error: unknown) =>
         toast.error(
-          isEditing
-            ? 'Erreur lors de la mise à jour'
-            : 'Erreur lors de la création'
+          getApiErrorMessage(
+            error,
+            isEditing
+              ? 'Erreur lors de la mise à jour'
+              : 'Erreur lors de la création'
+          )
         ),
     }
 
@@ -138,7 +165,10 @@ export default function IndicateurCadreResultatFormDialog({
 
   return (
     <DynamicForm
-      key={indicateur?.id_indicateur_cr_iop ?? 'new'}
+      key={
+        indicateur?.id_indicateur_cr_iop ??
+        `new-${fixedCadreCrCode ?? 'cadre'}-${fixedNiveauIop ?? 'niveau'}`
+      }
       config={config}
       schema={indicateurCadreResultatCreateSchema}
       defaultValues={defaultValues}
@@ -148,6 +178,7 @@ export default function IndicateurCadreResultatFormDialog({
       isLoading={createMutation.isPending || updateMutation.isPending}
       onCancel={onClose}
       cancelText='Annuler'
+      embedded
     />
   )
 }

@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { toast } from 'sonner'
 import { DynamicForm } from '@/Global/Forms/DynamicForm'
-import { getIndicateurTacheFormConfig } from '@/simadou/allfieldsConfig/indicateurTacheForm'
+import { getIndicateurTacheFormConfigForDialog } from '@/simadou/allfieldsConfig/indicateurTacheForm'
 import {
   indicateurTacheSchema,
   type IndicateurTacheFormData,
@@ -10,6 +10,8 @@ import {
   useCreateIndicateurTache,
   useUpdateIndicateurTache,
 } from '@/simadou/allHooks/admin/indicateurTacheHooks'
+import { useGetIndicateursCmr } from '@/simadou/allHooks/admin/indicateurCmrHooks'
+import { useGetUnitesIndicateur } from '@/simadou/allHooks/admin/uniteIndicateurHooks'
 import type { Ptba } from '@/simadou/allTypes'
 import { IndicateurTache } from '@/simadou/allTypes/indicateurTache'
 
@@ -27,7 +29,26 @@ export default function IndicateurTacheForm({
   onSuccess,
 }: IndicateurTacheFormProps) {
   const isEditing = !!indicateur
-  const formConfig = useMemo(() => getIndicateurTacheFormConfig(), [])
+  const { data: indicateursCmr = [], isLoading: isLoadingIndicateurCmrs } =
+    useGetIndicateursCmr()
+  const { data: unites = [], isLoading: isLoadingUnites } = useGetUnitesIndicateur()
+
+  const formConfig = useMemo(
+    () =>
+      getIndicateurTacheFormConfigForDialog({
+        indicateurCmrOptions: indicateursCmr.map((i) => ({
+          value: i.id_ref_ind_cmr,
+          label: i.intitule_ref_ind ?? i.code_ref_ind,
+        })),
+        uniteIndicateurOptions: unites.map((u) => ({
+          value: u.id_unite,
+          label: u.definition_ui ?? u.unite_ui ?? String(u.id_unite),
+        })),
+        isLoadingIndicateurCmrs,
+        isLoadingUnites,
+      }),
+    [indicateursCmr, unites, isLoadingIndicateurCmrs, isLoadingUnites]
+  )
   const idActivite = activite.id_ptba
 
   const defaultValues = useMemo(

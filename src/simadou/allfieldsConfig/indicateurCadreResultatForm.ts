@@ -4,21 +4,72 @@ import { PERIODICITE_OPTIONS } from "./periodiciteOptions";
 export const getIndicateurCadreResultatFormConfigForDialog = ({
   cadreOptions,
   acteurOptions,
-  projetOptions,
+  personnelOptions,
   isLoadingCadres,
   isLoadingActeurs,
-  isLoadingProjets,
-  showProjet = false,
+  isLoadingPersonnels,
+  hideCadreField = false,
+  hideNiveauField = false,
+  niveauOptions = [],
+  isLoadingNiveaux = false,
 }: {
   cadreOptions: SelectOption[];
   acteurOptions: SelectOption[];
-  projetOptions?: SelectOption[];
+  personnelOptions: SelectOption[];
   isLoadingCadres?: boolean;
   isLoadingActeurs?: boolean;
-  isLoadingProjets?: boolean;
-  showProjet?: boolean;
+  isLoadingPersonnels?: boolean;
+  hideCadreField?: boolean;
+  hideNiveauField?: boolean;
+  niveauOptions?: SelectOption[];
+  isLoadingNiveaux?: boolean;
 }): FormConfig => ({
   fields: [
+    ...(hideCadreField
+      ? [
+          {
+            name: "code_cr_iop",
+            label: "Cadre de résultat",
+            type: "hidden" as const,
+          },
+        ]
+      : [
+          {
+            name: "code_cr_iop",
+            label: "Cadre de résultat",
+            type: "select" as const,
+            placeholder: "Sélectionnez un cadre de résultat",
+            required: true,
+            options: cadreOptions,
+            isLoading: isLoadingCadres,
+            gridCols: 2 as const,
+          },
+        ]),
+    ...(hideNiveauField
+      ? [
+          {
+            name: "niveau_iop",
+            label: "Niveau",
+            type: "hidden" as const,
+          },
+        ]
+      : [
+          {
+            name: "niveau_iop",
+            label: "Niveau",
+            type: "select" as const,
+            placeholder: "Sélectionnez un niveau",
+            required: true,
+            options: niveauOptions,
+            isLoading: isLoadingNiveaux,
+            gridCols: 2 as const,
+          },
+        ]),
+    {
+      name: "projet_iop",
+      label: "Projet",
+      type: "hidden" as const,
+    },
     {
       name: "code_indicateur_cr_iop",
       label: "Code indicateur CR",
@@ -29,31 +80,12 @@ export const getIndicateurCadreResultatFormConfigForDialog = ({
       gridCols: 2,
     },
     {
-      name: "code_cr_iop",
-      label: "Cadre de résultat",
-      type: "select",
-      placeholder: "Sélectionnez un cadre de résultat",
-      required: true,
-      options: cadreOptions,
-      isLoading: isLoadingCadres,
-      gridCols: 2,
-    },
-    {
       name: "intitule_indicateur_cr_iop",
       label: "Intitulé de l'indicateur CR",
       type: "text",
       placeholder: "Intitulé complet de l'indicateur",
       required: true,
       maxLength: 200,
-      gridCols: 1,
-    },
-    {
-      name: "niveau_iop",
-      label: "Niveau",
-      type: "number",
-      placeholder: "Sélectionnez un niveau",
-      required: true,
-      min: 1,
       gridCols: 2,
     },
     {
@@ -77,10 +109,11 @@ export const getIndicateurCadreResultatFormConfigForDialog = ({
     {
       name: "responsable_iop",
       label: "Responsable",
-      type: "text",
-      placeholder: "Responsable de l'indicateur",
+      type: "select",
+      placeholder: "Sélectionner un responsable",
       required: true,
-      maxLength: 200,
+      options: personnelOptions,
+      isLoading: isLoadingPersonnels,
       gridCols: 2,
     },
     {
@@ -93,20 +126,6 @@ export const getIndicateurCadreResultatFormConfigForDialog = ({
       isLoading: isLoadingActeurs,
       gridCols: 2,
     },
-    ...(showProjet
-      ? [
-          {
-            name: "projet_iop",
-            label: "Projet",
-            type: "select" as const,
-            placeholder: "Sélectionnez un projet",
-            required: false,
-            options: projetOptions ?? [],
-            isLoading: isLoadingProjets,
-            gridCols: 2 as const,
-          },
-        ]
-      : []),
     {
       name: "description_iop",
       label: "Description",

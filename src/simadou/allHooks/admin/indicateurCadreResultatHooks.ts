@@ -14,9 +14,6 @@ export function useGetIndicateursCadreResultat() {
   })
 }
 
-/** @deprecated Use useGetIndicateursCadreResultat — same query key and fetch. */
-export const useGetAllIndicateursCadreResultat = useGetIndicateursCadreResultat
-
 export function useCreateIndicateurCadreResultat(codeProjet: string | undefined) {
   const queryClient = useQueryClient()
   return useMutation({

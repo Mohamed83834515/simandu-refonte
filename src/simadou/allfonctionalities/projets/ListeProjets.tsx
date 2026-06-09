@@ -25,9 +25,10 @@ export default function ListeProjets() {
 
   const goToDetail = useCallback(
     (projet: Projet) => {
+      const routeId = projet.code_projet || String(projet.id_projet)
       navigate({
         to: '/programmation/projets/$id',
-        params: { id: String(projet.id_projet) },
+        params: { id: routeId },
       })
     },
     [navigate]

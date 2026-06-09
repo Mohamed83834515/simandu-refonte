@@ -49,6 +49,7 @@ export function buildCibleCmrProjetColumns({
   onEdit,
   onDeleteRequest,
   hideProjetColumn = false,
+  hideIndicateurColumn = false,
   indicateurs = [],
   ugls = [],
 }: {
@@ -56,6 +57,7 @@ export function buildCibleCmrProjetColumns({
   onEdit: (row: CibleCmrProjet) => void
   onDeleteRequest: (row: CibleCmrProjet) => void
   hideProjetColumn?: boolean
+  hideIndicateurColumn?: boolean
   indicateurs?: IndicateurCadreResultat[]
   ugls?: UGL[]
 }): ColumnDef<CibleCmrProjet>[] {
@@ -92,36 +94,40 @@ export function buildCibleCmrProjetColumns({
       ),
       enableHiding: false,
     },
-    {
-      id: 'code_indicateur_crp',
-      accessorFn: (row) =>
-        resolveIndicateurDisplay(row, indicateurs).intitule ?? '',
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title='Indicateur' />
-      ),
-      cell: ({ row }) => {
-        const { code, intitule } = resolveIndicateurDisplay(
-          row.original,
-          indicateurs
-        )
+    ...(hideIndicateurColumn
+      ? []
+      : [
+          {
+            id: 'code_indicateur_crp',
+            accessorFn: (row) =>
+              resolveIndicateurDisplay(row, indicateurs).intitule ?? '',
+            header: ({ column }) => (
+              <DataTableColumnHeader column={column} title='Indicateur' />
+            ),
+            cell: ({ row }) => {
+              const { code, intitule } = resolveIndicateurDisplay(
+                row.original,
+                indicateurs
+              )
 
-        return (
-          <div className='max-w-xs'>
-            <span className='font-mono text-sm'>{code}</span>
-            {intitule ? (
-              <p
-                className='mt-1 truncate text-xs text-muted-foreground'
-                title={intitule}
-              >
-                {intitule}
-              </p>
-            ) : null}
-          </div>
-        )
-      },
-      enableSorting: false,
-      enableHiding: false,
-    },
+              return (
+                <div className='max-w-xs'>
+                  <span className='font-mono text-sm'>{code}</span>
+                  {intitule ? (
+                    <p
+                      className='mt-1 truncate text-xs text-muted-foreground'
+                      title={intitule}
+                    >
+                      {intitule}
+                    </p>
+                  ) : null}
+                </div>
+              )
+            },
+            enableSorting: false,
+            enableHiding: false,
+          } satisfies ColumnDef<CibleCmrProjet>,
+        ]),
     {
       id: 'code_ug',
       accessorFn: (row) => {
