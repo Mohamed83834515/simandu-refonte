@@ -15,15 +15,6 @@ import { useGetActivitesProgramme } from '@/simadou/allHooks/admin/activiteProgr
 import { useGetAllProjets, useGetProjet } from '@/simadou/allHooks/admin/projetHooks'
 import { getRouteApi } from '@tanstack/react-router'
 
-function resolveCodeProjet(value: ActiviteProjet['code_projet']): string | null {
-  if (value == null || value === '') return null
-  if (typeof value === 'string') return value
-  if (typeof value === 'object' && 'code_projet' in value) {
-    return value.code_projet ?? null
-  }
-  return null
-}
-
 function resolveCodeActiviteProgramme(
   value: ActiviteProjet['code_activite_programme']
 ): string | null {

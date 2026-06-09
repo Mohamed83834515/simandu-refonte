@@ -13,7 +13,7 @@ import ProjetDetailPlaceholder from './ProjetDetailPlaceholder'
 type TabPanelRenderer = (projet: Projet) => ReactNode
 
 const TAB_PANEL_RENDERERS: Record<ProjetDetailTabKey, TabPanelRenderer> = {
-  dashboard: () => <ProjetDashboard />,
+  dashboard: (projet) => <ProjetDashboard codeProjet={projet.code_projet} />,
   activities: (projet) => <ProjetActivitesPanel projet={projet} />,
   ptba: (projet) => <ProjetPtbaPanel projet={projet} />,
   suivi_ptba: (projet) => <ProjetSuiviPtbaPanel projet={projet} />,
