@@ -19,7 +19,7 @@ import { GenericTable } from '@/Global/Generic/Generictable'
 import { GenericDeleteDialog } from '@/Global/Tableaux/GenericDeleteDialog'
 import useDialogState from '@/hooks/use-dialog-state'
 import { useEmbeddedTableState } from '@/hooks/use-embedded-table-state'
-import type { ActiviteProjet, Projet } from '@/simadou/allTypes'
+import type { ActiviteProjet, NiveauActiviteProjet, Projet } from '@/simadou/allTypes'
 import { buildActiviteProjetColumns } from '@/simadou/allColonnes/activite-projet-columns'
 import {
   useDeleteActiviteProjet,
@@ -29,71 +29,92 @@ import {
 import ActiviteProjetFormDialog from './ActiviteProjetFormDialog'
 import NiveauActiviteProjetManager from './NiveauActiviteProjetManager'
 import SourceFinancementManager from './sourceFinancement/SourceFinancementProjetDialog'
+import IndicateurPerformanceActivitePanel from './indicateurActivite/ProjetActivityIndicatorsPanel'
 
 type ModalState = 'form' | 'niveaux'
-
+// Dans ActiviteProjetNiveauTable, modifie les colonnes pour n'afficher le bouton indicateur qu'au dernier niveau
 function ActiviteProjetNiveauTable({
   niveauNum,
   showParent,
   activites,
   allActivites,
+  niveaux, // Nouveau: tous les niveaux configurés
   tableKey,
   onEdit,
   onDeleteRequest,
+  isLastLevel,
 }: {
   niveauNum: number
   showParent: boolean
   activites: ActiviteProjet[]
   allActivites: ActiviteProjet[]
+  niveaux: NiveauActiviteProjet[] // Tous les niveaux
   tableKey: string
   onEdit: (row: ActiviteProjet) => void
   onDeleteRequest: (row: ActiviteProjet) => void
+  isLastLevel: boolean
 }) {
   const { search, navigate } = useEmbeddedTableState()
   const [planifierSource, setPlanifierSource] = useState<ActiviteProjet | null>(null)
   const [showPlanificationModal, setShowPlanificationModal] = useState(false)
-
+  const [showPlanificationIndicateurModal, setShowPlanificationIndicateurModal] = useState(false)
 
   const onOpenPlanification = useCallback((activite: ActiviteProjet) => {
     setPlanifierSource(activite)
     setShowPlanificationModal(true)
   }, [])
 
-  const getParentLabel = useCallback(
-    (row: ActiviteProjet) => {
-      const parentId =
-        typeof row.parent_activite_projet === 'number'
-          ? row.parent_activite_projet
-          : typeof row.parent_activite_projet === 'object' &&
-            row.parent_activite_projet
-            ? row.parent_activite_projet.id_activite_projet
-            : null
-      if (parentId == null) return '—'
-      const parent = allActivites.find((p) => p.id_activite_projet === parentId)
-      return parent
-        ? `${parent.code_activite_projet} — ${parent.intitule_activite_projet}`
-        : '—'
+  const onOpenPlanificationIndicateur = useCallback((activite: ActiviteProjet) => {
+    setPlanifierSource(activite)
+    setShowPlanificationIndicateurModal(true)
+  }, [])
+
+  // Récupérer le parent à un niveau spécifique
+  const getParentAtLevel = useCallback(
+    (row: ActiviteProjet, targetNiveau: number): string => {
+      let current = row
+      let currentNiveau = niveauNum
+
+      while (currentNiveau > targetNiveau && current.parent_activite_projet) {
+        const parentId = typeof current.parent_activite_projet === 'number'
+          ? current.parent_activite_projet
+          : current.parent_activite_projet?.id_activite_projet
+
+        if (!parentId) break
+
+        const parent = allActivites.find((p) => p.id_activite_projet === parentId)
+        if (!parent) break
+
+        current = parent
+        currentNiveau = Number(parent.niveau_activite_projet)
+      }
+
+      if (currentNiveau === targetNiveau) {
+        return `${current.code_activite_projet} — ${current.intitule_activite_projet}`
+      }
+      return '—'
     },
-    [allActivites]
+    [allActivites, niveauNum]
   )
 
   const columns = useMemo(
     () =>
       buildActiviteProjetColumns({
         showParent,
-        getParentLabel,
+        getParentAtLevel,
+        niveaux,
+        niveauActuel: niveauNum,
         onEdit,
         onDeleteRequest,
-        onOpenPlanification
+        onOpenPlanification,
+        onOpenPlanificationIndicateur,
+        isLastLevel,
       }),
-    [showParent, getParentLabel, onEdit, onDeleteRequest, onOpenPlanification]
+    [showParent, getParentAtLevel, niveaux, niveauNum, onEdit, onDeleteRequest, onOpenPlanification, onOpenPlanificationIndicateur, isLastLevel]
   )
 
   const rows = useMemo(
-    () =>
-      activites.filter(
-        (a) => Number(a.niveau_activite_projet) === niveauNum
-      ),
+    () => activites.filter((a) => Number(a.niveau_activite_projet) === niveauNum),
     [activites, niveauNum]
   )
 
@@ -108,30 +129,35 @@ function ActiviteProjetNiveauTable({
         searchKey='intitule_activite_projet'
         searchPlaceholder='Filtrer les activités…'
         urlFilterConfig={[
-          {
-            columnId: 'intitule_activite_projet',
-            searchKey: 'intitule_activite_projet',
-            type: 'string',
-          },
+          { columnId: 'intitule_activite_projet', searchKey: 'intitule_activite_projet', type: 'string' },
         ]}
         defaultPageSize={10}
         showViewOptions={false}
         emptyMessage='Aucune activité pour ce niveau'
       />
 
-      {
-        showPlanificationModal ??
+      {showPlanificationModal && planifierSource && (
         <SourceFinancementManager
-          activite={planifierSource as any}
+          activite={planifierSource}
           open={showPlanificationModal}
           onOpenChange={(open) => {
             setShowPlanificationModal(open)
             if (!open) setPlanifierSource(null)
           }}
         />
-      }
-    </>
+      )}
 
+      {showPlanificationIndicateurModal && planifierSource && (
+        <IndicateurPerformanceActivitePanel
+          activite={planifierSource}
+          open={showPlanificationIndicateurModal}
+          onOpenChange={(open) => {
+            setShowPlanificationIndicateurModal(open)
+            if (!open) setPlanifierSource(null)
+          }}
+        />
+      )}
+    </>
   )
 }
 
@@ -305,25 +331,33 @@ export default function ProjetActivitesPanel({ projet }: { projet: Projet }) {
             </NiveauTabsList>
           </div>
 
-          {sortedNiveaux.map((niveau) => (
-            <TabsContent
-              key={niveau.id_niveau_activite_projet}
-              value={String(niveau.nombre_niveau_activite_projet)}
-              className='focus-visible:outline-none'
-            >
-              {String(niveau.nombre_niveau_activite_projet) === String(currentNiveau) && (
-                <ActiviteProjetNiveauTable
-                  niveauNum={niveau.nombre_niveau_activite_projet}
-                  showParent={niveau.nombre_niveau_activite_projet > 1}
-                  activites={activites}
-                  allActivites={activites}
-                  tableKey={`activites-${niveau.nombre_niveau_activite_projet}-${dataUpdatedAt}-${activites.length}`}
-                  onEdit={handleEdit}
-                  onDeleteRequest={handleDeleteRequest}
-                />
-              )}
-            </TabsContent>
-          ))}
+          {sortedNiveaux.map((niveau, index) => {
+            const isLastLevel = index === sortedNiveaux.length - 1
+            const currentNiveauNum = niveau.nombre_niveau_activite_projet
+
+            return (
+              <TabsContent
+                key={niveau.id_niveau_activite_projet}
+                value={String(currentNiveauNum)}
+                className='focus-visible:outline-none'
+              >
+                {String(currentNiveauNum) === String(currentNiveau) && (
+                  <ActiviteProjetNiveauTable
+                    niveauNum={currentNiveauNum}
+                    showParent={currentNiveauNum > 1}
+                    activites={activites}
+                    allActivites={activites}
+                    niveaux={sortedNiveaux} // ← Passe tous les niveaux
+                    tableKey={`activites-${currentNiveauNum}-${dataUpdatedAt}`}
+                    onEdit={handleEdit}
+                    onDeleteRequest={handleDeleteRequest}
+                    isLastLevel={isLastLevel}
+                  />
+                )}
+              </TabsContent>
+            )
+          })}
+
         </Tabs>
       )}
 

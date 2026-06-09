@@ -30,18 +30,11 @@ export default function AddProjet({ open, onOpenChange, currentRow }: OpenPropsP
   const { data: acteurs = [] } = useGetActeurs()
   const { data: localites = [] } = useGetLocalites()
 
-  // Préfectures = niveau 1
-  const prefectures = useMemo(
-    () => localites.filter(
-      (n) => typeof n.niveau_loca === 'object' && n.niveau_loca.nombre_nlc === 1
-    ),
-    [localites]
-  )
 
   // ── Config du formulaire (options injectées ici, pas dans le fichier config) ──
   const formConfig = useMemo(
-    () => getProjetFormConfig(acteurs, prefectures),
-    [acteurs, prefectures]
+    () => getProjetFormConfig(acteurs, localites),
+    [acteurs, localites]
   )
 
   // ── Mutations ──
@@ -77,8 +70,6 @@ export default function AddProjet({ open, onOpenChange, currentRow }: OpenPropsP
     zone_projet: extractIds(currentRow?.zone_projet),
     partenaire_projet: extractId(currentRow?.partenaire_projet),
   }
-
-  console.log("currentRow", currentRow)
   // ── Soumission ──
   const handleSubmit = (data: ProjectCreateData) => {
     if (!isEdit && idProgramme == null) {

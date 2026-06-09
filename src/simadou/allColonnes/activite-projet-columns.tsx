@@ -1,24 +1,33 @@
 import { type ColumnDef } from '@tanstack/react-table'
 import { buildColumns } from '@/Global/Tableaux/column-builder'
 import { buildEditDeleteActionsColumn } from '@/Global/Tableaux/buildEditDeleteActionsColumn'
-import type { ActiviteProjet } from '@/simadou/allTypes'
+import type { ActiviteProjet, NiveauActiviteProjet } from '@/simadou/allTypes'
 import { Button } from '@/components/ui/button'
-import { DollarSign } from 'lucide-react'
+import { DollarSign, List } from 'lucide-react'
 import { DataTableColumnHeader } from '@/components/data-table'
 
 export function buildActiviteProjetColumns({
   showParent,
-  getParentLabel,
+  getParentAtLevel,
+  niveaux, // Tous les niveaux avec leurs libellés
+  niveauActuel,
   onEdit,
   onDeleteRequest,
-  onOpenPlanification
+  onOpenPlanification,
+  onOpenPlanificationIndicateur,
+  isLastLevel,
 }: {
   showParent: boolean
-  getParentLabel: (row: ActiviteProjet) => string
+  getParentAtLevel?: (row: ActiviteProjet, niveau: number) => string
+  niveaux: NiveauActiviteProjet[] // Liste des niveaux avec libellés
+  niveauActuel?: number
   onEdit: (row: ActiviteProjet) => void
-  onDeleteRequest: (row: ActiviteProjet) => void,
+  onDeleteRequest: (row: ActiviteProjet) => void
   onOpenPlanification: (activite: ActiviteProjet) => void
+  onOpenPlanificationIndicateur: (activite: ActiviteProjet) => void
+  isLastLevel?: boolean
 }): ColumnDef<ActiviteProjet>[] {
+
   const baseColumns = buildColumns<ActiviteProjet>([
     { type: 'text', key: 'code_activite_projet', title: 'Code', sticky: true },
     {
@@ -28,59 +37,93 @@ export function buildActiviteProjetColumns({
       maxWidth: 'max-w-md',
     },
   ])
+
+  // Construire dynamiquement les colonnes des parents avec leurs vrais libellés
+  const parentColumns: ColumnDef<ActiviteProjet>[] = []
+
+  if (niveaux && niveauActuel && getParentAtLevel) {
+    // Filtrer les niveaux inférieurs au niveau actuel
+    const niveauxInferieurs = niveaux
+      .filter(n => n.nombre_niveau_activite_projet < niveauActuel)
+      .sort((a, b) => a.nombre_niveau_activite_projet - b.nombre_niveau_activite_projet)
+
+    for (const niveau of niveauxInferieurs) {
+      parentColumns.push({
+        id: `parent_niveau_${niveau.nombre_niveau_activite_projet}`,
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            title={niveau.libelle_niveau_activite_projet} // Utilise le vrai libellé
+          />
+        ),
+        cell: ({ row }) => (
+          <span className='text-muted-foreground text-sm'>
+            {getParentAtLevel(row.original, niveau.nombre_niveau_activite_projet)}
+          </span>
+        ),
+        enableSorting: false,
+      })
+    }
+  }
+
+  // Colonne Planification des sources
   const planificationColumn: ColumnDef<ActiviteProjet> = {
-    id: 'planification',
+    id: 'planification_source',
     header: ({ column }) => (
-      <DataTableColumnHeader
-        column={column}
-        title='Planification'
-        className='w-full text-center'
-      />
+      <DataTableColumnHeader column={column} title='Budget' className='text-center' />
     ),
-    cell: ({ row }) => {
-      const activite = row.original
-      return (
-        <div className='flex justify-center'>
-          <Button
-            type='button'
-            variant='outline'
-            size='sm'
-            className='gap-2 border-blue-200 bg-blue-50 text-blue-700 transition-all duration-200 hover:bg-blue-100 hover:text-blue-800 dark:border-blue-800 dark:bg-blue-950/30 dark:text-blue-400 dark:hover:bg-blue-950/50'
-            onClick={() => onOpenPlanification(activite)}
-            aria-label='Ouvrir le suivi des tâches et indicateurs'
-            title='Suivi des tâches et indicateurs'
-          >
-            <DollarSign className='h-4 w-4' />
-            <span className='text-xs font-medium'>304000</span>
-          </Button>
-        </div>
-      )
-    },
-    meta: {
-      thClassName: 'text-center w-[100px]',
-      className: 'text-center align-middle',
-    },
+    cell: ({ row }) => (
+      <div className='text-center font-bold'>
+        {row.original.budget?.toLocaleString() || '0'} FCFA
+      </div>
+    ),
+    meta: { thClassName: 'text-center', className: 'text-center' },
+    size: 120,
+    enableSorting: false,
+  }
+
+  // Colonne Planification des indicateurs (uniquement dernier niveau)
+  const planificationIndicateurColumn: ColumnDef<ActiviteProjet> = {
+    id: 'planification_indicateur',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title='Indicateurs' className='text-center' />
+    ),
+    cell: ({ row }) => (
+      <div className='flex justify-center'>
+        <Button
+          type='button'
+          variant='outline'
+          size='sm'
+          className='gap-2 border-green-200 bg-green-50 text-green-700 hover:bg-green-100'
+          onClick={() => onOpenPlanificationIndicateur(row.original)}
+        >
+          <List className='h-4 w-4' /> Indicateurs
+        </Button>
+      </div>
+    ),
+    meta: { thClassName: 'text-center', className: 'text-center' },
     size: 100,
     enableSorting: false,
-    enableHiding: false,
-  }
-  const parentColumn: ColumnDef<ActiviteProjet> = {
-    id: 'parent_activite_projet',
-    accessorKey: 'parent_activite_projet',
-    header: 'Parent',
-    cell: ({ row }) => (
-      <span className='text-muted-foreground'>{getParentLabel(row.original)}</span>
-    ),
-    enableSorting: false,
-    enableHiding: false,
   }
 
-  const actionsColumn = buildEditDeleteActionsColumn({
-    onEdit,
-    onDeleteRequest,
-  })
+  const actionsColumn = buildEditDeleteActionsColumn({ onEdit, onDeleteRequest })
 
-  return showParent
-    ? [...baseColumns, parentColumn, actionsColumn]
-    : [...baseColumns, planificationColumn, actionsColumn]
+  const columns = [...baseColumns]
+
+  // Ajouter les colonnes des parents avec leurs libellés
+  if (showParent && niveauActuel && niveauActuel > 1) {
+    columns.push(...parentColumns)
+  } else {
+
+    columns.push(planificationColumn)
+  }
+
+
+  if (isLastLevel) {
+    columns.push(planificationIndicateurColumn)
+  }
+
+  columns.push(actionsColumn)
+
+  return columns
 }

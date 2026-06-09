@@ -3,20 +3,12 @@ import { FormConfig } from '@/Global/types/formConfig'
 export const getSourceFinancementProjetFormConfig = (): FormConfig => ({
   fields: [
     {
-      name: 'code_source_financement',
-      label: 'Code source',
-      type: 'text',
-      placeholder: 'Ex: SF001, BAD-2024...',
-      required: true,
-      gridCols: 2,
-    },
-    {
       name: 'intitule_source_financement',
       label: 'Intitulé',
-      type: 'text',
+      type: 'textarea',
       placeholder: 'Ex: Financement BAD 2024',
       required: true,
-      gridCols: 2,
+      gridCols: 1,
     },
     {
       name: 'Numero_reference_sf',
@@ -47,10 +39,7 @@ export const getSourceFinancementProjetFormConfig = (): FormConfig => ({
       type: 'select',
       placeholder: 'Sélectionner un partenaire',
       required: true,
-      options: [
-        { value: 'PART01', label: 'Partenaire 1' },
-        { value: 'PART02', label: 'Partenaire 2' },
-      ],
+      options: [],
       gridCols: 2,
     }
   ],

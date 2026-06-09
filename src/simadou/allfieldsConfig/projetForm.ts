@@ -31,7 +31,7 @@ function ptfOptions(acteurs: Acteur[]): SelectOption[] {
 
 function zoneOptions(localites: Localite[]): SelectOption[] {
   return localites
-    .filter((z) => typeof z.niveau_loca === 'object' && z.niveau_loca?.nombre_nlc === 1)
+    .filter((z) => typeof z.niveau_loca === 'object' && z.niveau_loca?.nombre_nlc === 2)
     .map((z) => ({ value: z.id_loca, label: z.intitule_loca }))
 }
 
@@ -43,7 +43,6 @@ export const getProjetFormConfig = (
   acteurs: Acteur[] = [],
   localites: Localite[] = []
 ): FormConfig => ({
-
   // ── Étapes déclarées une seule fois ──
   steps: [
     { step: 1, title: 'Informations générales' },

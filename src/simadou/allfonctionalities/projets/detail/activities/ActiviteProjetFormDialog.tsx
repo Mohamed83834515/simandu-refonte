@@ -12,7 +12,8 @@ import {
   useUpdateActiviteProjet,
 } from '@/simadou/allHooks/admin/activiteProjetHooks'
 import { useGetActivitesProgramme } from '@/simadou/allHooks/admin/activiteProgrammeHooks'
-import { useGetAllProjets } from '@/simadou/allHooks/admin/projetHooks'
+import { useGetAllProjets, useGetProjet } from '@/simadou/allHooks/admin/projetHooks'
+import { getRouteApi } from '@tanstack/react-router'
 
 function resolveCodeProjet(value: ActiviteProjet['code_projet']): string | null {
   if (value == null || value === '') return null
@@ -69,6 +70,12 @@ export default function ActiviteProjetFormDialog({
     () => Number(niveauConfig?.taille_code_niveau_activite_projet) || 2,
     [niveauConfig]
   )
+
+
+      const route = getRouteApi('/_authenticated/programmation/projets/$id')
+  
+      const { id } = route.useParams()
+      const { data: currentProjet } = useGetProjet(id)
 
   const parentNiveauLabel = useMemo(() => {
     const parentNiveau = niveaux.find(
@@ -144,7 +151,7 @@ export default function ActiviteProjetFormDialog({
       code_activite_programme: resolveCodeActiviteProgramme(
         activite?.code_activite_programme
       ),
-      code_projet: activite ? resolveCodeProjet(activite.code_projet) : null,
+      code_projet: currentProjet?.code_projet,
     }),
     [activite, niveau]
   )
@@ -160,7 +167,6 @@ export default function ActiviteProjetFormDialog({
     const payload: ActiviteProjetFormData = {
       ...data,
       niveau_activite_projet: niveau,
-      code_projet: data.code_projet || null,
       parent_activite_projet: data.parent_activite_projet || null,
       code_activite_programme: data.code_activite_programme || null,
     }

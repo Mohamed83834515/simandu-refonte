@@ -6,12 +6,10 @@ import type { IndicateurPerformanceProjet } from '@/simadou/allTypes'
 
 export function buildIndicateurPerformanceProjetColumns({
   getUniteLabel,
-  getActiviteLabel,
   onEdit,
   onDeleteRequest,
 }: {
   getUniteLabel: (row: IndicateurPerformanceProjet) => string
-  getActiviteLabel: (row: IndicateurPerformanceProjet) => string
   onEdit: (row: IndicateurPerformanceProjet) => void
   onDeleteRequest: (row: IndicateurPerformanceProjet) => void
 }): ColumnDef<IndicateurPerformanceProjet>[] {
@@ -42,22 +40,10 @@ export function buildIndicateurPerformanceProjetColumns({
     enableHiding: false,
   }
 
-  const activiteColumn: ColumnDef<IndicateurPerformanceProjet> = {
-    id: 'code_activite_projet',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Activité Projet' />
-    ),
-    cell: ({ row }) => (
-      <span className='text-muted-foreground'>{getActiviteLabel(row.original)}</span>
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  }
-
   const actionsColumn = buildEditDeleteActionsColumn({
     onEdit,
     onDeleteRequest,
   })
 
-  return [...baseColumns, uniteColumn, activiteColumn, actionsColumn]
+  return [...baseColumns, uniteColumn, actionsColumn]
 }

@@ -1,8 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import type { IndicateurPerformanceProjet } from '@/simadou/allTypes'
 import type {
-  CreateIndicateurPerformanceProjetFormData,
-  UpdateIndicateurPerformanceProjetFormData,
+  IndicateurPerformanceFormData
 } from '@/simadou/schemas/indicateurPerformanceProjetSchemas'
 import indicateurPerformanceProjetService from '@/simadou/allSercices/indicateurPerformanceProjetService'
 import { invalidateAndRefetch } from '@/simadou/allHooks/admin/queryInvalidation'
@@ -11,6 +9,8 @@ export const indicateurPerformanceProjetQueryKeys = {
   all: ['indicateurs-performance-projet'] as const,
   byProjet: (codeProjet: string | undefined) =>
     [...indicateurPerformanceProjetQueryKeys.all, 'by-projet', codeProjet] as const,
+  byActivite: (codeActivite: string | undefined) =>
+    [...indicateurPerformanceProjetQueryKeys.all, 'by-activite', codeActivite] as const,
 }
 
 export function useGetAllIndicateursPerformanceProjet() {
@@ -36,22 +36,29 @@ export function useGetIndicateursPerformanceProjet(codeProjet: string | undefine
   })
 }
 
-export function useCreateIndicateurPerformanceProjet(codeProjet: string | undefined) {
+export function useCreateIndicateurPerformanceProjet() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (data: CreateIndicateurPerformanceProjetFormData) =>
-      indicateurPerformanceProjetService.create({
-        ...(data as any),
-        code_projet: data.code_projet ?? codeProjet ?? null,
-      } as Omit<IndicateurPerformanceProjet, 'id_indicateur_performance'>),
+    mutationFn: (data: IndicateurPerformanceFormData) =>
+      indicateurPerformanceProjetService.create(data),
     onSuccess: async () => {
       await invalidateAndRefetch(queryClient, indicateurPerformanceProjetQueryKeys.all)
     },
   })
 }
+export function useGetIndicateurPerformanceByActiviteProjet(codeActivite: string) {
+  return useQuery({
+    queryKey: indicateurPerformanceProjetQueryKeys.byActivite(codeActivite),
+    queryFn: async () => {
+      const response = await indicateurPerformanceProjetService.getByActiviteProjet(codeActivite)
+      return response
+    },
+    enabled: !!codeActivite,
+  })
+}
 
-export function useUpdateIndicateurPerformanceProjet(codeProjet: string | undefined) {
+export function useUpdateIndicateurPerformanceProjet() {
   const queryClient = useQueryClient()
 
   return useMutation({
@@ -60,12 +67,9 @@ export function useUpdateIndicateurPerformanceProjet(codeProjet: string | undefi
       data,
     }: {
       id: number
-      data: UpdateIndicateurPerformanceProjetFormData
+      data: IndicateurPerformanceFormData
     }) =>
-      indicateurPerformanceProjetService.update(id, {
-        ...(data as any),
-        code_projet: data.code_projet ?? codeProjet ?? null,
-      }),
+      indicateurPerformanceProjetService.update(id, data),
     onSuccess: async () => {
       await invalidateAndRefetch(queryClient, indicateurPerformanceProjetQueryKeys.all)
     },

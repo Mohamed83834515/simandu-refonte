@@ -2,7 +2,7 @@ import { apiClient } from "@/axios/api";
 import type { ActiviteProjet } from "../allTypes";
 import { normalizeApiList } from "./apiListUtils";
 
-const BASE_URL = "/activite_projet/";
+const BASE_URL = "/activites-projet/";
 
 export const activiteProjetService = {
   // Récupérer toutes les activités projet

@@ -60,15 +60,5 @@ export const getActiviteProjetFormConfigForDialog = ({
       isLoading: isLoadingActivitesProgramme,
       gridCols: 2,
     },
-    {
-      name: "code_projet",
-      label: "Projet",
-      type: "select",
-      placeholder: "Sélectionner un projet",
-      required: true,
-      options: projetOptions,
-      isLoading: isLoadingProjets,
-      gridCols: 2,
-    },
   ],
 });

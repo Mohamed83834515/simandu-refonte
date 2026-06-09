@@ -4,7 +4,6 @@ import {
   Eye,
   Layout,
   LayoutDashboard,
-  Target,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -13,7 +12,6 @@ export type ProjetDetailTabKey =
   | 'activities'
   | 'ptba'
   | 'suivi_ptba'
-  | 'activity_indicators'
   | 'results_framework'
   | 'cmr_indicators'
 
@@ -48,12 +46,6 @@ export const projetDetailTabs: ProjetDetailTab[] = [
     name: 'Suivi PTBA',
     icon: Eye,
     description: "Suivi d'avancement des activités PTBA du projet.",
-  },
-  {
-    key: 'activity_indicators',
-    name: "Indicateurs d'activités",
-    icon: Target,
-    description: "Indicateurs de performance liés aux activités du projet.",
   },
   {
     key: 'results_framework',

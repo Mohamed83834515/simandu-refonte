@@ -2,7 +2,7 @@ import { apiClient } from "@/axios/api";
 import { SourFinancementProjet } from "../allTypes/sourceFinancemanetProjet";
 import { SourceFinancementProjetFormData } from "../schemas/sourceFinancementProjet";
 
-const ENDPOINT = "/source_financement_projet/";
+const ENDPOINT = "/sources-financement-projet/";
 
 const sourceFinancementProjetService = {
     async getAll(): Promise<SourFinancementProjet[]> {
@@ -18,8 +18,8 @@ const sourceFinancementProjetService = {
         // Filtrer les localités dont l'objet niveau_loca a l'id correspondant
         const filtered = allSource.filter((src) => {
             // Si niveau_loca est un objet, comparer son id
-            if (src.code_source_financement && src.code_source_financement !== null) {
-                return src.code_source_financement === niveauId
+            if (src.code_activite_projet && src.code_activite_projet !== null) {
+                return src.code_activite_projet === niveauId
             }
             // Si c'est un nombre (ancienne structure), comparer directement
             return src.niveau_loca === niveauId

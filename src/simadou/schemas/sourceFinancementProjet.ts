@@ -1,7 +1,7 @@
 import z from "zod"
 
 export const sourceFinancementProjetSchema = z.object({
-  code_source_financement: z
+  code_activite_projet: z
     .string()
     .min(1, "Le code est requis")
     .max(50, "Le code ne peut pas dépasser 50 caractères"),
@@ -14,7 +14,7 @@ export const sourceFinancementProjetSchema = z.object({
     .optional()
     .default(""), // Rempli par défaut, modifiable
   montant_source_financement: z
-    .string()
+    .number()
     .min(1, "Le montant est requis"),
   date_signature_convention: z
     .string()

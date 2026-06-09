@@ -10,5 +10,6 @@ export interface ActiviteProjet extends Record<string, unknown> {
   code_activite_programme?: string | ActiviteProgramme | null;
   code_projet?: string | Projet | null;
   // Relations populées
+  budget?: number;
   parent?: ActiviteProjet | null;
 }

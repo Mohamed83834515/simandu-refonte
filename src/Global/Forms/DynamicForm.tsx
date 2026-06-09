@@ -33,18 +33,15 @@ interface DynamicFormProps {
   submitText?: string
   loadingText?: string
   onFieldChange?: (fieldName: string, value: unknown) => void
-  /** Bouton secondaire (ex. Annuler / Retour) dans le pied du formulaire */
   onCancel?: () => void
   cancelText?: string
-  /** Bouton retour étape précédente (ex. formulaire multi-étapes) */
   onBack?: () => void
   backText?: string
-  /** Formulaire dans un modal PTBA : padding réduit, sans ombre portée */
   embedded?: boolean
-  /** Largeur max. du formulaire embarqué (ex. modales suivi PTBA) */
   className?: string
   hideFormFooter?: boolean
   formId?: string
+  renderAfter?: React.ReactNode  // ← Ajoute cette ligne
 }
 
 export interface DynamicFormHandle {
@@ -71,7 +68,8 @@ export const DynamicForm = forwardRef<DynamicFormHandle, DynamicFormProps>(
       embedded = false,
       className,
       hideFormFooter,
-      formId
+      formId,
+      renderAfter
     },
     ref
   ) => {
@@ -198,6 +196,11 @@ export const DynamicForm = forwardRef<DynamicFormHandle, DynamicFormProps>(
                   </div>
                 ))}
               </div>
+              {renderAfter && (
+                <div className="mt-6">
+                  {renderAfter}
+                </div>
+              )}
             </div>
 
             <div
