@@ -6,9 +6,7 @@ export const getActiviteProjetFormConfigForDialog = ({
   showParent,
   parentOptions,
   activiteProgrammeOptions,
-  projetOptions,
   isLoadingActivitesProgramme,
-  isLoadingProjets,
 }: {
   fixedCodeLength: number;
   parentNiveauLabel: string;
