@@ -3,7 +3,7 @@ import { buildColumns } from '@/Global/Tableaux/column-builder'
 import { buildEditDeleteActionsColumn } from '@/Global/Tableaux/buildEditDeleteActionsColumn'
 import type { ActiviteProjet, NiveauActiviteProjet } from '@/simadou/allTypes'
 import { Button } from '@/components/ui/button'
-import { DollarSign, List } from 'lucide-react'
+import {  List } from 'lucide-react'
 import { DataTableColumnHeader } from '@/components/data-table'
 
 export function buildActiviteProjetColumns({
@@ -72,11 +72,17 @@ export function buildActiviteProjetColumns({
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title='Budget' className='text-center' />
     ),
-    cell: ({ row }) => (
-      <div className='text-center font-bold'>
-        {row.original.budget?.toLocaleString() || '0'} FCFA
+    cell: ({ row }) => {
+    const budget = row.original.budget
+    return (
+      <div 
+        className='text-center font-bold cursor-pointer hover:text-blue-600 transition-colors'
+        onClick={() => onOpenPlanification(row.original)}
+      >
+        {budget?.toLocaleString() || '0'} FCFA
       </div>
-    ),
+    )
+  },
     meta: { thClassName: 'text-center', className: 'text-center' },
     size: 120,
     enableSorting: false,
