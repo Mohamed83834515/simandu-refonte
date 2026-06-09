@@ -1,11 +1,15 @@
 import { type ColumnDef } from '@tanstack/react-table'
-import { Eye } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Eye, Trash2, UserPen } from 'lucide-react'
 import { DataTableColumnHeader } from '@/components/data-table'
 import { LongText } from '@/components/others/long-text'
 import type { Projet } from '@/simadou/allTypes/projet'
+import { GenericRowActions } from '@/Global/Tableaux/GenericRowActions'
+
+type ProjetDialogType = 'add' | 'edit' | 'delete';
 
 export function buildProjetsColumns(
+  setOpen: (dialog: ProjetDialogType | null) => void,
+  setCurrentRow: React.Dispatch<React.SetStateAction<Projet | null>>,
   onDetail: (projet: Projet) => void
 ): ColumnDef<Projet>[] {
   return [
@@ -75,27 +79,67 @@ export function buildProjetsColumns(
     },
     {
       id: 'actions',
-      header: () => (
-        <span className='text-xs font-medium text-muted-foreground'>Actions</span>
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title='Actions' />
       ),
       cell: ({ row }) => (
-        <Button
-          type='button'
-          variant='outline'
-          size='sm'
-          className='h-8 gap-1.5 border-primary/20 bg-primary/10 text-xs font-semibold text-primary hover:bg-primary hover:text-primary-foreground'
-          onClick={(e) => {
-            e.stopPropagation()
-            onDetail(row.original)
-          }}
-        >
-          <Eye className='h-3.5 w-3.5' />
-          Détails
-        </Button>
+        <GenericRowActions
+          row={row}
+          actions={[
+            {
+              label: 'Detail',
+              icon: <Eye size={16} />,
+              onClick: () => {
+                onDetail(row.original)
+              }
+            },
+            {
+              label: 'Modifier',
+              icon: <UserPen size={16} />,
+              onClick: () => {
+                setCurrentRow(row.original)
+                setOpen('edit')
+                console.log('isditing', row.original)
+              },
+            },
+            {
+              label: 'Supprimer',
+              icon: <Trash2 size={16} />,
+              onClick: () => {
+                setCurrentRow(row.original)
+                setOpen('delete')
+              },
+              className: 'text-red-500!',
+              separator: true,
+            },
+          ]
+          }
+        />
       ),
-      meta: { thClassName: 'text-center pe-4', className: 'text-center pe-4' },
-      enableSorting: false,
-      enableHiding: false,
     },
+    // {
+    //   id: 'actions',
+    //   header: () => (
+    //     <span className='text-xs font-medium text-muted-foreground'>Actions</span>
+    //   ),
+    //   cell: ({ row }) => (
+    //     <Button
+    //       type='button'
+    //       variant='outline'
+    //       size='sm'
+    //       className='h-8 gap-1.5 border-primary/20 bg-primary/10 text-xs font-semibold text-primary hover:bg-primary hover:text-primary-foreground'
+    //       onClick={(e) => {
+    //         e.stopPropagation()
+    //         onDetail(row.original)
+    //       }}
+    //     >
+    //       <Eye className='h-3.5 w-3.5' />
+    //       Détails
+    //     </Button>
+    //   ),
+    //   meta: { thClassName: 'text-center pe-4', className: 'text-center pe-4' },
+    //   enableSorting: false,
+    //   enableHiding: false,
+    // },
   ]
 }

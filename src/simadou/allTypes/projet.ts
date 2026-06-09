@@ -10,9 +10,9 @@ export interface Projet {
   duree_projet: number;
   date_signature_projet: string;
   date_demarrage_projet: string;
-  partenaire_projet?: Acteur;
+  partenaire_projet: Acteur | null;
   programme_projet?: Programme | number;
-  structure_projet: Acteur[];
+  structure_projet: number;
   signataires_projet: Acteur[];
   partenaires_execution_projet: Acteur[];
   zone_projet: Localite[];

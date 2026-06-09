@@ -28,6 +28,7 @@ import {
 } from '@/simadou/allHooks/admin/activiteProjetHooks'
 import ActiviteProjetFormDialog from './ActiviteProjetFormDialog'
 import NiveauActiviteProjetManager from './NiveauActiviteProjetManager'
+import SourceFinancementManager from './sourceFinancement/SourceFinancementProjetDialog'
 
 type ModalState = 'form' | 'niveaux'
 
@@ -49,6 +50,14 @@ function ActiviteProjetNiveauTable({
   onDeleteRequest: (row: ActiviteProjet) => void
 }) {
   const { search, navigate } = useEmbeddedTableState()
+  const [planifierSource, setPlanifierSource] = useState<ActiviteProjet | null>(null)
+  const [showPlanificationModal, setShowPlanificationModal] = useState(false)
+
+
+  const onOpenPlanification = useCallback((activite: ActiviteProjet) => {
+    setPlanifierSource(activite)
+    setShowPlanificationModal(true)
+  }, [])
 
   const getParentLabel = useCallback(
     (row: ActiviteProjet) => {
@@ -56,7 +65,7 @@ function ActiviteProjetNiveauTable({
         typeof row.parent_activite_projet === 'number'
           ? row.parent_activite_projet
           : typeof row.parent_activite_projet === 'object' &&
-              row.parent_activite_projet
+            row.parent_activite_projet
             ? row.parent_activite_projet.id_activite_projet
             : null
       if (parentId == null) return '—'
@@ -75,8 +84,9 @@ function ActiviteProjetNiveauTable({
         getParentLabel,
         onEdit,
         onDeleteRequest,
+        onOpenPlanification
       }),
-    [showParent, getParentLabel, onEdit, onDeleteRequest]
+    [showParent, getParentLabel, onEdit, onDeleteRequest, onOpenPlanification]
   )
 
   const rows = useMemo(
@@ -88,25 +98,40 @@ function ActiviteProjetNiveauTable({
   )
 
   return (
-    <GenericTable<ActiviteProjet>
-      key={tableKey}
-      data={rows}
-      columns={columns}
-      search={search}
-      navigate={navigate}
-      searchKey='intitule_activite_projet'
-      searchPlaceholder='Filtrer les activités…'
-      urlFilterConfig={[
-        {
-          columnId: 'intitule_activite_projet',
-          searchKey: 'intitule_activite_projet',
-          type: 'string',
-        },
-      ]}
-      defaultPageSize={10}
-      showViewOptions={false}
-      emptyMessage='Aucune activité pour ce niveau'
-    />
+    <>
+      <GenericTable<ActiviteProjet>
+        key={tableKey}
+        data={rows}
+        columns={columns}
+        search={search}
+        navigate={navigate}
+        searchKey='intitule_activite_projet'
+        searchPlaceholder='Filtrer les activités…'
+        urlFilterConfig={[
+          {
+            columnId: 'intitule_activite_projet',
+            searchKey: 'intitule_activite_projet',
+            type: 'string',
+          },
+        ]}
+        defaultPageSize={10}
+        showViewOptions={false}
+        emptyMessage='Aucune activité pour ce niveau'
+      />
+
+      {
+        showPlanificationModal ??
+        <SourceFinancementManager
+          activite={planifierSource as any}
+          open={showPlanificationModal}
+          onOpenChange={(open) => {
+            setShowPlanificationModal(open)
+            if (!open) setPlanifierSource(null)
+          }}
+        />
+      }
+    </>
+
   )
 }
 

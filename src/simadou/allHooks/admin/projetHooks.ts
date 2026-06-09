@@ -3,6 +3,7 @@ import { useActiveProgrammeId } from '@/hooks/use-active-programme'
 import { projetBelongsToProgramme } from '@/simadou/allTypes/projet'
 import { projetService } from '@/simadou/allSercices/projetService'
 import type { ProjectCreateSubmitData } from '@/simadou/schemas/projetSchema'
+import { toast } from 'sonner'
 
 export const projetQueryKeys = {
   all: ['projets'] as const,
@@ -59,13 +60,30 @@ export function useCreateProjet(idProgramme: number | undefined) {
   })
 }
 
+export function useUpdateProjet(id:number) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (data: ProjectCreateSubmitData) => {
+      return projetService.update(id, data)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: projetQueryKeys.all })
+    },
+  })
+}
+
 export function useDeleteProjet() {
   const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: (id: number) => projetService.delete(id),
     onSuccess: () => {
+      toast.success('Projet supprimée avec succès')
       queryClient.invalidateQueries({ queryKey: projetQueryKeys.all })
+    },
+    onError: () => {
+      toast.error("Erreur lors de la suppression du projet ")
     },
   })
 }
