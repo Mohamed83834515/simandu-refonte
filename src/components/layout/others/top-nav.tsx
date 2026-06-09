@@ -925,12 +925,8 @@ const TOPBAR_CSS = `
     color: #fff;
     line-height: 1.15;
     white-space: nowrap;
-    background: rgba(0, 0, 0, .35);
     padding: 5px 20px 6px;
     border-radius: 6px;
-    border-top: 2px solid #FCD116;
-    border-bottom: 2px solid #FCD116;
-    text-shadow: 0 1px 6px rgba(0,0,0,0.6);
   }
 
   ._tb-center-rule {
@@ -1051,15 +1047,15 @@ function MobileSearchModal({
           border: '1px solid rgba(255,255,255,.2)',
           borderRadius: 10, padding: '8px 14px',
         }}>
-          <Search size={16} aria-hidden style={{ color: '#fff', opacity:.8, flexShrink:0 }} />
+          <Search size={16} aria-hidden style={{ color: '#fff', opacity: .8, flexShrink: 0 }} />
           <input
             ref={inputRef}
             type="search"
             placeholder={t("Rechercher dans l'application…")}
-            style={{ flex:1, background:'transparent', border:'none', outline:'none', color: '#fff', fontSize:14 }}
+            style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: '#fff', fontSize: 14 }}
           />
-          <button onClick={onClose} className="_tb-ibtn" aria-label={t('Fermer')} style={{ width:24, height:24 }}>
-            <X size={14} style={{ color: '#fff', opacity:.75 }} />
+          <button onClick={onClose} className="_tb-ibtn" aria-label={t('Fermer')} style={{ width: 24, height: 24 }}>
+            <X size={14} style={{ color: '#fff', opacity: .75 }} />
           </button>
         </div>
       </div>
@@ -1180,151 +1176,138 @@ export function AppTopbar({ user }: UserProps) {
           width: '100%',
           backgroundColor: headerBg,
           color: headerText,
-          borderBottom: `1px solid rgba(${accentRgb},.2)`,
-          boxShadow: '0 4px 28px rgba(0,0,0,.38)',
-          transition: 'background-color .35s ease, border-color .35s ease',
+          borderBottom: `1px solid rgba(${accentRgb},.15)`,
+          transition: 'all .3s ease',
         }}
       >
-
-        {/* ══ ROW 1 : Logo + Titre centré + contrôles ══ */}
-        <div className="_tb-row1" style={{
-          display: 'flex',
-          alignItems: 'center',
-          height: 64,
-          gap: 10,
-          padding: '0 16px',
-          position: 'relative',
-        }}>
-
-          <SidebarTrigger
-            className="_tb-ibtn md:hidden"
-            aria-label={t('Ouvrir le menu')}
-            style={{ color: headerText, flexShrink: 0 }}
-          />
-
-          {/* LOGO — fond blanc pour lisibilité */}
-          <div
-            className="_tb-brand _tb-logo-wrap"
-            style={{
-              flexShrink:      0,
-              lineHeight:      0,
-              backgroundColor: '#FFFFFF',
-              borderRadius:    8,
-              padding:         4,
-              boxShadow:       '0 2px 8px rgba(0,0,0,0.25)',
-            }}
-          >
-            {!logoFailed ? (
-              <img
-                src="/src/assets/images/pont.png"
-                alt={firstTeam.name}
-                className="_tb-logo"
-                onError={() => setLogoFailed(true)}
-              />
-            ) : (
-              <div aria-hidden style={{
-                height:          48,
-                width:           44,
-                borderRadius:    6,
-                backgroundColor: 'rgba(206,17,38,.12)',
-                border:          '1px solid rgba(206,17,38,.3)',
-                display:         'flex',
-                flexDirection:   'column',
-                alignItems:      'center',
-                justifyContent:  'center',
-                fontSize:        11,
-                fontFamily:      "'Cinzel', serif",
-                fontWeight:      900,
-                color:           '#CE1126',
-                letterSpacing:   '1px',
-                lineHeight:      1.1,
-              }}>
-                {firstTeam.name?.slice(0, 2).toUpperCase() ?? 'AP'}
-              </div>
-            )}
-          </div>
-
-          {/* Séparateur vertical */}
-          <div aria-hidden style={{
-            width:           1,
-            height:          28,
-            flexShrink:      0,
-            backgroundColor: 'rgba(255,255,255,.3)',
-          }} />
-
-          {/* Identité système — colonne gauche */}
-          <div className="_tb-brand" style={{
+        {/* ROW 1 : Logo + Navigation + Actions */}
+        <div
+          style={{
             display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            lineHeight: 1.2,
-            flexShrink: 0,
-            gap: 2,
-          }}>
-            <span style={{
-              fontFamily: "'Cinzel', serif",
-              fontSize: 13,
-              fontWeight: 900,
-              letterSpacing: '.06em',
-              color:         '#FCD116',
-              textShadow:    '0 1px 4px rgba(0,0,0,0.5)',
-            }}>
-              {firstTeam.name ?? 'SISE CEP'}
-            </span>
-            <span style={{
-              fontSize:      9,
-              fontWeight:    600,
-              letterSpacing: '.2em',
-              textTransform: 'uppercase',
-              opacity:       0.9,
-              color:         '#FCD116',
-              textShadow:    '0 1px 3px rgba(0,0,0,0.4)',
-            }}>
-              {/* Agriculture PS2040 */}
-            </span>
-          </div>
-
-          {/* ══ TITRE CENTRÉ — redesigné ══ */}
-          <div className="_tb-center-title _tb-brand">
-            {/* <div className="_tb-center-rule">
-              <div className="_tb-center-rule-line" />
-              <div className="_tb-center-rule-dot" />
-              <div className="_tb-center-rule-line" />
-            </div> */}
-            <span className="_tb-center-main">SISE CEP Agriculture PS2040</span>
-            {/* <div className="_tb-center-rule">
-              <div className="_tb-center-rule-line" />
-              <div className="_tb-center-rule-dot" />
-              <div className="_tb-center-rule-line" />
-            </div> */}
-          </div>
-
-          {/* Logos partenaires */}
-          <img
-            src="/src/assets/images/logo1.png"
-            alt="Logo partenaire 1"
-            style={{ height: 42, width: 'auto', objectFit: 'contain', flexShrink: 0 }}
-          />
-          <img
-            src="/src/assets/images/logo3.png"
-            alt="Logo partenaire 2"
-            style={{ height: 42, width: 'auto', objectFit: 'contain', flexShrink: 0 }}
-          /> 
-
-          {/* Spacer */}
-          <div style={{ flex: 1 }} />
-
-          {/* Contrôles droite */}
-          <div className="_tb-ctrl" style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-            <button
-              onClick={() => setMobileSearchOpen(true)}
-              className="_tb-ibtn md:hidden"
-              aria-label={t('Rechercher')}
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            height: 60,
+            padding: '0 24px',
+            gap: 20,
+          }}
+        >
+          {/* Gauche : Logo + Marque */}
+          {/* Gauche : Logos + Marque */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <SidebarTrigger
+              className="md:hidden"
+              aria-label={t('Ouvrir le menu')}
               style={{ color: headerText }}
+            />
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              {/* Logo principal */}
+              <div
+                style={{
+                  flexShrink: 0,
+                  lineHeight: 0,
+                  borderRadius: 10,
+                  padding: 4,
+                  background: '#fff',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+                }}
+              >
+                {!logoFailed ? (
+                  <img
+                    src="/src/assets/images/pont.png"
+                    alt={firstTeam.name}
+                    style={{ height: 40, width: 40, objectFit: 'contain', borderRadius: 6 }}
+                    onError={() => setLogoFailed(true)}
+                  />
+                ) : (
+                  <div
+                    style={{
+                      height: 40,
+                      width: 40,
+                      borderRadius: 6,
+                      background: 'rgba(206,17,38,.1)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: 'bold',
+                      fontSize: 12,
+                      color: '#CE1126',
+                    }}
+                  >
+                    {firstTeam.name?.slice(0, 2).toUpperCase() ?? 'AP'}
+                  </div>
+                )}
+              </div>
+
+              {/* Logo partenaire 1 */}
+              <div
+                style={{
+                  flexShrink: 0,
+                  lineHeight: 0,
+                  borderRadius: 10,
+                  padding: 4,
+                  background: '#fff',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+                }}
+              >
+                <img
+                  src="/src/assets/images/logo1.png"
+                  alt="Logo partenaire"
+                  style={{ height: 40, width: 40, objectFit: 'contain', borderRadius: 6 }}
+                />
+              </div>
+
+              {/* Logo partenaire 2 */}
+              <div
+                style={{
+                  flexShrink: 0,
+                  lineHeight: 0,
+                  borderRadius: 10,
+                  padding: 4,
+                  background: '#fff',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+                }}
+              >
+                <img
+                  src="/src/assets/images/logo3.png"
+                  alt="Logo partenaire"
+                  style={{ height: 40, width: 40, objectFit: 'contain', borderRadius: 6 }}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Centre : Titre */}
+          <div style={{ textAlign: 'center' }}>
+            <div
+              style={{
+                fontWeight: 800,
+                fontSize: 18,
+                letterSpacing: '2px',
+                textTransform: 'uppercase',
+                background: 'linear-gradient(135deg, #fff 0%, #FCD116 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                textShadow: '0 2px 4px rgba(0,0,0,0.1)',
+              }}
             >
-              <Search size={17} aria-hidden />
-            </button>
-            <div className="hidden md:flex me-1">
+              SISE CEP Agriculture PS2040
+            </div>
+            <div
+              style={{
+                height: 2,
+                width: 60,
+                margin: '6px auto 0',
+                background: 'linear-gradient(90deg, transparent, #FCD116, #CE1126, #009460, transparent)',
+                borderRadius: 2,
+              }}
+            />
+          </div>
+
+          {/* Droite : Logos partenaires + Actions */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div className="hidden md:block">
               <SearchDesktop />
             </div>
             <ProgrammeSwitcher onHeader />
@@ -1333,12 +1316,12 @@ export function AppTopbar({ user }: UserProps) {
             {user && (
               <ProfileDropdown
                 user={user}
-                side={"bottom"}
+                side="bottom"
                 onLogout={() => setOpen(true)}
                 trigger={
-                  <Button>
-                    <Avatar className='h-8 w-8'>
-                      <AvatarImage src={user.personnel_profile_picture ?? ''} alt='profile' />
+                  <Button variant="ghost" size="icon" style={{ padding: 0, borderRadius: 40 }}>
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={user.personnel_profile_picture ?? ''} alt="profile" />
                       <AvatarFallback>{userInitials}</AvatarFallback>
                     </Avatar>
                   </Button>
@@ -1348,40 +1331,23 @@ export function AppTopbar({ user }: UserProps) {
           </div>
         </div>
 
-        {/* ══ ROW 2 : Navigation principale ══ */}
+        {/* ROW 2 : Navigation horizontale */}
         <div
-          className="_tb-row2"
           style={{
-            position:        'relative',
-            borderTop:       '1px solid rgba(255,255,255,.15)',
-            backgroundColor: headerBg2,
-            transition: 'background-color .35s ease',
+            borderTop: '1px solid rgba(255,255,255,.1)',
+            background: headerBg2,
           }}
         >
-          <div aria-hidden style={{
-            position: 'absolute', left: 0, top: 0, bottom: 0, width: 24,
-            background: fadeBgLeft,
-            zIndex: 10, pointerEvents: 'none',
-            opacity: leftFade ? 1 : 0, transition: 'opacity .2s ease',
-          }} />
-          <div aria-hidden style={{
-            position: 'absolute', right: 0, top: 0, bottom: 0, width: 24,
-            background: fadeBgRight,
-            zIndex: 10, pointerEvents: 'none',
-            opacity: rightFade ? 1 : 0, transition: 'opacity .2s ease',
-          }} />
-
           <nav
             ref={navRef}
-            className="_tb-scroll"
             aria-label={t('Navigation principale')}
             style={{
               display: 'flex',
               alignItems: 'center',
-              height: 44,
-              gap: 2,
-              padding: '0 10px',
+              gap: 4,
+              padding: '0 24px',
               overflowX: 'auto',
+              scrollbarWidth: 'none',
             }}
           >
             {sidebarData.navGroups
@@ -1401,26 +1367,23 @@ export function AppTopbar({ user }: UserProps) {
           </nav>
         </div>
 
-        {/* ══ ROW 3 : Sous-navigation horizontale ══ */}
+        {/* ROW 3 : Sous-navigation */}
         {subNavMode === 'horizontal' && activeGroup && activeGroup.items.length > 0 && (
           <div
-            className="_tb-subnav"
             style={{
-              borderTop:       '1px solid rgba(255,255,255,.10)',
-              backgroundColor: headerBg3,
-              transition: 'background-color .35s ease',
+              borderTop: '1px solid rgba(255,255,255,.08)',
+              background: headerBg3,
             }}
           >
             <nav
-              className="_tb-scroll"
               aria-label={t(`Sous-navigation ${activeGroup.title}`)}
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                height: 44,
-                gap: 2,
-                padding: '0 10px',
+                gap: 4,
+                padding: '0 24px',
                 overflowX: 'auto',
+                scrollbarWidth: 'none',
               }}
             >
               {activeGroup.items.map((sub, idx) => {
@@ -1429,18 +1392,19 @@ export function AppTopbar({ user }: UserProps) {
                   <Link
                     key={`${sub.title}-${idx}`}
                     to={sub.url}
-                    className="_tb-sublink"
-                    aria-current={isActive ? 'page' : undefined}
                     style={{
-                      color:           isActive ? '#fff' : 'rgba(255,255,255,0.78)',
-                      backgroundColor: isActive ? 'rgba(255,255,255,.22)' : 'transparent',
-                      fontWeight:      isActive ? 700 : 400,
-                      boxShadow:       isActive ? 'inset 0 -2px 0 rgba(255,255,255,.6)' : 'none',
-                      textShadow:      '0 1px 3px rgba(0,0,0,0.35)',
-                      animation:       `_tb-fade 0.18s ${0.02 + idx * 0.03}s both`,
+                      padding: '8px 16px',
+                      borderRadius: 6,
+                      fontSize: 13,
+                      fontWeight: isActive ? 600 : 400,
+                      color: isActive ? '#fff' : 'rgba(255,255,255,0.7)',
+                      background: isActive ? 'rgba(255,255,255,0.15)' : 'transparent',
+                      whiteSpace: 'nowrap',
+                      textDecoration: 'none',
+                      transition: 'all 0.2s',
                     }}
                   >
-                    {sub.icon && <sub.icon className="size-3.5" aria-hidden />}
+                    {sub.icon && <sub.icon className="size-3.5" style={{ marginRight: 6 }} />}
                     <span>{t(sub.title)}</span>
                     {sub.badge && <NavBadge value={sub.badge} />}
                   </Link>
@@ -1450,13 +1414,12 @@ export function AppTopbar({ user }: UserProps) {
           </div>
         )}
 
-        {/* ══ Bande tricolore Guinée ══ */}
-        <div aria-hidden style={{ display: 'flex', height: 4 }}>
-          <div style={{ flex: 1, backgroundColor: '#CE1126' }} />
-          <div style={{ flex: 1, backgroundColor: '#FCD116' }} />
-          <div style={{ flex: 1, backgroundColor: '#009460' }} />
+        {/* Bande tricolore Guinée */}
+        <div style={{ display: 'flex', height: 3 }}>
+          <div style={{ flex: 1, background: '#CE1126' }} />
+          <div style={{ flex: 1, background: '#FCD116' }} />
+          <div style={{ flex: 1, background: '#009460' }} />
         </div>
-
       </header>
       <SignOutDialog open={!!open} onOpenChange={setOpen} />
     </>
@@ -1485,12 +1448,12 @@ function TopNavLink({
       className="_tb-link"
       aria-current={isActive ? 'page' : undefined}
       style={{
-        color:           isActive ? '#fff' : 'rgba(255,255,255,0.82)',
+        color: isActive ? '#fff' : 'rgba(255,255,255,0.82)',
         backgroundColor: isActive ? 'rgba(255,255,255,.20)' : 'transparent',
-        fontWeight:      isActive ? 700 : 500,
-        boxShadow:       isActive ? 'inset 0 -2px 0 rgba(255,255,255,.65)' : 'none',
-        textShadow:      '0 1px 3px rgba(0,0,0,0.4)',
-        animation:       `_tb-fade 0.25s ${animDelay}s both`,
+        fontWeight: isActive ? 700 : 500,
+        boxShadow: isActive ? 'inset 0 -2px 0 rgba(255,255,255,.65)' : 'none',
+        textShadow: '0 1px 3px rgba(0,0,0,0.4)',
+        animation: `_tb-fade 0.25s ${animDelay}s both`,
       }}
     >
       {item.icon && <item.icon className="size-3.5" aria-hidden />}
@@ -1523,12 +1486,12 @@ function TopNavCollapsible({
   const isOpen = activeGroupTitle === item.title
 
   const activeStyle = {
-    color:           isRouteActive || isOpen ? '#fff' : 'rgba(255,255,255,0.82)',
+    color: isRouteActive || isOpen ? '#fff' : 'rgba(255,255,255,0.82)',
     backgroundColor: isRouteActive || isOpen ? 'rgba(255,255,255,.20)' : 'transparent',
-    fontWeight:      (isRouteActive || isOpen ? 700 : 500) as number,
-    boxShadow:       isRouteActive || isOpen ? 'inset 0 -2px 0 rgba(255,255,255,.65)' : 'none',
-    textShadow:      '0 1px 3px rgba(0,0,0,0.4)',
-    animation:       `_tb-fade 0.25s ${animDelay}s both`,
+    fontWeight: (isRouteActive || isOpen ? 700 : 500) as number,
+    boxShadow: isRouteActive || isOpen ? 'inset 0 -2px 0 rgba(255,255,255,.65)' : 'none',
+    textShadow: '0 1px 3px rgba(0,0,0,0.4)',
+    animation: `_tb-fade 0.25s ${animDelay}s both`,
   }
 
   const chevron = (
