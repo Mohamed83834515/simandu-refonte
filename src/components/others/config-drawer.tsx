@@ -9,8 +9,6 @@ import {
   Rows3,
   ChevronDown,
 } from 'lucide-react'
-// import { IconThemeDark } from '@/assets/custom/icon-theme-dark'
-// import { IconThemeLight } from '@/assets/custom/icon-theme-light'
 import {
   CHART_COLORS,
   type ChartColorKey,
