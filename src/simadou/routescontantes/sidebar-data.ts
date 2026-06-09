@@ -31,9 +31,9 @@ export const sidebarData: SidebarData = {
   },
   teams: [
     {
-      name: 'SIMADOU',
+      name: '',
       logo: Command,
-      plan: 'simadou',
+      plan: '',
     },
   ],
   navGroups: [
