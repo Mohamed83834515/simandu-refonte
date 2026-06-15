@@ -1,16 +1,18 @@
 // hooks/useLoginMutation.ts
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useAuthStore } from "@/stores/auth-store";
-import { useNavigate, useSearch } from "@tanstack/react-router";
-import { authService, LoginCredentials, ResetLinkCredentials, ResetPasswordCredentials } from "@/simadou/allSercices/authService";
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useNavigate, useSearch } from '@tanstack/react-router'
+import { handleApiError } from '@/axios/handleError'
+import {
+  authService,
+  type LoginCredentials,
+  type ResetLinkCredentials,
+  type ResetPasswordCredentials,
+} from '@/simadou/allSercices/authService'
+import type { ChangePasswordFormData } from '@/simadou/schemas/auth.schemas'
 import { jwtDecode } from 'jwt-decode'
-import { ChangePasswordFormData } from "@/simadou/schemas/auth.schemas";
-import { tokenManager } from '@/axios/api'
-import { toast } from "sonner";
-import { handleApiError } from "@/axios/handleError";
-import { personnelKeys } from "../personnel/personnelHooks";
-import { personnelService } from "@/simadou/allSercices/personnelService";
-
+import { toast } from 'sonner'
+import { useAuthStore } from '@/stores/auth-store'
+import { personnelKeys } from '../personnel/personnelHooks'
 
 export function useMe() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
@@ -18,11 +20,7 @@ export function useMe() {
   return useQuery({
     queryKey: personnelKeys.me(),
     queryFn: async () => {
-      const token = tokenManager.getAccessToken()
-      if (!token) return null
-      const userId = getUserIdFromToken(token)
-      if (!userId) return null
-      return personnelService.getById(userId)
+      return authService.me()
     },
     enabled: isAuthenticated, // ← automatic, no manual flag needed
     staleTime: 1000 * 60 * 5,
@@ -38,14 +36,10 @@ export function useLogin() {
     mutationFn: (credentials: LoginCredentials) =>
       authService.login(credentials),
 
-    onSuccess: async (data) => {
-      tokenManager.setTokens(data.access, data.refresh)
-
+    onSuccess: async () => {
       login()
 
-
-
-      toast.success("Connexion réussie")
+      toast.success('Connexion réussie')
 
       navigate({
         to: search.redirect ?? '/',
@@ -61,9 +55,8 @@ export function useLogin() {
 
     onError: (error) => {
       toast.error(error.message)
-      handleApiError(error);
+      handleApiError(error)
     },
-
   })
 }
 
@@ -72,9 +65,7 @@ interface TokenPayload {
   user_id: number
 }
 
-export const getUserIdFromToken = (
-  token: string
-): number | null => {
+export const getUserIdFromToken = (token: string): number | null => {
   try {
     const decoded = jwtDecode<TokenPayload>(token)
 
@@ -83,12 +74,6 @@ export const getUserIdFromToken = (
     return null
   }
 }
-
-
-
-
-
-
 
 export function useLogout() {
   const navigate = useNavigate()
@@ -107,17 +92,15 @@ export function useLogout() {
   })
 }
 
-
-
-
-
-
-
 export function useChangePasswordMutation() {
-
-
   return useMutation({
-    mutationFn: async ({ data, userId }: { data: ChangePasswordFormData, userId: number }) => {
+    mutationFn: async ({
+      data,
+      userId,
+    }: {
+      data: ChangePasswordFormData
+      userId: number
+    }) => {
       await authService.changePassword(userId, {
         currentPassword: data.oldPassword,
         newPassword: data.newPassword,
@@ -133,12 +116,15 @@ export function useChangePasswordMutation() {
   })
 }
 
-
 export function useResetLinkMutation() {
-
-
   return useMutation({
-  mutationFn: async ({ data, mode }: { data: ResetLinkCredentials, mode : "reset" | "setup" }) => {
+    mutationFn: async ({
+      data,
+      mode,
+    }: {
+      data: ResetLinkCredentials
+      mode: 'reset' | 'setup'
+    }) => {
       await authService.reset_link(data, mode)
     },
     onSuccess: () => {
@@ -151,10 +137,8 @@ export function useResetLinkMutation() {
 }
 
 export function useResetPasswordMutation() {
-
-
   return useMutation({
-  mutationFn: async ({ data }: { data: ResetPasswordCredentials }) => {
+    mutationFn: async ({ data }: { data: ResetPasswordCredentials }) => {
       await authService.reset_password(data)
     },
     onSuccess: () => {
@@ -165,8 +149,3 @@ export function useResetPasswordMutation() {
     },
   })
 }
-
-
-
-
-

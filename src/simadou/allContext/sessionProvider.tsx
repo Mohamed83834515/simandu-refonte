@@ -40,7 +40,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     start(duration)
 
     return () => stop()
-  }, [config, isAuthenticated])
+  }, [config, isAuthenticated, start, stop])
 
   // Watch for expiry
   useEffect(() => {
@@ -54,7 +54,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       navigate({ to: '/sign-in', replace : true })
       toast.info('Session expirée. Veuillez vous reconnecter.')
     }
-  }, [remainingSeconds])
+  }, [logout, navigate, remainingSeconds])
 
   return (
     <>

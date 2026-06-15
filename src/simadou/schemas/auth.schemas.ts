@@ -31,7 +31,7 @@ export const PasswordSchema = z
 export const LoginSchema = z.object({
   personal_id : z
   .string()
-  .min(4 , "Identifiant trop court"),
+  .min(3 , "Identifiant trop court"),
 
   password : z
   .string()

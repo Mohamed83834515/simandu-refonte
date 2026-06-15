@@ -1,14 +1,22 @@
-// main.tsx or App.tsx — run once at startup
 import { useEffect } from 'react'
+import { authService } from '@/simadou/allSercices/authService'
 import { useAuthStore } from '@/stores/auth-store'
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const hydrateFromToken = useAuthStore((s) => s.hydrateFromToken)
+  const setAuthenticated = useAuthStore((s) => s.setAuthenticated)
 
   useEffect(() => {
-    hydrateFromToken()
-  }, [])
+    const init = async () => {
+      try {
+        await authService.me()
+        setAuthenticated(true)
+      } catch {
+        setAuthenticated(false)
+      }
+    }
+
+    init()
+  }, [setAuthenticated])
 
   return <>{children}</>
 }
-
