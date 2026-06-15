@@ -1,0 +1,75 @@
+import type { FormConfig } from '@/Global/types/formConfig'
+
+/** Formulaire programme — layout compact 2 colonnes (dialog). */
+export const getProgrammeFormConfigForDialog = (): FormConfig => ({
+  fields: [
+    {
+      name: 'code_programme',
+      label: 'Code',
+      type: 'text',
+      placeholder: 'Ex: PROG-01',
+      required: true,
+      maxLength: 50,
+      gridCols: 2,
+    },
+    {
+      name: 'sigle_programme',
+      label: 'Sigle',
+      type: 'text',
+      placeholder: 'Ex: PNUD',
+      required: true,
+      maxLength: 20,
+      gridCols: 2,
+    },
+    {
+      name: 'nom_programme',
+      label: 'Nom complet',
+      type: 'text',
+      placeholder: 'Nom complet du programme',
+      required: true,
+      gridCols: 1,
+    },
+    {
+      name: 'annee_debut_programme',
+      label: 'Date de début',
+      type: 'date',
+      required: true,
+      gridCols: 2,
+    },
+    {
+      name: 'annee_fin_programme',
+      label: 'Date de fin',
+      type: 'date',
+      required: true,
+      gridCols: 2,
+    },
+    {
+      name: 'objectif_programme',
+      label: 'Objectif',
+      type: 'textarea',
+      placeholder: 'Objectifs principaux du programme…',
+      rows: 3,
+      required: true,
+      gridCols: 2,
+      className: 'resize-y',
+    },
+    {
+      name: 'vision_programme',
+      label: 'Vision',
+      type: 'textarea',
+      placeholder: 'Vision et ambitions du programme…',
+      rows: 3,
+      required: true,
+      gridCols: 2,
+      className: 'resize-y',
+    },
+    {
+      name: 'actif_programme',
+      label: 'Programme actif',
+      type: 'switch',
+      helperText: 'Un programme inactif n’apparaît plus dans les sélecteurs.',
+      className: 'field-card',
+      gridCols: 1,
+    },
+  ],
+})

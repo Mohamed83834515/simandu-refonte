@@ -31,6 +31,7 @@ import { Route as AuthenticatedSettingsDisplayRouteImport } from './routes/_auth
 import { Route as AuthenticatedSettingsAppearanceRouteImport } from './routes/_authenticated/settings/appearance'
 import { Route as AuthenticatedSettingsAccountRouteImport } from './routes/_authenticated/settings/account'
 import { Route as AuthenticatedErrorsErrorRouteImport } from './routes/_authenticated/errors/$error'
+import { Route as AuthenticatedParametrageAutresRouteRouteImport } from './routes/_authenticated/parametrage/autres/route'
 import { Route as AuthenticatedProgrammePagesTestIndexRouteImport } from './routes/_authenticated/programme/pagesTest/index'
 import { Route as AuthenticatedProgrammeListeIndexRouteImport } from './routes/_authenticated/programme/liste/index'
 import { Route as AuthenticatedProgrammeIndicateursPerformanceIndexRouteImport } from './routes/_authenticated/programme/indicateurs-performance/index'
@@ -56,7 +57,10 @@ import { Route as AuthenticatedParametrageConventionsIndexRouteImport } from './
 import { Route as AuthenticatedParametrageAutresIndexRouteImport } from './routes/_authenticated/parametrage/autres/index'
 import { Route as AuthenticatedParametrageActeursIndexRouteImport } from './routes/_authenticated/parametrage/acteurs/index'
 import { Route as AuthenticatedProgrammationProjetsIdRouteImport } from './routes/_authenticated/programmation/projets/$id'
-import { Route as authResetPasswordUidTokenRouteImport } from './routes/(auth)/reset-password/$uid/$token'
+import { Route as authSetPasswordUidTokenRouteImport } from './routes/(auth)/set-password/$uid/$token'
+import { Route as AuthenticatedParametrageAutresUnitesIndicateurIndexRouteImport } from './routes/_authenticated/parametrage/autres/unites-indicateur/index'
+import { Route as AuthenticatedParametrageAutresTypeZoneIndexRouteImport } from './routes/_authenticated/parametrage/autres/type-zone/index'
+import { Route as AuthenticatedParametrageAutresSystemIndexRouteImport } from './routes/_authenticated/parametrage/autres/system/index'
 
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
@@ -173,6 +177,12 @@ const AuthenticatedErrorsErrorRoute =
   AuthenticatedErrorsErrorRouteImport.update({
     id: '/errors/$error',
     path: '/errors/$error',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedParametrageAutresRouteRoute =
+  AuthenticatedParametrageAutresRouteRouteImport.update({
+    id: '/parametrage/autres',
+    path: '/parametrage/autres',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedProgrammePagesTestIndexRoute =
@@ -309,9 +319,9 @@ const AuthenticatedParametrageConventionsIndexRoute =
   } as any)
 const AuthenticatedParametrageAutresIndexRoute =
   AuthenticatedParametrageAutresIndexRouteImport.update({
-    id: '/parametrage/autres/',
-    path: '/parametrage/autres/',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedParametrageAutresRouteRoute,
   } as any)
 const AuthenticatedParametrageActeursIndexRoute =
   AuthenticatedParametrageActeursIndexRouteImport.update({
@@ -325,11 +335,28 @@ const AuthenticatedProgrammationProjetsIdRoute =
     path: '/programmation/projets/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const authResetPasswordUidTokenRoute =
-  authResetPasswordUidTokenRouteImport.update({
-    id: '/$uid/$token',
-    path: '/$uid/$token',
-    getParentRoute: () => authResetPasswordRoute,
+const authSetPasswordUidTokenRoute = authSetPasswordUidTokenRouteImport.update({
+  id: '/(auth)/set-password/$uid/$token',
+  path: '/set-password/$uid/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedParametrageAutresUnitesIndicateurIndexRoute =
+  AuthenticatedParametrageAutresUnitesIndicateurIndexRouteImport.update({
+    id: '/unites-indicateur/',
+    path: '/unites-indicateur/',
+    getParentRoute: () => AuthenticatedParametrageAutresRouteRoute,
+  } as any)
+const AuthenticatedParametrageAutresTypeZoneIndexRoute =
+  AuthenticatedParametrageAutresTypeZoneIndexRouteImport.update({
+    id: '/type-zone/',
+    path: '/type-zone/',
+    getParentRoute: () => AuthenticatedParametrageAutresRouteRoute,
+  } as any)
+const AuthenticatedParametrageAutresSystemIndexRoute =
+  AuthenticatedParametrageAutresSystemIndexRouteImport.update({
+    id: '/system/',
+    path: '/system/',
+    getParentRoute: () => AuthenticatedParametrageAutresRouteRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -337,7 +364,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AuthenticatedSettingsRouteRouteWithChildren
   '/forgot-password': typeof authForgotPasswordRoute
   '/otp': typeof authOtpRoute
-  '/reset-password': typeof authResetPasswordRouteWithChildren
+  '/reset-password': typeof authResetPasswordRoute
   '/sign-in': typeof authSignInRoute
   '/sign-up': typeof authSignUpRoute
   '/401': typeof errors401Route
@@ -345,6 +372,7 @@ export interface FileRoutesByFullPath {
   '/404': typeof errors404Route
   '/500': typeof errors500Route
   '/503': typeof errors503Route
+  '/parametrage/autres': typeof AuthenticatedParametrageAutresRouteRouteWithChildren
   '/errors/$error': typeof AuthenticatedErrorsErrorRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
@@ -354,7 +382,7 @@ export interface FileRoutesByFullPath {
   '/help-center/': typeof AuthenticatedHelpCenterIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
   '/users/': typeof AuthenticatedUsersIndexRoute
-  '/reset-password/$uid/$token': typeof authResetPasswordUidTokenRoute
+  '/set-password/$uid/$token': typeof authSetPasswordUidTokenRoute
   '/programmation/projets/$id': typeof AuthenticatedProgrammationProjetsIdRoute
   '/parametrage/acteurs/': typeof AuthenticatedParametrageActeursIndexRoute
   '/parametrage/autres/': typeof AuthenticatedParametrageAutresIndexRoute
@@ -380,11 +408,14 @@ export interface FileRoutesByFullPath {
   '/programme/indicateurs-performance/': typeof AuthenticatedProgrammeIndicateursPerformanceIndexRoute
   '/programme/liste/': typeof AuthenticatedProgrammeListeIndexRoute
   '/programme/pagesTest/': typeof AuthenticatedProgrammePagesTestIndexRoute
+  '/parametrage/autres/system/': typeof AuthenticatedParametrageAutresSystemIndexRoute
+  '/parametrage/autres/type-zone/': typeof AuthenticatedParametrageAutresTypeZoneIndexRoute
+  '/parametrage/autres/unites-indicateur/': typeof AuthenticatedParametrageAutresUnitesIndicateurIndexRoute
 }
 export interface FileRoutesByTo {
   '/forgot-password': typeof authForgotPasswordRoute
   '/otp': typeof authOtpRoute
-  '/reset-password': typeof authResetPasswordRouteWithChildren
+  '/reset-password': typeof authResetPasswordRoute
   '/sign-in': typeof authSignInRoute
   '/sign-up': typeof authSignUpRoute
   '/401': typeof errors401Route
@@ -402,7 +433,7 @@ export interface FileRoutesByTo {
   '/help-center': typeof AuthenticatedHelpCenterIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
   '/users': typeof AuthenticatedUsersIndexRoute
-  '/reset-password/$uid/$token': typeof authResetPasswordUidTokenRoute
+  '/set-password/$uid/$token': typeof authSetPasswordUidTokenRoute
   '/programmation/projets/$id': typeof AuthenticatedProgrammationProjetsIdRoute
   '/parametrage/acteurs': typeof AuthenticatedParametrageActeursIndexRoute
   '/parametrage/autres': typeof AuthenticatedParametrageAutresIndexRoute
@@ -428,6 +459,9 @@ export interface FileRoutesByTo {
   '/programme/indicateurs-performance': typeof AuthenticatedProgrammeIndicateursPerformanceIndexRoute
   '/programme/liste': typeof AuthenticatedProgrammeListeIndexRoute
   '/programme/pagesTest': typeof AuthenticatedProgrammePagesTestIndexRoute
+  '/parametrage/autres/system': typeof AuthenticatedParametrageAutresSystemIndexRoute
+  '/parametrage/autres/type-zone': typeof AuthenticatedParametrageAutresTypeZoneIndexRoute
+  '/parametrage/autres/unites-indicateur': typeof AuthenticatedParametrageAutresUnitesIndicateurIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -435,7 +469,7 @@ export interface FileRoutesById {
   '/_authenticated/settings': typeof AuthenticatedSettingsRouteRouteWithChildren
   '/(auth)/forgot-password': typeof authForgotPasswordRoute
   '/(auth)/otp': typeof authOtpRoute
-  '/(auth)/reset-password': typeof authResetPasswordRouteWithChildren
+  '/(auth)/reset-password': typeof authResetPasswordRoute
   '/(auth)/sign-in': typeof authSignInRoute
   '/(auth)/sign-up': typeof authSignUpRoute
   '/(errors)/401': typeof errors401Route
@@ -444,6 +478,7 @@ export interface FileRoutesById {
   '/(errors)/500': typeof errors500Route
   '/(errors)/503': typeof errors503Route
   '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/parametrage/autres': typeof AuthenticatedParametrageAutresRouteRouteWithChildren
   '/_authenticated/errors/$error': typeof AuthenticatedErrorsErrorRoute
   '/_authenticated/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/_authenticated/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
@@ -453,7 +488,7 @@ export interface FileRoutesById {
   '/_authenticated/help-center/': typeof AuthenticatedHelpCenterIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
   '/_authenticated/users/': typeof AuthenticatedUsersIndexRoute
-  '/(auth)/reset-password/$uid/$token': typeof authResetPasswordUidTokenRoute
+  '/(auth)/set-password/$uid/$token': typeof authSetPasswordUidTokenRoute
   '/_authenticated/programmation/projets/$id': typeof AuthenticatedProgrammationProjetsIdRoute
   '/_authenticated/parametrage/acteurs/': typeof AuthenticatedParametrageActeursIndexRoute
   '/_authenticated/parametrage/autres/': typeof AuthenticatedParametrageAutresIndexRoute
@@ -479,6 +514,9 @@ export interface FileRoutesById {
   '/_authenticated/programme/indicateurs-performance/': typeof AuthenticatedProgrammeIndicateursPerformanceIndexRoute
   '/_authenticated/programme/liste/': typeof AuthenticatedProgrammeListeIndexRoute
   '/_authenticated/programme/pagesTest/': typeof AuthenticatedProgrammePagesTestIndexRoute
+  '/_authenticated/parametrage/autres/system/': typeof AuthenticatedParametrageAutresSystemIndexRoute
+  '/_authenticated/parametrage/autres/type-zone/': typeof AuthenticatedParametrageAutresTypeZoneIndexRoute
+  '/_authenticated/parametrage/autres/unites-indicateur/': typeof AuthenticatedParametrageAutresUnitesIndicateurIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -495,6 +533,7 @@ export interface FileRouteTypes {
     | '/404'
     | '/500'
     | '/503'
+    | '/parametrage/autres'
     | '/errors/$error'
     | '/settings/account'
     | '/settings/appearance'
@@ -504,7 +543,7 @@ export interface FileRouteTypes {
     | '/help-center/'
     | '/settings/'
     | '/users/'
-    | '/reset-password/$uid/$token'
+    | '/set-password/$uid/$token'
     | '/programmation/projets/$id'
     | '/parametrage/acteurs/'
     | '/parametrage/autres/'
@@ -530,6 +569,9 @@ export interface FileRouteTypes {
     | '/programme/indicateurs-performance/'
     | '/programme/liste/'
     | '/programme/pagesTest/'
+    | '/parametrage/autres/system/'
+    | '/parametrage/autres/type-zone/'
+    | '/parametrage/autres/unites-indicateur/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/forgot-password'
@@ -552,7 +594,7 @@ export interface FileRouteTypes {
     | '/help-center'
     | '/settings'
     | '/users'
-    | '/reset-password/$uid/$token'
+    | '/set-password/$uid/$token'
     | '/programmation/projets/$id'
     | '/parametrage/acteurs'
     | '/parametrage/autres'
@@ -578,6 +620,9 @@ export interface FileRouteTypes {
     | '/programme/indicateurs-performance'
     | '/programme/liste'
     | '/programme/pagesTest'
+    | '/parametrage/autres/system'
+    | '/parametrage/autres/type-zone'
+    | '/parametrage/autres/unites-indicateur'
   id:
     | '__root__'
     | '/_authenticated'
@@ -593,6 +638,7 @@ export interface FileRouteTypes {
     | '/(errors)/500'
     | '/(errors)/503'
     | '/_authenticated/'
+    | '/_authenticated/parametrage/autres'
     | '/_authenticated/errors/$error'
     | '/_authenticated/settings/account'
     | '/_authenticated/settings/appearance'
@@ -602,7 +648,7 @@ export interface FileRouteTypes {
     | '/_authenticated/help-center/'
     | '/_authenticated/settings/'
     | '/_authenticated/users/'
-    | '/(auth)/reset-password/$uid/$token'
+    | '/(auth)/set-password/$uid/$token'
     | '/_authenticated/programmation/projets/$id'
     | '/_authenticated/parametrage/acteurs/'
     | '/_authenticated/parametrage/autres/'
@@ -628,13 +674,16 @@ export interface FileRouteTypes {
     | '/_authenticated/programme/indicateurs-performance/'
     | '/_authenticated/programme/liste/'
     | '/_authenticated/programme/pagesTest/'
+    | '/_authenticated/parametrage/autres/system/'
+    | '/_authenticated/parametrage/autres/type-zone/'
+    | '/_authenticated/parametrage/autres/unites-indicateur/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   authForgotPasswordRoute: typeof authForgotPasswordRoute
   authOtpRoute: typeof authOtpRoute
-  authResetPasswordRoute: typeof authResetPasswordRouteWithChildren
+  authResetPasswordRoute: typeof authResetPasswordRoute
   authSignInRoute: typeof authSignInRoute
   authSignUpRoute: typeof authSignUpRoute
   errors401Route: typeof errors401Route
@@ -642,6 +691,7 @@ export interface RootRouteChildren {
   errors404Route: typeof errors404Route
   errors500Route: typeof errors500Route
   errors503Route: typeof errors503Route
+  authSetPasswordUidTokenRoute: typeof authSetPasswordUidTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -800,6 +850,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedErrorsErrorRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/parametrage/autres': {
+      id: '/_authenticated/parametrage/autres'
+      path: '/parametrage/autres'
+      fullPath: '/parametrage/autres'
+      preLoaderRoute: typeof AuthenticatedParametrageAutresRouteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/programme/pagesTest/': {
       id: '/_authenticated/programme/pagesTest/'
       path: '/programme/pagesTest'
@@ -956,10 +1013,10 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/parametrage/autres/': {
       id: '/_authenticated/parametrage/autres/'
-      path: '/parametrage/autres'
+      path: '/'
       fullPath: '/parametrage/autres/'
       preLoaderRoute: typeof AuthenticatedParametrageAutresIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedParametrageAutresRouteRoute
     }
     '/_authenticated/parametrage/acteurs/': {
       id: '/_authenticated/parametrage/acteurs/'
@@ -975,12 +1032,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProgrammationProjetsIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/(auth)/reset-password/$uid/$token': {
-      id: '/(auth)/reset-password/$uid/$token'
-      path: '/$uid/$token'
-      fullPath: '/reset-password/$uid/$token'
-      preLoaderRoute: typeof authResetPasswordUidTokenRouteImport
-      parentRoute: typeof authResetPasswordRoute
+    '/(auth)/set-password/$uid/$token': {
+      id: '/(auth)/set-password/$uid/$token'
+      path: '/set-password/$uid/$token'
+      fullPath: '/set-password/$uid/$token'
+      preLoaderRoute: typeof authSetPasswordUidTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/parametrage/autres/unites-indicateur/': {
+      id: '/_authenticated/parametrage/autres/unites-indicateur/'
+      path: '/unites-indicateur'
+      fullPath: '/parametrage/autres/unites-indicateur/'
+      preLoaderRoute: typeof AuthenticatedParametrageAutresUnitesIndicateurIndexRouteImport
+      parentRoute: typeof AuthenticatedParametrageAutresRouteRoute
+    }
+    '/_authenticated/parametrage/autres/type-zone/': {
+      id: '/_authenticated/parametrage/autres/type-zone/'
+      path: '/type-zone'
+      fullPath: '/parametrage/autres/type-zone/'
+      preLoaderRoute: typeof AuthenticatedParametrageAutresTypeZoneIndexRouteImport
+      parentRoute: typeof AuthenticatedParametrageAutresRouteRoute
+    }
+    '/_authenticated/parametrage/autres/system/': {
+      id: '/_authenticated/parametrage/autres/system/'
+      path: '/system'
+      fullPath: '/parametrage/autres/system/'
+      preLoaderRoute: typeof AuthenticatedParametrageAutresSystemIndexRouteImport
+      parentRoute: typeof AuthenticatedParametrageAutresRouteRoute
     }
   }
 }
@@ -1008,16 +1086,40 @@ const AuthenticatedSettingsRouteRouteWithChildren =
     AuthenticatedSettingsRouteRouteChildren,
   )
 
+interface AuthenticatedParametrageAutresRouteRouteChildren {
+  AuthenticatedParametrageAutresIndexRoute: typeof AuthenticatedParametrageAutresIndexRoute
+  AuthenticatedParametrageAutresSystemIndexRoute: typeof AuthenticatedParametrageAutresSystemIndexRoute
+  AuthenticatedParametrageAutresTypeZoneIndexRoute: typeof AuthenticatedParametrageAutresTypeZoneIndexRoute
+  AuthenticatedParametrageAutresUnitesIndicateurIndexRoute: typeof AuthenticatedParametrageAutresUnitesIndicateurIndexRoute
+}
+
+const AuthenticatedParametrageAutresRouteRouteChildren: AuthenticatedParametrageAutresRouteRouteChildren =
+  {
+    AuthenticatedParametrageAutresIndexRoute:
+      AuthenticatedParametrageAutresIndexRoute,
+    AuthenticatedParametrageAutresSystemIndexRoute:
+      AuthenticatedParametrageAutresSystemIndexRoute,
+    AuthenticatedParametrageAutresTypeZoneIndexRoute:
+      AuthenticatedParametrageAutresTypeZoneIndexRoute,
+    AuthenticatedParametrageAutresUnitesIndicateurIndexRoute:
+      AuthenticatedParametrageAutresUnitesIndicateurIndexRoute,
+  }
+
+const AuthenticatedParametrageAutresRouteRouteWithChildren =
+  AuthenticatedParametrageAutresRouteRoute._addFileChildren(
+    AuthenticatedParametrageAutresRouteRouteChildren,
+  )
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedSettingsRouteRoute: typeof AuthenticatedSettingsRouteRouteWithChildren
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedParametrageAutresRouteRoute: typeof AuthenticatedParametrageAutresRouteRouteWithChildren
   AuthenticatedErrorsErrorRoute: typeof AuthenticatedErrorsErrorRoute
   AuthenticatedAppsIndexRoute: typeof AuthenticatedAppsIndexRoute
   AuthenticatedHelpCenterIndexRoute: typeof AuthenticatedHelpCenterIndexRoute
   AuthenticatedUsersIndexRoute: typeof AuthenticatedUsersIndexRoute
   AuthenticatedProgrammationProjetsIdRoute: typeof AuthenticatedProgrammationProjetsIdRoute
   AuthenticatedParametrageActeursIndexRoute: typeof AuthenticatedParametrageActeursIndexRoute
-  AuthenticatedParametrageAutresIndexRoute: typeof AuthenticatedParametrageAutresIndexRoute
   AuthenticatedParametrageConventionsIndexRoute: typeof AuthenticatedParametrageConventionsIndexRoute
   AuthenticatedParametrageDictionnaireIndicateursIndexRoute: typeof AuthenticatedParametrageDictionnaireIndicateursIndexRoute
   AuthenticatedParametrageFonctionsIndexRoute: typeof AuthenticatedParametrageFonctionsIndexRoute
@@ -1045,6 +1147,8 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettingsRouteRoute: AuthenticatedSettingsRouteRouteWithChildren,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+  AuthenticatedParametrageAutresRouteRoute:
+    AuthenticatedParametrageAutresRouteRouteWithChildren,
   AuthenticatedErrorsErrorRoute: AuthenticatedErrorsErrorRoute,
   AuthenticatedAppsIndexRoute: AuthenticatedAppsIndexRoute,
   AuthenticatedHelpCenterIndexRoute: AuthenticatedHelpCenterIndexRoute,
@@ -1053,8 +1157,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedProgrammationProjetsIdRoute,
   AuthenticatedParametrageActeursIndexRoute:
     AuthenticatedParametrageActeursIndexRoute,
-  AuthenticatedParametrageAutresIndexRoute:
-    AuthenticatedParametrageAutresIndexRoute,
   AuthenticatedParametrageConventionsIndexRoute:
     AuthenticatedParametrageConventionsIndexRoute,
   AuthenticatedParametrageDictionnaireIndicateursIndexRoute:
@@ -1103,22 +1205,11 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
-interface authResetPasswordRouteChildren {
-  authResetPasswordUidTokenRoute: typeof authResetPasswordUidTokenRoute
-}
-
-const authResetPasswordRouteChildren: authResetPasswordRouteChildren = {
-  authResetPasswordUidTokenRoute: authResetPasswordUidTokenRoute,
-}
-
-const authResetPasswordRouteWithChildren =
-  authResetPasswordRoute._addFileChildren(authResetPasswordRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   authForgotPasswordRoute: authForgotPasswordRoute,
   authOtpRoute: authOtpRoute,
-  authResetPasswordRoute: authResetPasswordRouteWithChildren,
+  authResetPasswordRoute: authResetPasswordRoute,
   authSignInRoute: authSignInRoute,
   authSignUpRoute: authSignUpRoute,
   errors401Route: errors401Route,
@@ -1126,6 +1217,7 @@ const rootRouteChildren: RootRouteChildren = {
   errors404Route: errors404Route,
   errors500Route: errors500Route,
   errors503Route: errors503Route,
+  authSetPasswordUidTokenRoute: authSetPasswordUidTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

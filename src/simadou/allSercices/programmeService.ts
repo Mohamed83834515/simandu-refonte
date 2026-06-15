@@ -24,10 +24,7 @@ export const programmeService = {
   // Récupérer un programme par ID
   async getById(id: number): Promise<Programme> {
     try {
-      const response = await apiClient.request<{ data: Programme }>(
-        `${endpoint}${id}/`
-      );
-      return response.data;
+      return await apiClient.request<Programme>(`${endpoint}${id}/`);
     } catch (error) {
       console.error(`Erreur lors de la récupération du programme ${id}:`, error);
       toast.error("Erreur lors du chargement du programme");
@@ -38,15 +35,12 @@ export const programmeService = {
   // Créer un programme
   async create(data: ProgrammeFormData): Promise<Programme> {
     try {
-      const response = await apiClient.request<{ data: Programme }>(endpoint, {
+      return await apiClient.request<Programme>(endpoint, {
         method: "POST",
         data,
       });
-      toast.success("Programme créé avec succès");
-      return response.data;
     } catch (error) {
       console.error("Erreur lors de la création du programme:", error);
-      toast.error("Erreur lors de la création du programme");
       throw error;
     }
   },
@@ -57,34 +51,21 @@ export const programmeService = {
     data: Partial<ProgrammeFormData>
   ): Promise<Programme> {
     try {
-      const response = await apiClient.request<{ data: Programme }>(
-        `${endpoint}${id}/`,
-        {
-          method: "PUT",
-          data,
-        }
-      );
-      toast.success("Programme modifié avec succès");
-      return response.data;
+      return await apiClient.request<Programme>(`${endpoint}${id}/`, {
+        method: "PUT",
+        data,
+      });
     } catch (error) {
       console.error(`Erreur lors de la modification du programme ${id}:`, error);
-      toast.error("Erreur lors de la modification du programme");
       throw error;
     }
   },
 
   // Supprimer un programme
   async delete(id: number): Promise<void> {
-    try {
-      await apiClient.request(`${endpoint}${id}/`, {
-        method: "DELETE",
-      });
-      toast.success("Programme supprimé avec succès");
-    } catch (error) {
-      console.error(`Erreur lors de la suppression du programme ${id}:`, error);
-      toast.error("Erreur lors de la suppression du programme");
-      throw error;
-    }
+    await apiClient.request(`${endpoint}${id}/`, {
+      method: "DELETE",
+    });
   },
 
   // Options pour react-select

@@ -1,7 +1,7 @@
 import { ColumnDef, type Row } from '@tanstack/react-table'
 import { GenericRowActions } from '@/Global/Tableaux/GenericRowActions'
 import { buildColumns } from '@/Global/Tableaux/column-builder'
-import { UserPen, Trash2, CheckCircle, MinusCircle, ClipboardList } from 'lucide-react'
+import { UserPen, Trash2, ClipboardList } from 'lucide-react'
 import { Ptba } from '../allTypes'
 import { getMoisOptions } from '../schemas/ptbaSchemas'
 import { DataTableColumnHeader } from '@/components/data-table/column-header'
@@ -54,14 +54,14 @@ type Props = {
 
 export function ChronogrammeMonthCell({ value, month }: Props) {
     const months = parseChronogramme(value)
-
     const isActive = months.includes(month)
+
     return (
         <div className="flex justify-center">
             {isActive ? (
-                <CheckCircle className="h-5 w-5 text-green-500" />
+                <div className="h-2.5 w-2.5 rounded-full bg-green-500 shadow-sm shadow-green-200" />
             ) : (
-                <MinusCircle className="h-5 w-5 text-gray-300" />
+                <div className="h-2 w-2 rounded-full bg-gray-200 dark:bg-gray-700" />
             )}
         </div>
     )
@@ -85,12 +85,12 @@ export const parseChronogramme = (value: unknown): string[] => {
 export const buildPtbasColumns = (
     setOpen: (dialog: PtbasDialogType | null) => void,
     setCurrentRow: React.Dispatch<React.SetStateAction<Ptba | null>>,
-    onOpenPlanification: (activite: Ptba) => void
+    onOpenPlanification: (activite: Ptba) => void,
+    currencyCode?:string
 ) => {
     const baseColumns = buildColumns<Ptba>([
         { type: "text", key: "code_activite_ptba", title: "Code", sticky: true },
         { type: "text", key: "intitule_activite_ptba", title: "Activité" },
-        { type: "text", key: "responsable_ptba", title: "Responsable" },
     ])
 
     const actionsColumn: ColumnDef<Ptba> = {
@@ -109,7 +109,6 @@ export const buildPtbasColumns = (
         enableSorting: false,
         enableHiding: false,
     }
-
     const chronogrammeColumns: ColumnDef<Ptba>[] = getMoisOptions().map((mois) => ({
         id: `chronogramme_${mois.value}`,
         header: ({ column }) => (
@@ -132,22 +131,37 @@ export const buildPtbasColumns = (
         enableHiding: false,
     }))
 
-
     const coutColumns: ColumnDef<Ptba> = {
         id: 'cout_row',
         header: ({ column }) => (
-            <DataTableColumnHeader column={column} title='Coût' />
+            <DataTableColumnHeader column={column} title={`Cout Activites (${currencyCode})`}  />
         ),
-        cell: () => (
-            <span className='tabular-nums'>300 000</span>
-        ),
+        cell: ({ row }) => {
+            const budget = row.original.cout_total_ptba
+            if (!budget || budget === 0) {
+                return (
+                    <div className='flex justify-center'>
+                        <span className='text-sm text-muted-foreground'>—</span>
+                    </div>
+                )
+            }
+
+            return (
+                <div className='flex justify-center'>
+                    <span className='inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-sm font-semibold tabular-nums text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400'>
+                        {new Intl.NumberFormat('fr-FR').format(budget)}
+                    </span>
+                </div>
+            )
+        },
         meta: { thClassName: 'text-center', className: 'text-center' },
-        enableSorting: false,
+        enableSorting: true,
+        sortDescFirst: true,
         enableHiding: false,
     }
 
     const planificationColumn: ColumnDef<Ptba> = {
-        id: 'planification`',
+        id: 'planification',
         header: ({ column }) => (
             <DataTableColumnHeader
                 column={column}
@@ -158,24 +172,27 @@ export const buildPtbasColumns = (
         cell: ({ row }) => {
             const activite = row.original
             return (
-                <Button
-                    type='button'
-                    variant='ghost'
-                    size='icon'
-                    className='mx-auto flex h-8 w-8 shrink-0 text-primary'
-                    onClick={() => onOpenPlanification(activite)}
-                    aria-label='Ouvrir le suivi des tâches et indicateurs'
-                    title='Suivi des tâches et indicateurs'
-                >
-                    <ClipboardList className='h-5 w-5' /> Planifier
-                </Button>
+                <div className='flex justify-center'>
+                    <Button
+                        type='button'
+                        variant='outline'
+                        size='sm'
+                        className='gap-2 border-blue-200 bg-blue-50 text-blue-700 transition-all duration-200 hover:bg-blue-100 hover:text-blue-800 dark:border-blue-800 dark:bg-blue-950/30 dark:text-blue-400 dark:hover:bg-blue-950/50'
+                        onClick={() => onOpenPlanification(activite)}
+                        aria-label='Ouvrir le suivi des tâches et indicateurs'
+                        title='Suivi des tâches et indicateurs'
+                    >
+                        <ClipboardList className='h-4 w-4' />
+                        <span className='text-xs font-medium'>Planifier</span>
+                    </Button>
+                </div>
             )
         },
         meta: {
-            thClassName: 'text-center w-[72px]',
+            thClassName: 'text-center w-[100px]',
             className: 'text-center align-middle',
         },
-        size: 72,
+        size: 100,
         enableSorting: false,
         enableHiding: false,
     }

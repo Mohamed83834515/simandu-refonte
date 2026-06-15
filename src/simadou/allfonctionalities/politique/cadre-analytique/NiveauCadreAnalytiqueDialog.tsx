@@ -1,0 +1,22 @@
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import NiveauCadreAnalytiqueManager from './NiveauCadreAnalytiqueManager'
+
+type OpenProps = {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+}
+
+export default function NiveauCadreAnalytiqueDialog({ open, onOpenChange }: OpenProps) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className='gap-0 overflow-hidden p-0 sm:max-w-3xl' aria-describedby={undefined}>
+        <DialogHeader className='border-b px-6 py-4'>
+          <DialogTitle>Configuration des niveaux du cadre analytique</DialogTitle>
+        </DialogHeader>
+        <div className='max-h-[min(70vh,36rem)] overflow-y-auto px-6 py-4'>
+          <NiveauCadreAnalytiqueManager />
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}

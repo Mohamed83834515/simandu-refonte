@@ -8,13 +8,14 @@ export const projectCreateSchema = z.object({
   duree_projet: z.coerce.number().min(1, "Durée requise"),
   date_signature_projet: z.string().min(1, "Date de signature requise"),
   date_demarrage_projet: z.string().min(1, "Date de démarrage requise"),
+  mps: z.boolean().optional().default(false),
 
   // Étape 2
   partenaire_projet: z.number("ONG/OPA requise").min(1, "ONG/OPA requise"),
   structure_projet: z
     .number("Unité de gestion requise")
     .min(1, "Unité de gestion requise"),
-  signataires_projet: z.array(z.number()).min(1, "Signataires requis"),
+  signataires_projet: z.array(z.number()).min(1, "Partenaire Financier requise"),
   partenaires_execution_projet: z
     .array(z.number())
     .min(1, "Partenaires d'execution requis"),

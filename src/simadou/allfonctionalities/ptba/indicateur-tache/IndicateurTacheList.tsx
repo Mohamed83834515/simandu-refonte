@@ -1,15 +1,13 @@
-// simadou/components/suivi/IndicateurTacheList.tsx
 import { useMemo, useState } from 'react'
+import { toast } from 'sonner'
 import { GenericTable } from '@/Global/Generic/Generictable'
 import { useEmbeddedTableState } from '@/hooks/use-embedded-table-state'
 import useDialogState from '@/hooks/use-dialog-state'
-import { useDeleteSuiviIndicateur } from '@/simadou/allHooks/admin/indicateurTacheHooks'
-import { toast } from 'sonner'
 import { GenericDeleteDialog } from '@/Global/Tableaux/GenericDeleteDialog'
-import { Button } from '@/components/ui/button'
+import { DataTableToolbarOutlineButton } from '@/components/data-table/toolbar-outline-button'
 import { IndicateurTache } from '@/simadou/allTypes/indicateurTache'
 import { buildIndicateurTacheColumns } from '@/simadou/allColonnes/indicateur-taches-columns'
-import { DataTableToolbarOutlineButton } from '@/components/data-table/toolbar-outline-button'
+import { useDeleteSuiviIndicateur } from '@/simadou/allHooks/admin/indicateurTacheHooks'
 
 type IndicateurTacheListProps = {
   indicateurs: IndicateurTache[]
@@ -22,7 +20,7 @@ export default function IndicateurTacheList({
   indicateurs,
   idActivite,
   onEdit,
-  onAdd
+  onAdd,
 }: IndicateurTacheListProps) {
   const { search, navigate } = useEmbeddedTableState()
   const [open, setOpen] = useDialogState<'delete'>(null)
@@ -48,42 +46,29 @@ export default function IndicateurTacheList({
 
   return (
     <>
-      <div className="space-y-4">
-        <div className="flex justify-end">
-          <Button onClick={onAdd} variant="outline">
-            Ajouter un indicateur
-          </Button>
-        </div>
-
-        <GenericTable<IndicateurTache>
-          data={indicateurs}
-          columns={columns}
-          search={search}
-          navigate={navigate}
-          searchKey='intitule_indicateur_tache'
-          searchPlaceholder='Filtrer les indicateurs...'
-          urlFilterConfig={[
-            {
-              columnId: 'intitule_indicateur_tache',
-              searchKey: 'intitule_indicateur_tache',
-              type: 'string',
-            },
-          ]}
-          toolbarEndSlot={
-            <DataTableToolbarOutlineButton
-              className='ms-auto'
-              onClick={onAdd}
-            >
-              Ajouter
-            </DataTableToolbarOutlineButton>
-          }
-          defaultPageSize={10}
-          showViewOptions={false}
-          showPagination={false}
-          showSearch={false}
-          emptyMessage='Aucun indicateur défini pour cette activité.'
-        />
-      </div>
+      <GenericTable<IndicateurTache>
+        data={indicateurs}
+        columns={columns}
+        search={search}
+        navigate={navigate}
+        searchKey='intitule_indicateur_tache'
+        searchPlaceholder='Filtrer les indicateurs...'
+        urlFilterConfig={[
+          {
+            columnId: 'intitule_indicateur_tache',
+            searchKey: 'intitule_indicateur_tache',
+            type: 'string',
+          },
+        ]}
+        toolbarEndSlot={
+          <DataTableToolbarOutlineButton className='ms-auto' onClick={onAdd}>
+            Ajouter
+          </DataTableToolbarOutlineButton>
+        }
+        defaultPageSize={10}
+        showViewOptions={false}
+        emptyMessage='Aucun indicateur défini pour cette activité.'
+      />
 
       {currentRow && (
         <GenericDeleteDialog<IndicateurTache>

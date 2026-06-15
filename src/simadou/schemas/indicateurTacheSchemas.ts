@@ -24,9 +24,9 @@ export const indicateurTacheSchema = z.object({
     .optional(),
 
   unite_ind_tache: z
-    .number()
+    .number({ message: "L'unité de mesure est requise" })
     .int("L'unité de mesure doit être un entier")
-    .max(50, "L'unité ne peut pas dépasser 50 caractères"),
+    .positive("L'unité de mesure est requise"),
 
   code_indicateur_ptba: z
     .string()
@@ -34,9 +34,9 @@ export const indicateurTacheSchema = z.object({
     .max(50, "Le code ne peut pas dépasser 50 caractères"),
 
   indicateur_cmr: z
-    .number()
-    .int("L'ID de l'indicateur CMR doit être un entier")
-    .min(0, "L'ID de l'indicateur CMR doit être positif ou zéro"),
+    .number({ message: "L'indicateur CMR est requis" })
+    .int("L'indicateur CMR doit être un entier")
+    .positive("L'indicateur CMR est requis"),
 
   id_activite: z
     .number()

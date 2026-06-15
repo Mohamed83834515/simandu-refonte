@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import ReactDOM from 'react-dom/client'
 import { AxiosError } from 'axios'
 import {
+  MutationCache,
   QueryCache,
   QueryClient,
   QueryClientProvider,
@@ -9,7 +10,6 @@ import {
 import { RouterProvider, createRouter } from '@tanstack/react-router'
 import { toast } from 'sonner'
 import { handleServerError } from '@/lib/handle-server-error'
-import { Toaster } from './components/ui/sonner'
 // Generated Routes
 import { routeTree } from './routeTree.gen'
 import { DirectionProvider } from './stores/others/direction-provider'
@@ -17,6 +17,7 @@ import { DirectionProvider } from './stores/others/direction-provider'
 import './styles/index.css'
 import { AuthProvider } from './simadou/allContext/authProvider'
 import { useAuthStore } from './stores/auth-store'
+import { SessionProvider } from './simadou/allContext/sessionProvider'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -38,8 +39,6 @@ const queryClient = new QueryClient({
     },
     mutations: {
       onError: (error) => {
-        handleServerError(error)
-
         if (error instanceof AxiosError) {
           if (error.response?.status === 304) {
             toast.error('Content not modified!')
@@ -48,8 +47,27 @@ const queryClient = new QueryClient({
       },
     },
   },
+  mutationCache: new MutationCache({
+    onError: (error, _variables, _context, mutation) => {
+      if (
+        (mutation.options.meta as { suppressGlobalErrorToast?: boolean } | undefined)
+          ?.suppressGlobalErrorToast
+      ) {
+        return
+      }
+
+      handleServerError(error)
+    },
+  }),
   queryCache: new QueryCache({
-    onError: (error) => {
+    onError: (error, query) => {
+      if (
+        (query.meta as { suppressGlobalErrorToast?: boolean } | undefined)
+          ?.suppressGlobalErrorToast
+      ) {
+        return
+      }
+
       if (error instanceof AxiosError) {
         if (error.response?.status === 401) {
           toast.error('Session expired!')
@@ -93,11 +111,12 @@ if (!rootElement.innerHTML) {
   root.render(
      <StrictMode>
     <QueryClientProvider client={queryClient}>  
-      <AuthProvider>                           
+      <AuthProvider>     
+        <SessionProvider>                    
         <DirectionProvider>
           <RouterProvider router={router} />
-          <Toaster />
         </DirectionProvider>
+        </SessionProvider>  
       </AuthProvider>
     </QueryClientProvider>
   </StrictMode>

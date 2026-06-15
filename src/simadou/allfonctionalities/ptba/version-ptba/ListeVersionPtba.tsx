@@ -1,124 +1,176 @@
-import { useCallback, useMemo, useState } from "react"
+import { useMemo, useState } from 'react'
+import { toast } from 'sonner'
+import { GenericTable } from '@/Global/Generic/Generictable'
+import { useEmbeddedTableState } from '@/hooks/use-embedded-table-state'
+import { DataTableToolbarOutlineButton } from '@/components/data-table/toolbar-outline-button'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Plus } from 'lucide-react'
+import {
+    useGetVersions,
+    useDeleteVersion,
+    useValiderVersion,
+    useArchiverVersion
+} from '@/simadou/allHooks/admin/versionHooks'
+import type { VersionPtba } from '@/simadou/allTypes'
+import { GenericDeleteDialog } from '@/Global/Tableaux/GenericDeleteDialog'
+import { buildVersionPtbaColumns } from '@/simadou/allColonnes/versions-columns'
+import { useNiveauTabsTheme } from '@/components/ui/NiveauTabs'
 
-import { GenericDialogs } from "@/Global/Generic/Genericdialogs"
-import { GenericDeleteDialog } from "@/Global/Tableaux/GenericDeleteDialog"
+type FilterType = 'toutes' | 'en_cours' | 'valide' | 'archive'
 
-import useDialogState from "@/hooks/use-dialog-state"
-import { useEmbeddedTableState } from "@/hooks/use-embedded-table-state"
-
-import { useGetVersions, useDeleteVersion, useValiderVersion, useArchiverVersion } from "@/simadou/allHooks/admin/versionHooks"
-import { buildVersionPtbaColumns } from "@/simadou/allColonnes/versions-columns"
-import { GenericTable } from "@/Global/Generic/Generictable"
-import { VersionPtba } from "@/simadou/allTypes"
-import { DataTableToolbarOutlineButton } from "@/components/data-table/toolbar-outline-button"
-
-type Props = {
+type ListeVersionPtbaProps = {
     onAdd: () => void
     onEdit: (row: VersionPtba) => void
 }
 
-export default function ListeVersionPtba({
-    onAdd,
-    onEdit,
-}: Props) {
-    const { data = [] } = useGetVersions()
+export default function ListeVersionPtba({ onAdd, onEdit }: ListeVersionPtbaProps) {
+    const { search, navigate } = useEmbeddedTableState()
+    const { data: versions = [] } = useGetVersions()
+    const deleteMutation = useDeleteVersion()
+    const validerMutation = useValiderVersion()
+    const archiverMutation = useArchiverVersion()
+    const { tabsStyle } = useNiveauTabsTheme()
 
-    const [open, setOpen] = useDialogState<
-        "delete"
-    >(null)
+    const [filter, setFilter] = useState<FilterType>('toutes')
+    const [deleteOpen, setDeleteOpen] = useState<boolean>(false)
+    const [currentRow, setCurrentRow] = useState<VersionPtba | null>(null)
 
-    const [currentRow, setCurrentRow] =
-        useState<VersionPtba | null>(null)
+    // Compter les versions par statut
+    const counts = useMemo(() => {
+        const total = versions.length
+        const enCours = versions.filter((v: VersionPtba) => v.statut_version === 0 || v.statut_version === undefined).length
+        const valide = versions.filter((v: VersionPtba) => v.statut_version === 1).length
+        const archive = versions.filter((v: VersionPtba) => v.statut_version === 2).length
+        return { total, enCours, valide, archive }
+    }, [versions])
 
-    const { search, navigate } =
-        useEmbeddedTableState()
+    // Filtrer les versions
+    const filteredVersions = useMemo(() => {
+        let filtered = [...versions]
 
-    const deleteMutation =
-        useDeleteVersion()
+        switch (filter) {
+            case 'en_cours':
+                filtered = filtered.filter(v => v.statut_version === 0 || v.statut_version === undefined)
+                break
+            case 'valide':
+                filtered = filtered.filter(v => v.statut_version === 1)
+                break
+            case 'archive':
+                filtered = filtered.filter(v => v.statut_version === 2)
+                break
+            default:
+                break
+        }
 
-    const validateMutation =
-        useValiderVersion()
+        // Trier par année (plus récente d'abord)
+        return filtered.sort((a, b) => (b.annee_ptba || 0) - (a.annee_ptba || 0))
+    }, [versions, filter])
 
-    const archiveMutation =
-        useArchiverVersion()
+    const handleValidate = (row: VersionPtba) => {
+        validerMutation.mutate(row.id_version_ptba, {
+            onSuccess: () => {
+                toast.success(`Version ${row.version_ptba || row.id_version_ptba} validée`)
+            },
+            onError: () => {
+                toast.error("Erreur lors de la validation")
+            },
+        })
+    }
 
-    const handleEdit = useCallback(
-        (row: VersionPtba) => {
-            setCurrentRow(row)
-            onEdit(row)
-        },
-        [onEdit]
-    )
+    const handleArchive = (row: VersionPtba) => {
+        archiverMutation.mutate(row.id_version_ptba, {
+            onSuccess: () => {
+                toast.success(`Version ${row.version_ptba || row.id_version_ptba} archivée`)
+            },
+            onError: () => {
+                toast.error("Erreur lors de l'archivage")
+            },
+        })
+    }
+
+    const handleDelete = (row: VersionPtba) => {
+        deleteMutation.mutate(row.id_version_ptba, {
+            onSuccess: () => {
+                toast.success('Version supprimée avec succès')
+                setDeleteOpen(false)
+                setCurrentRow(null)
+            },
+            onError: () => {
+                toast.error("Erreur lors de la suppression")
+            },
+        })
+    }
 
     const columns = useMemo(
         () =>
             buildVersionPtbaColumns({
-                setOpen,
+                setOpen: setDeleteOpen,
                 setCurrentRow,
-                onEdit: handleEdit,
-                onValidate: (row) =>
-                    validateMutation.mutate(
-                        row.id_version_ptba
-                    ),
-                onArchive: (row) =>
-                    archiveMutation.mutate(
-                        row.id_version_ptba
-                    ),
+                onEdit,
+                onValidate: handleValidate,
+                onArchive: handleArchive,
             }),
-        [
-            handleEdit,
-            validateMutation,
-            archiveMutation,
-        ]
+        [onEdit, handleValidate, handleArchive]
     )
 
     return (
-        <>
+        <div className="space-y-6">
+            {/* Onglets avec compteurs */}
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <Tabs
+                    orientation='vertical'
+                    defaultValue='overview'
+                    className='space-y-2'
+                    style={tabsStyle}
+                    value={filter} onValueChange={(v) => setFilter(v as FilterType)}
+                >
+                    <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="toutes">
+                            Toutes
+                            <span className='ml-2 rounded-full bg-muted px-1.5 py-0.5 text-xs text-black'>
+                                ({counts.total})
+                            </span>
+                        </TabsTrigger>
+                        <TabsTrigger value="archive">
+                            Archivées
+                            <span className='ml-2 rounded-full bg-muted px-1.5 py-0.5 text-xs text-black'>
+                                ({counts.archive})
+                            </span>
+                        </TabsTrigger>
+                    </TabsList>
+                </Tabs>
 
-            <GenericTable
-                data={data}
+                <DataTableToolbarOutlineButton onClick={onAdd}>
+                    <Plus className="h-4 w-4" />
+                    Nouvelle version
+                </DataTableToolbarOutlineButton>
+            </div>
+
+            {/* Tableau des versions */}
+            <GenericTable<VersionPtba>
+                data={filteredVersions}
                 columns={columns}
                 search={search}
-                showSearch={false}
                 navigate={navigate}
-                showPagination={false}
+                searchKey="version_ptba"
+                searchPlaceholder="Rechercher une version..."
+                urlFilterConfig={[
+                    { columnId: 'version_ptba', searchKey: 'version_ptba', type: 'string' },
+                    { columnId: 'annee_ptba', searchKey: 'annee_ptba', type: 'string' },
+                ]}
                 showViewOptions={false}
-                toolbarEndSlot={
-                    <DataTableToolbarOutlineButton
-                        className='ms-auto'
-                        onClick={onAdd}
-                    >
-                        Ajouter
-                    </DataTableToolbarOutlineButton>
-                }
+                emptyMessage="Aucune version PTBA trouvée"
             />
-            <GenericDialogs
-                open={open}
-                setOpen={setOpen}
-                currentRow={currentRow}
-                setCurrentRow={setCurrentRow}
-                rowRequiredDialogs={["delete"]}
-                dialogMap={{
-                    delete: (props) => (
-                        <GenericDeleteDialog
-                            {...props}
-                            entityName="version PTBA"
-                            currentRow={props.currentRow}
-                            getEntityLabel={(row: any) =>
-                                row.version_ptba
-                            }
-                            onDelete={(row) => {
-                                deleteMutation.mutate(
-                                    row?.id_version_ptba || 0
-                                )
 
-                                setOpen(null)
-                                setCurrentRow(null)
-                            }}
-                        />
-                    ),
-                }}
+            {/* Dialogue de suppression */}
+            <GenericDeleteDialog<VersionPtba>
+                open={deleteOpen}
+                onOpenChange={setDeleteOpen}
+                currentRow={currentRow as any}
+                entityName="version PTBA"
+                getEntityLabel={(row) => row?.version_ptba || `Version ${row?.id_version_ptba}`}
+                onDelete={handleDelete}
             />
-        </>
+        </div>
     )
 }

@@ -12,8 +12,7 @@ export const typeActiviteSchema = z.object({
     .max(200, "L'intitulé ne peut pas dépasser 200 caractères"),
   description: z
     .string()
-    .min(1, "La description est requise")
-    .max(500, "La description ne peut pas dépasser 500 caractères"),
+   .optional(),
 });
 
 // Schéma pour VersionPtba
@@ -31,9 +30,11 @@ export const versionPtbaSchema = z.object({
     .string()
     .max(500, "L'observation ne peut pas dépasser 500 caractères")
     .optional(),
-  documentUrl: z
-    .file()
-    .optional(),
+  documentUrl: z.union([
+    z.instanceof(File),
+    z.string().
+      optional(),
+  ]),
   statut_version: z
     .number()
     .int("Le statut doit être un entier")
@@ -77,7 +78,7 @@ export const chronogrammeSchema = z
       message:
         "Le chronogramme contient des mois invalides",
     }
-    
+
   );
 // Schéma pour Ptba
 export const ptbaSchema = z.object({
@@ -105,27 +106,27 @@ export const ptbaSchema = z.object({
     .min(1, "Le statut est requis")
     .max(100, "Le statut ne peut pas dépasser 100 caractères"),
   code_crp: z
-    .string()
-    .max(50, "Le code CRP ne peut pas dépasser 50 caractères")
+    .number()
+    .positive("Le cadre stratégique doit être sélectionné")
     .optional(),
   cadre_analytique: z
-    .string()
-    .max(50, "Le code cadre analytique ne peut pas dépasser 50 caractères")
+    .number()
+    .positive("Le cadre analytique doit être sélectionné")
     .optional(),
   responsable_ptba: z
     .number()
     .positive("Le responsable doit être sélectionné")
     .optional(),
-  direction_ptba: z
+  ugl_ptba: z
     .string()
-    .max(50, "Le code direction ne peut pas dépasser 50 caractères")
+    .max(50, "Le code unité de gestion ne peut pas dépasser 50 caractères")
     .optional(),
   code_programme: z
     .string()
     .max(50, "Le code programme ne peut pas dépasser 50 caractères")
     .optional(),
   version_ptba: z
-  .number("La version PTBA est requise"),
+    .number("La version PTBA est requise"),
   type_activite: z
     .string()
     .min(1, "Le type d'activité doit être sélectionné"),
@@ -156,18 +157,18 @@ export const getStatutVersionColor = (statut: number | undefined): string => {
 };
 
 export const getMoisOptions = () => [
-  { value: "Jan", label: "Janvier" },
-  { value: "Fév", label: "Février" },
-  { value: "Mar", label: "Mars" },
-  { value: "Avr", label: "Avril" },
-  { value: "Mai", label: "Mai" },
-  { value: "Jun", label: "Juin" },
-  { value: "Jul", label: "Juillet" },
-  { value: "Aoû", label: "Août" },
-  { value: "Sep", label: "Septembre" },
-  { value: "Oct", label: "Octobre" },
-  { value: "Nov", label: "Novembre" },
-  { value: "Déc", label: "Décembre" },
+  { value: "Jan", label: "J" },
+  { value: "Fév", label: "F" },
+  { value: "Mar", label: "M" },
+  { value: "Avr", label: "A" },
+  { value: "Mai", label: "M" },
+  { value: "Jun", label: "J" },
+  { value: "Jul", label: "J" },
+  { value: "Aoû", label: "A" },
+  { value: "Sep", label: "S" },
+  { value: "Oct", label: "O" },
+  { value: "Nov", label: "N" },
+  { value: "Déc", label: "D" },
 ];
 
 export const formatChronogramme = (chronogramme: string): string => {

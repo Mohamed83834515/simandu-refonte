@@ -1,6 +1,6 @@
 import { apiClient } from "@/axios/api";
 import type { IndicateurActivitePtba } from "../allTypes";
-import type { IndicateurActivitePtbaFormData } from "../schemas";
+import { IndicateurActivitePtbaFormData } from "../schemas/activiteProjetSchemas";
 
 const ENDPOINT = "/indicateur_activite_ptba/";
 
@@ -75,6 +75,23 @@ const indicateurActivitePtbaService = {
       method: "GET",
       params: { abrege_unite: uniteId },
     });
+  },
+
+  /**
+   * Récupère les indicateurs pour une activité PTBA (code puis repli par id).
+   */
+  async getForActivite(activite: {
+    code_activite_ptba?: string
+    id_ptba?: number
+  }): Promise<IndicateurActivitePtba[]> {
+    if (activite.code_activite_ptba) {
+      const byCode = await this.getByActivite(activite.code_activite_ptba)
+      if (byCode.length > 0) return byCode
+    }
+    if (Number.isFinite(activite.id_ptba)) {
+      return this.getByActiviteId(activite.id_ptba!)
+    }
+    return []
   },
 
   /**

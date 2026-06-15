@@ -1,155 +1,126 @@
-import axios, { AxiosError, type AxiosRequestConfig } from "axios";
+// lib/axios.ts
+import axios, { AxiosError, type AxiosRequestConfig } from 'axios'
+import { useAuthStore } from '@/stores/auth-store'
+import { useSessionStore } from '@/stores/others/session.store'
+import { getConfigDuration } from '@/lib/session-config'
+
+const BASE_URL =
+  (import.meta.env.VITE_API_BASE_URL as string) ||
+  'http://192.168.1.41:8000/api/'
 
 export const api = axios.create({
-  baseURL:
-    (import.meta.env.VITE_API_BASE_URL as string) ||
-    "https://api.ruche-sectoriel.net/api",
+  baseURL: BASE_URL,
+  headers: {
+    'X-Requested-With': 'XMLHttpRequest',
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+  },
+
+  // 'https://api.ruche-sectoriel.net/api/'
   timeout: 30000,
-});
+  withCredentials: true,
+})
 
-// ----- Gestion du refresh -----
-let isRefreshing = false;
-let refreshSubscribers: (() => void)[] = [];
+export const publicApi = axios.create({
+  baseURL: BASE_URL,
+})
 
-function subscribeTokenRefresh(cb: () => void) {
-  refreshSubscribers.push(cb);
-}
+// Excluded endpoints
 
-function onRefreshed() {
-  refreshSubscribers.forEach((cb) => cb());
-  refreshSubscribers = [];
-}
+const EXCLUDED = ['/auth/login']
 
-// Token management utilities
-const TOKEN_KEYS = {
-  ACCESS: "access_token",
-  REFRESH: "refresh_token",
-};
+const isExcluded = (url?: string) => EXCLUDED.some((e) => url?.includes(e))
 
-export const tokenManager = {
-  getAccessToken: () => localStorage.getItem(TOKEN_KEYS.ACCESS),
-  getRefreshToken: () => localStorage.getItem(TOKEN_KEYS.REFRESH),
-  setTokens: (access: string, refresh: string) => {
-    localStorage.setItem(TOKEN_KEYS.ACCESS, access);
-    localStorage.setItem(TOKEN_KEYS.REFRESH, refresh);
-  },
-  clearTokens: () => {
-    localStorage.removeItem(TOKEN_KEYS.ACCESS);
-    localStorage.removeItem(TOKEN_KEYS.REFRESH);
-  },
-};
+// Response interceptor
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    const { reset, intervalRef } = useSessionStore.getState()
+    const duration = getConfigDuration()
+
+    if (intervalRef && duration > 0) {
+      reset(duration)
+    }
+
+    return response
+  },
+
   async (error: AxiosError) => {
-    console.log(error);
+    const originalRequest = error.config as AxiosRequestConfig
 
-    const originalRequest = error.config as AxiosRequestConfig & {
-      _retry?: boolean;
-    };
-
-    // Endpoints à ignorer
-    const excludedEndpoints = ["/token/", "/token/refresh/"];
-
-    const shouldIgnore =
-      excludedEndpoints.some((url) =>
-        originalRequest.url?.includes(url)
-      );
-
-    // Si c'est un endpoint exclu → laisser le catch du service gérer
-    if (shouldIgnore) {
-      return Promise.reject(error);
+    if (!originalRequest) {
+      return Promise.reject(error)
     }
 
-    // Gestion normale des 401
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
+    // Login endpoint manages its own errors
+    if (isExcluded(originalRequest.url)) {
+      return Promise.reject(error)
+    }
 
-      if (isRefreshing) {
-        return new Promise((resolve) => {
-          subscribeTokenRefresh(() => {
-            resolve(api(originalRequest));
-          });
-        });
-      }
+    // 401 => Session expired
+    if (error.response?.status === 401) {
+      useAuthStore.getState().logout()
+      useSessionStore.getState().stop()
 
-      isRefreshing = true;
+      const isAuthPage = [
+        '/sign-in',
+        '/sign-up',
+        '/forgot-password',
+        '/reset-password',
+        '/otp',
+        '/set-password',
+      ].some((path) => window.location.pathname.startsWith(path))
 
-      const refreshToken = tokenManager.getRefreshToken();
-
-      if (!refreshToken) {
-        isRefreshing = false;
-        tokenManager.clearTokens();
-        window.location.href = "/sign-in";
-
-        return Promise.reject(error);
-      }
-
-      try {
-        const response = await api.post("/token/refresh/", {
-          refresh: refreshToken,
-        });
-
-        const { access } = response.data;
-
-        tokenManager.setTokens(access, refreshToken);
-
-        isRefreshing = false;
-
-        onRefreshed();
-
-        return api(originalRequest);
-      } catch (refreshError) {
-        isRefreshing = false;
-
-        tokenManager.clearTokens();
-
-        window.location.href = "/sign-in";
-
-        return Promise.reject(refreshError);
+      if (!isAuthPage) {
+        window.location.href = '/sign-in'
       }
     }
 
-    return Promise.reject(error);
+    return Promise.reject(error)
   }
-);
+)
 
-// ----- Client avec retry -----
+// Retryable client
+
+const RETRYABLE_STATUS = new Set([500, 502, 503, 504])
+
 export const apiClient = {
   async request<T>(
     endpoint: string,
-    options: AxiosRequestConfig & { retries?: number } = {}
+    options: AxiosRequestConfig & {
+      retries?: number
+    } = {}
   ): Promise<T> {
-    const { retries = 3, ...axiosConfig } = options;
-
-    // Add auth token if required
-    const token = tokenManager.getAccessToken();
-    if (token) {
-      axiosConfig.headers = {
-        ...axiosConfig.headers,
-        Authorization: `Bearer ${token}`,
-      };
-    }
+    const { retries = 3, ...axiosConfig } = options
 
     for (let attempt = 0; attempt <= retries; attempt++) {
       try {
-        const res = await api.request<T>({ url: endpoint, ...axiosConfig });
-        return res.data;
-      } catch (err: unknown) {
-        if (
-          attempt < retries &&
-          err instanceof AxiosError &&
-          err.response?.status &&
-          err.response?.status >= 500
-        ) {
-          await new Promise((res) =>
-            setTimeout(res, Math.pow(2, attempt) * 1000)
-          );
-          continue;
+        const response = await api.request<T>({
+          url: endpoint,
+          ...axiosConfig,
+        })
+
+        return response.data
+      } catch (err) {
+        const isAxiosErr = err instanceof AxiosError
+
+        const status = (err as AxiosError)?.response?.status
+
+        const shouldRetry =
+          isAxiosErr && status !== undefined && RETRYABLE_STATUS.has(status)
+
+        if (attempt < retries && shouldRetry) {
+          await new Promise((resolve) =>
+            setTimeout(resolve, Math.pow(2, attempt) * 1000)
+          )
+
+          continue
         }
-        throw err;
+
+        throw err
       }
     }
-    throw new Error("Max retries exceeded");
+
+    throw new Error('Max retries exceeded')
   },
-};
+}

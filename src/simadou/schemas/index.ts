@@ -16,10 +16,7 @@ export {
   type IndicateurPerformanceProjetFormData,
 } from "./activiteProjetSchemas";
 
-// Schémas Indicateur Activité PTBA
+// Schémas Suivi indicateur tâche projet
 export {
-  indicateurActivitePtbaSchema,
-  indicateurActivitePtbaCreateSchema,
-  indicateurActivitePtbaUpdateSchema,
-  type IndicateurActivitePtbaFormData,
-} from "./activiteProjetSchemas";
+  type SuiviIndicateurTacheProjetPayload,
+} from './suiviIndicateurTacheProjetSchemas'

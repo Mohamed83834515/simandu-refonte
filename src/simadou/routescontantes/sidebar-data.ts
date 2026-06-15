@@ -1,44 +1,39 @@
 import {
   LayoutDashboard,
-  Users,
   Command,
-  Package,
-  ShieldCheck,
   Settings,
-  MapPin,
-  LayoutGrid,
-  User,
   UserCog,
-  Briefcase,
-  Handshake,
-  Map,
-  FileText,
   ClipboardList,
   BookOpen,
-  SlidersHorizontal,
-  FileStack,
-  BarChart2,
-  Target,
-  TrendingUp,
   FolderOpen,
   CalendarDays,
   Eye,
+  LayoutGrid,
+  User,
+  SlidersHorizontal,
+  Handshake,
+  Briefcase,
+  MapPin,
+  FileStack,
+  BarChart2,
+  Target,
+  LineChart,
+  TrendingUp,
 } from 'lucide-react'
 import { type SidebarData } from '../../components/layout/others/types'
-
 
 export const sidebarData: SidebarData = {
   user: {
     name: "Simadou",
     email: "hello@gmail.com",
     id: "zofmov",
-    statut : 1
+    statut: 1
   },
   teams: [
     {
-      name: 'SIMADOU',
+      name: 'SIMANDOU',
       logo: Command,
-      plan: 'simadou',
+      plan: 'agriculture',
     },
   ],
   navGroups: [
@@ -50,16 +45,16 @@ export const sidebarData: SidebarData = {
           url: '/',
           icon: LayoutDashboard,
         },
-        {
-          title: 'Apps',
-          url: '/apps',
-          icon: Package,
-        },
-        {
-          title: 'Users',
-          url: '/users',
-          icon: Users,
-        },
+        // {
+        //   title: 'Apps',
+        //   url: '/apps',
+        //   icon: Package,
+        // },
+        // {
+        //   title: 'Users',
+        //   url: '/users',
+        //   icon: Users,
+        // },
 
         // ── Paramétrage ──────────────────────────────────────
         {
@@ -89,7 +84,8 @@ export const sidebarData: SidebarData = {
             {
               title: 'Fonctions',
               url: '/parametrage/fonctions',
-              icon: Briefcase,
+              icon: Briefcase
+              ,
             },
             {
               title: 'Partenaire Financier',
@@ -99,13 +95,13 @@ export const sidebarData: SidebarData = {
             {
               title: 'Zone de Collecte',
               url: '/parametrage/zone-de-collecte',
-              icon: Map,
+              icon: MapPin,
             },
-            {
-              title: 'Conventions',
-              url: '/parametrage/conventions',
-              icon: FileText,
-            },
+            // {
+            //   title: 'Conventions',
+            //   url: '/parametrage/conventions',
+            //   icon: FileText,
+            // },
             {
               title: 'Plans de Site',
               url: '/parametrage/plans-de-site',
@@ -145,20 +141,15 @@ export const sidebarData: SidebarData = {
               icon: Target,
             },
             {
-              title: 'Indicateurs strategique',
-              url: '/programme/indicateurs-strategique',
-              icon: TrendingUp,
+              title: 'Indicateurs stratégiques',
+              url: '/programme/indicateurs-performance',
+              icon: LineChart,
             },
             {
               title: 'Indicateurs du CMR',
               url: '/programme/indicateurs-cmr',
               icon: TrendingUp,
-            },
-            {
-              title: 'pages de test',
-              url: '/programme/pagesTest',
-              icon: TrendingUp,
-            },
+            }
           ],
         },
 
@@ -177,63 +168,43 @@ export const sidebarData: SidebarData = {
               url: '/programmation/ptba',
               icon: ClipboardList,
             },
-            // {
-            //   title: 'Indicateurs activités PTBA',
-            //   url: '/programmation/indicateurs-activites-ptba',
-            //   icon: Activity,
-            // },
             {
               title: 'Suivi du PTBA',
               url: '/programmation/suivi-ptba',
               icon: Eye,
             },
-            // {
-            //   title: 'Indicateurs de performance',
-            //   url: '/programmation/indicateurs-performance',
-            //   icon: Gauge,
-            // },
-            // {
-            //   title: 'Activités projet',
-            //   url: '/programmation/activites-projet',
-            //   icon: ListTodo,
-            // },
-            // {
-            //   title: 'Activités programme',
-            //   url: '/programmation/activites-programme',
-            //   icon: Layers,
-            // },
           ],
         },
       ],
     },
 
-    {
-      title: 'Pages',
-      items: [
-        {
-          title: 'Auth',
-          icon: ShieldCheck,
-          items: [
-            {
-              title: 'Sign In',
-              url: '/sign-in',
-            },
-            {
-              title: 'Sign Up',
-              url: '/sign-up',
-            },
-            {
-              title: 'Forgot Password',
-              url: '/forgot-password',
-            },
-            {
-              title: 'OTP',
-              url: '/otp',
-            },
-          ],
-        },
-      ],
-    },
+    // {
+    //   title: 'Pages',
+    //   items: [
+    //     {
+    //       title: 'Auth',
+    //       icon: ShieldCheck,
+    //       items: [
+    //         {
+    //           title: 'Sign In',
+    //           url: '/sign-in',
+    //         },
+    //         {
+    //           title: 'Sign Up',
+    //           url: '/sign-up',
+    //         },
+    //         {
+    //           title: 'Forgot Password',
+    //           url: '/forgot-password',
+    //         },
+    //         {
+    //           title: 'OTP',
+    //           url: '/otp',
+    //         },
+    //       ],
+    //     },
+    //   ],
+    // },
 
     // {
     //   title: 'Other',

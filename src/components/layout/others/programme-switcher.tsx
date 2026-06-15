@@ -51,22 +51,41 @@ export function ProgrammeSwitcher({ onHeader = false }: ProgrammeSwitcherProps) 
     ? programmeLabel(activeProgramme)
     : 'Projet'
 
+  const triggerTitle = activeProgramme
+    ? `${activeProgramme.nom_programme} (${activeProgramme.code_programme})`
+    : 'Sélectionner un programme'
+
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <Button
           variant='outline'
           size='sm'
-          className='flex max-w-[220px] items-center gap-2'
+          className={cn(
+            'flex max-w-[220px] items-center gap-2 shadow-sm transition-colors',
+            onHeader ? 'hover:brightness-110' : 'hover:brightness-[0.98]'
+          )}
           disabled={isLoading}
+          title={triggerTitle}
           style={
             onHeader
               ? {
-                  backgroundColor: 'rgba(255,255,255,0.15)',
-                  borderColor: 'rgba(255,255,255,0.25)',
                   color: 'var(--header-text)',
+                  borderColor:
+                    'color-mix(in srgb, var(--chart-color) 55%, transparent)',
+                  backgroundColor:
+                    'color-mix(in srgb, var(--chart-color) 18%, rgba(255,255,255,0.08))',
+                  boxShadow:
+                    '0 0 0 1px color-mix(in srgb, var(--chart-color) 30%, transparent)',
                 }
-              : {}
+              : {
+                  borderColor:
+                    'color-mix(in srgb, var(--chart-color-2) 45%, transparent)',
+                  backgroundColor:
+                    'color-mix(in srgb, var(--chart-color-2) 10%, transparent)',
+                  boxShadow:
+                    '0 0 0 1px color-mix(in srgb, var(--chart-color-2) 20%, transparent)',
+                }
           }
         >
           {isLoading ? (
@@ -79,16 +98,14 @@ export function ProgrammeSwitcher({ onHeader = false }: ProgrammeSwitcherProps) 
           ) : (
             <FolderKanban
               className='h-4 w-4 shrink-0'
-              style={
-                onHeader
-                  ? { color: 'var(--header-text)' }
-                  : { color: 'var(--primary)' }
-              }
+              style={{
+                color: onHeader
+                  ? 'var(--chart-color)'
+                  : 'var(--chart-color-2)',
+              }}
             />
           )}
-          <span className='truncate text-xs font-semibold' title={triggerLabel}>
-            {triggerLabel}
-          </span>
+          <span className='truncate text-xs font-semibold'>{triggerLabel}</span>
           <ChevronDown className='h-3 w-3 shrink-0 opacity-50' />
         </Button>
       </DropdownMenuTrigger>

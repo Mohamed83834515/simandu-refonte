@@ -1,7 +1,7 @@
 import { apiClient } from "@/axios/api";
 import { ZoneCollecte } from "../allTypes/zoneCollecte";
 
-const BASE_URL = "/zone_collecte/";
+const BASE_URL = "/zones-collectes/";
 
 export const zoneCollecteService = {
   // Récupérer toutes les zones de collecte
@@ -14,23 +14,74 @@ export const zoneCollecteService = {
     return await apiClient.request<ZoneCollecte>(`${BASE_URL}${id}/`);
   },
 
-  // Créer une nouvelle zone
-  async create(data: ZoneCollecte): Promise<ZoneCollecte> {
-    return await apiClient.request<ZoneCollecte>(BASE_URL, {
-      method: "POST",
-      data,
-    });
+  // simadou/allSercices/zoneCollecteService.ts
+  async create(data: ZoneCollecte, file?: File): Promise<ZoneCollecte> {
+    if (file) {
+      // Si un fichier est fourni, utiliser FormData
+      const formData = new FormData();
+
+      // Ajouter tous les champs du formulaire
+      Object.entries(data).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          formData.append(key, value.toString());
+        }
+      });
+
+      // Ajouter le fichier avec la clé documentUrl
+      formData.append("shape_file", file);
+
+      return apiClient.request(BASE_URL, {
+        method: "POST",
+        data: formData,
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+    } else {
+      delete data.shape_file;
+      // Pas de fichier, utiliser JSON normal
+      return apiClient.request(BASE_URL, {
+        method: "POST",
+        data,
+      });
+    }
   },
 
-  // Mettre à jour une zone
-  async update(data: ZoneCollecte): Promise<ZoneCollecte> {
-    const { id_zone_collecte, ...form } = data;
-    return await apiClient.request<ZoneCollecte>(`${BASE_URL}${id_zone_collecte}/`, {
-      method: "PUT",
-      data: form,
-    });
-  },
+  async update(
+    id: number,
+    data: Partial<ZoneCollecte>,
+    file?: File,
+  ): Promise<ZoneCollecte> {
+    if (file) {
+      // Si un fichier est fourni, utiliser FormData
+      const formData = new FormData();
 
+      // Ajouter tous les champs du formulaire
+      Object.entries(data).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          formData.append(key, value.toString());
+        }
+      });
+
+      // Ajouter le fichier avec la clé documentUrl
+      formData.append("shape_file", file);
+
+      return apiClient.request(`${BASE_URL}${id}/`, {
+        method: "PUT",
+        data: formData,
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+    } else {
+      delete data.shape_file;
+      // Pas de fichier, utiliser JSON normal
+      return apiClient.request(`${BASE_URL}${id}/`, {
+        method: "PUT",
+        data,
+      });
+    }
+  },
   // Supprimer une zone
   async delete(id: number): Promise<void> {
     await apiClient.request<void>(`${BASE_URL}${id}/`, {

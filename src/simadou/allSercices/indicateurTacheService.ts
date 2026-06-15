@@ -3,40 +3,38 @@ import type {
   IndicateurTache,
   IndicateurTacheRequest,
 } from "../allTypes/indicateurTache";
+import { filterIndicateursByActivite } from "../lib/indicateurTacheUtils";
 
-const BASE_URL = "/indicateurs-taches/";
 class IndicateurTacheService {
-  async getAll(): Promise<IndicateurTache[]> {
+  async getAll(url: string): Promise<IndicateurTache[]> {
     const response = await apiClient.request<IndicateurTache[]>(
-      BASE_URL
+      url
     );
     return response;
   }
 
-  async getByActivite(idActivite: number): Promise<IndicateurTache[]> {
+  async getByActivite(url: string, idActivite: number): Promise<IndicateurTache[]> {
+    const response = await apiClient.request<IndicateurTache[]>(url);
+    return filterIndicateursByActivite(response, idActivite);
+  }
+
+  async getByTache(url: string, idTache: number): Promise<IndicateurTache[]> {
     const response = await apiClient.request<IndicateurTache[]>(
-      `${BASE_URL}?id_activite=${idActivite}`
+      `${url}?tache=${idTache}`
     );
     return response;
   }
 
-  async getByTache(idTache: number): Promise<IndicateurTache[]> {
-    const response = await apiClient.request<IndicateurTache[]>(
-      `${BASE_URL}?tache=${idTache}`
-    );
-    return response;
-  }
-
-  async getById(id: number): Promise<IndicateurTache> {
+  async getById(url: string, id: number): Promise<IndicateurTache> {
     const response = await apiClient.request<IndicateurTache>(
-      `${BASE_URL}${id}/`
+      `${url}${id}/`
     );
     return response;
   }
 
-  async create(data: IndicateurTacheRequest): Promise<IndicateurTache> {
+  async create(url: string, data: IndicateurTacheRequest): Promise<IndicateurTache> {
     const response = await apiClient.request<IndicateurTache>(
-      BASE_URL,
+      url,
       {
         method: "POST",
         data,
@@ -46,11 +44,12 @@ class IndicateurTacheService {
   }
 
   async update(
+    url: string,
     id: number,
     data: Partial<IndicateurTacheRequest>
   ): Promise<IndicateurTache> {
     const response = await apiClient.request<IndicateurTache>(
-      `${BASE_URL}${id}/`,
+      `${url}${id}/`,
       {
         method: "PUT",
         data,
@@ -59,8 +58,8 @@ class IndicateurTacheService {
     return response;
   }
 
-  async delete(id: number): Promise<void> {
-    await apiClient.request(`${BASE_URL}${id}/`, {
+  async delete(url: string, id: number): Promise<void> {
+    await apiClient.request(`${url}${id}/`, {
       method: "DELETE",
     });
   }

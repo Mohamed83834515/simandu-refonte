@@ -3,17 +3,15 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { Programme } from '@/simadou/allTypes/programme'
 import type { VersionPtba } from '@/simadou/allTypes'
 import versionPtbaService from '@/simadou/allSercices/versionPtbaService'
-import { useActiveProgrammeCode } from '@/hooks/use-active-programme'
+
 import { toast } from 'sonner'
-
 export const useGetVersions = () => {
-
-  const codeProgramme = useActiveProgrammeCode()
-  // nous allons filtrer par programme 
   return useQuery({
-    queryKey: ['versions-ptba', codeProgramme],
-    queryFn: () => versionPtbaService.getAll(),
-    enabled: !!codeProgramme,
+    queryKey: ['versions-ptba'],
+    queryFn: async () => {
+      const allVersions = await versionPtbaService.getAll()
+      return allVersions
+    },
   })
 }
 
@@ -47,7 +45,7 @@ export const useSaveVersion = (
     onError: (error: any) => {
       console.error("Erreur version PTBA:", error)
       toast.error(
-        error?.response?.data?.message || 
+        error?.response?.data?.message ||
         "Une erreur est survenue lors de l'enregistrement"
       )
     },
@@ -135,48 +133,82 @@ export function versionBelongsToProgramme(
   return false
 }
 
+const SELECTED_VERSION_STORAGE_KEY = 'selectedVersionId'
+
 /** Version PTBA + filtre programme pour les listes PTBA / suivi PTBA. */
 export function usePtbaVersionSelection(codeProgramme: string | undefined) {
   const { data: versions = [] } = useGetVersions()
   const [selectedVersionId, setSelectedVersionId] = useState<string | null>(null)
-
+  console.log(codeProgramme);
+  // Plus de filtrage par programme - on retourne toutes les versions
   const versionsForProgramme = useMemo(
-    () =>
-      versions.filter((v) => versionBelongsToProgramme(v, codeProgramme)),
-    [versions, codeProgramme]
+    () => versions, // Retourne toutes les versions sans filtre
+    [versions]
   )
 
   const versionOptions = useMemo(
     () =>
       versionsForProgramme.map((version: VersionPtba) => ({
-        label: `${version.version_ptba || `Version ${version.id_version_ptba}`} - ${version.annee_ptba}`,
+        label: `${version.annee_ptba}  -  ${version.version_ptba || `Version ${version.id_version_ptba}`} `,
         value: version.id_version_ptba.toString(),
       })),
     [versionsForProgramme]
   )
 
   useEffect(() => {
-    if (!codeProgramme) {
-      setSelectedVersionId(null)
-      return
-    }
-
     if (versionsForProgramme.length === 0) {
       setSelectedVersionId(null)
       return
     }
 
-    const currentYear = new Date().getFullYear()
-    const preferred =
-      versionsForProgramme.find((v) => v.annee_ptba === currentYear) ??
-      versionsForProgramme[0]
+    // Vérifier le localStorage
+    const stored = localStorage.getItem(SELECTED_VERSION_STORAGE_KEY)
+    if (
+      stored &&
+      versionsForProgramme.some(
+        (v) => v.id_version_ptba.toString() === stored
+      )
+    ) {
+      setSelectedVersionId(stored)
+      return
+    }
 
-    setSelectedVersionId(preferred.id_version_ptba.toString())
-  }, [codeProgramme, versionsForProgramme])
+    // Sélectionner par date de validation la plus récente
+    const getLatestVersion = (versions: VersionPtba[]): VersionPtba => {
+      // Filtrer les versions avec une date de validation valide
+      const validatedVersions = versions.filter(v => v.date_validation)
+
+      if (validatedVersions.length > 0) {
+        // Trier par date décroissante et prendre la première
+        return [...validatedVersions].sort((a, b) =>
+          new Date(b.date_validation!).getTime() - new Date(a.date_validation!).getTime()
+        )[0]
+      }
+
+      // Fallback : retourner la première version
+      return versions[0]
+    }
+
+    const preferred = getLatestVersion(versionsForProgramme)
+    const preferredId = preferred.id_version_ptba.toString()
+
+    setSelectedVersionId(preferredId)
+    localStorage.setItem(SELECTED_VERSION_STORAGE_KEY, preferredId)
+  }, [versionsForProgramme])
+
+  const handleChangeVersion = (versionId: string | null) => {
+    setSelectedVersionId(versionId)
+    if (versionId) {
+      localStorage.setItem(SELECTED_VERSION_STORAGE_KEY, versionId)
+    } else {
+      localStorage.removeItem(SELECTED_VERSION_STORAGE_KEY)
+    }
+  }
 
   return {
     selectedVersionId,
-    setSelectedVersionId,
+    setSelectedVersionId: handleChangeVersion,
+    handleChangeVersion,
     versionOptions,
     versionsForProgramme,
   }

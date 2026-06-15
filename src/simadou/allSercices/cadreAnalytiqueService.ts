@@ -1,7 +1,7 @@
 import { apiClient } from "@/axios/api";
 import { CadreAnalytique } from "../allTypes/cadreAnalytique";
 
-const BASE_URL = "/cadre_analytique/";
+const BASE_URL = "/cadres-analytiques/";
 
 export const cadreAnalytiqueService = {
   // Récupérer tous les cadres analytiques (optionnellement filtrés par programme)

@@ -1,6 +1,8 @@
 import indicateurTacheService from "@/simadou/allSercices/indicateurTacheService";
-import { IndicateurTache } from "@/simadou/allTypes/indicateurTache";
+import type { IndicateurTacheRequest } from "@/simadou/allTypes/indicateurTache";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
+const BASE_URL = "/indicateurs-taches/"
 
 export const suiviPtbaQueryKeys = {
     indicateurs: (id_ptba: number) =>
@@ -11,15 +13,15 @@ export const suiviPtbaQueryKeys = {
 export const useGetIndicateursByActivite = (id_ptba: number) =>
   useQuery({
     queryKey: suiviPtbaQueryKeys.indicateurs(id_ptba),
-    queryFn: () => indicateurTacheService.getByActivite(id_ptba),
+    queryFn: () => indicateurTacheService.getByActivite(BASE_URL, id_ptba),
     enabled: !!id_ptba,
   })
 
 export const useCreateIndicateurTache = (id_ptba: number) => {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (data: IndicateurTache) =>
-      indicateurTacheService.create(data),
+    mutationFn: (data: IndicateurTacheRequest) =>
+      indicateurTacheService.create(BASE_URL, data),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: suiviPtbaQueryKeys.indicateurs(id_ptba),
@@ -36,8 +38,8 @@ export const useUpdateIndicateurTache = (id_ptba: number) => {
       data,
     }: {
       id: number
-      data: IndicateurTache
-    }) => indicateurTacheService.update(id, data),
+      data: Partial<IndicateurTacheRequest>
+    }) => indicateurTacheService.update(BASE_URL, id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: suiviPtbaQueryKeys.indicateurs(id_ptba),
@@ -49,7 +51,7 @@ export const useUpdateIndicateurTache = (id_ptba: number) => {
 export const useDeleteSuiviIndicateur = (id_ptba: number) => {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (id: number) => indicateurTacheService.delete(id),
+    mutationFn: (id: number) => indicateurTacheService.delete(BASE_URL, id),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: suiviPtbaQueryKeys.indicateurs(id_ptba),

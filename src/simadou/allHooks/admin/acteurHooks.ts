@@ -1,13 +1,60 @@
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { acteurService } from '@/simadou/allSercices/acteurService';
+import { toast } from 'sonner';
+import { ActeurFormData } from '@/simadou/allTypes';
 
-// Gardez votre hook existant pour les composants React
+
+export const acteurQueryKeys = {
+  all: ['acteurs'] as const,
+  list: () => [...acteurQueryKeys.all, 'list'] as const,
+}
+
 export const useGetActeurs = () => {
   return useQuery({
-    queryKey: ['acteurs'],
-    queryFn: () => acteurService.getAll()
-  });
-};
+    queryKey: acteurQueryKeys.list(),
+    queryFn: () => acteurService.getAll(),
+  })
+}
+
+export const useSaveActeur = (isEdit: boolean, currentRow?: any, onSuccess?: () => void) => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (data: ActeurFormData) =>
+      isEdit && currentRow?.id_acteur
+        ? acteurService.update(currentRow.id_acteur, data)
+        : acteurService.create(data),
+
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: acteurQueryKeys.list(),
+      })
+      toast.success(isEdit ? 'Acteur modifié avec succès' : 'Acteur créé avec succès')
+      onSuccess?.()
+    },
+
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Une erreur est survenue')
+    },
+  })
+}
+
+export const useDeleteActeur = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (id: number) => acteurService.delete(id),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: acteurQueryKeys.list(),
+      })
+      toast.success('Acteur supprimé avec succès')
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Erreur lors de la suppression')
+    },
+  })
+}
 
 // Ajoutez cette fonction pour une utilisation en dehors des composants React
 export const getActeurs = async () => {

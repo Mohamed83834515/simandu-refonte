@@ -26,14 +26,22 @@ const suiviIndicateurActiviteService = {
     codeIndicateur: string,
   ): Promise<SuiviIndicateurActivite[]> {
     const response = await this.getAll();
-    const filteredResponse = response.filter(
-      (suivi) =>
-        (typeof suivi.indicateur_activite === "string" &&
-          suivi.indicateur_activite === codeIndicateur) ||
-        (typeof suivi.indicateur_activite === "object" &&
-          suivi.indicateur_activite?.code_indicateur_activite ===
-            codeIndicateur),
-    );
+    const filteredResponse = response.filter((suivi) => {
+      if (typeof suivi.indicateur_activite === "string") {
+        return suivi.indicateur_activite === codeIndicateur;
+      }
+      if (
+        typeof suivi.indicateur_activite === "object" &&
+        suivi.indicateur_activite
+      ) {
+        const obj = suivi.indicateur_activite as Record<string, unknown>;
+        return (
+          obj.code_indicateur_activite === codeIndicateur ||
+          obj.code_indicateur_ptba === codeIndicateur
+        );
+      }
+      return false;
+    });
     return filteredResponse;
   },
 

@@ -1,4 +1,37 @@
-import { z } from "zod";
+import { z } from 'zod'
+
+const optionalRelationId = z.preprocess(
+  (val) => {
+    if (val == null || val === '') return null
+    const n = Number(val)
+    return Number.isFinite(n) && n > 0 ? n : null
+  },
+  z.number().nullable().optional()
+)
+
+export const cadreStrategiqueWriteSchema = z.object({
+  code_cs: z.string().min(1, 'Le code est obligatoire'),
+  intutile_cs: z.string().min(1, "L'intitulé est obligatoire"),
+  abgrege_cs: z.string().min(1, "L'abrégé est obligatoire"),
+  parent_cs: optionalRelationId,
+  partenaire_cs: z.array(z.coerce.number()).optional().default([]),
+  niveau_cs: z.coerce.number().optional(),
+  programme_cs: z.coerce.number().nullable().optional(),
+})
+
+export type CadreStrategiqueWriteData = z.infer<typeof cadreStrategiqueWriteSchema>
+
+export const niveauCadreStrategiqueWriteSchema = z.object({
+  libelle_nsc: z.string().min(1, 'Le libellé est obligatoire'),
+  nombre_nsc: z.coerce.number().min(1, 'La taille du code doit être au moins 1'),
+  code_number_nsc: z.coerce.number().min(1, 'Le numéro de niveau est obligatoire'),
+  type_niveau: z.coerce.number().min(1).max(3),
+  programme: z.string().optional(),
+})
+
+export type NiveauCadreStrategiqueWriteData = z.infer<
+  typeof niveauCadreStrategiqueWriteSchema
+>
 
 // CadreStrategique Schema
 export const cadreStrategiqueSchema = z.object({

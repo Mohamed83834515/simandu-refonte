@@ -24,20 +24,9 @@ export const suiviIndicateurActiviteSchema = z.object({
 
   localite: z
     .string()
-    .min(1, "Le code de la localité est requis")
-    .nullable()
-    .optional(),
+    .min(1, 'La commune est requise'),
 });
 
-// Schéma pour la création
-export const suiviIndicateurActiviteCreateSchema =
-  suiviIndicateurActiviteSchema;
-
-// Schéma pour la mise à jour
-export const suiviIndicateurActiviteUpdateSchema =
-  suiviIndicateurActiviteSchema.partial();
-
-// Type inféré du schéma
 export type SuiviIndicateurActiviteFormData = z.infer<
   typeof suiviIndicateurActiviteSchema
 >;

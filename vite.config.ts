@@ -16,6 +16,14 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  server: {
+    allowedHosts: [
+      '.ngrok-free.app',
+      '.trycloudflare.com',
+      'eleven-baffle-untrue.ngrok-free.dev',
+      // Add any other domains you use
+    ],
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

@@ -1,20 +1,18 @@
 import { type ColumnDef } from '@tanstack/react-table'
-import { Eye } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Eye, Trash2, UserPen } from 'lucide-react'
 import { DataTableColumnHeader } from '@/components/data-table'
 import { LongText } from '@/components/others/long-text'
-import { cn } from '@/lib/utils'
 import type { Projet } from '@/simadou/allTypes/projet'
+import { GenericRowActions } from '@/Global/Tableaux/GenericRowActions'
 
-export type ProjetsColumnHandlers = {
-  onDetail?: (projet: Projet) => void
-}
+type ProjetDialogType = 'add' | 'edit' | 'delete';
 
 export function buildProjetsColumns(
-  handlers: ProjetsColumnHandlers = {}
+  setOpen: (dialog: ProjetDialogType | null) => void,
+  setCurrentRow: React.Dispatch<React.SetStateAction<Projet | null>>,
+  onDetail: (projet: Projet) => void,
+  currencyCode?: string
 ): ColumnDef<Projet>[] {
-  const { onDetail } = handlers
-
   return [
     {
       id: 'code_projet',
@@ -68,50 +66,124 @@ export function buildProjetsColumns(
       enableHiding: false,
     },
     {
-      id: 'partenaire_projet',
+      id: 'partenaires_execution',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title='Partenaire' />
+        <DataTableColumnHeader column={column} title="Partenaires d'exécution" />
       ),
-      cell: ({ row }) => (
-        <span className='text-muted-foreground'>
-          {row.original.partenaire_projet?.nom_acteur?.trim() || '—'}
-        </span>
-      ),
+      cell: ({ row }) => {
+        const partenaires = row.original.partenaires_execution_projet
+        if (!partenaires || partenaires.length === 0) {
+          return <span className='text-muted-foreground'>—</span>
+        }
+        return (
+          <div className='flex flex-col gap-0.5'>
+            {partenaires.slice(0, 2).map((partenaire, idx) => (
+              <span key={idx} className='text-sm text-muted-foreground'>
+                {partenaire.nom_acteur?.trim()}
+              </span>
+            ))}
+            {partenaires.length > 2 && (
+              <span className='text-xs text-muted-foreground'>
+                +{partenaires.length - 2} autre(s)
+              </span>
+            )}
+          </div>
+        )
+      },
       enableSorting: false,
       enableHiding: false,
     },
     {
-      id: 'actions',
-      header: () => (
-        <span className='text-xs font-medium text-muted-foreground'>Actions</span>
+      id: 'budget',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title={`Budget(${currencyCode})`} />
       ),
       cell: ({ row }) => {
-        const projet = row.original
-        const detailButton = (
-          <Button
-            type='button'
-            variant='outline'
-            size='sm'
-            className={cn(
-              'h-8 gap-1.5 text-xs font-semibold',
-              !onDetail && 'pointer-events-none opacity-60'
-            )}
-            onClick={(e) => {
-              e.stopPropagation()
-              onDetail?.(projet)
-            }}
-            disabled={!onDetail}
-          >
-            <Eye className='h-3.5 w-3.5' />
-            Détails
-          </Button>
-        )
+        // Simulation de coûts basée sur l'intitulé ou l'ID de la ligne
+        const budget = row.original.budget_projet
 
-        return detailButton
+        if (!budget || budget === 0) {
+          return (
+            <div className='flex justify-center'>
+              <span className='text-sm text-muted-foreground'>—</span>
+            </div>
+          )
+        }
+
+        return (
+          <div className='flex justify-center'>
+            <span className='inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-sm font-semibold tabular-nums text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400'>
+              {new Intl.NumberFormat('fr-FR').format(budget)}
+            </span>
+          </div>
+        )
       },
-      meta: { thClassName: 'text-center pe-4', className: 'text-center pe-4' },
-      enableSorting: false,
+      enableSorting: true,
       enableHiding: false,
     },
+    {
+      id: 'actions',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title='Actions' />
+      ),
+      cell: ({ row }) => (
+        <GenericRowActions
+          row={row}
+          actions={[
+            {
+              label: 'Detail',
+              icon: <Eye size={16} />,
+              onClick: () => {
+                onDetail(row.original)
+              }
+            },
+            {
+              label: 'Modifier',
+              icon: <UserPen size={16} />,
+              onClick: () => {
+                setCurrentRow(row.original)
+                setOpen('edit')
+                console.log('isditing', row.original)
+              },
+            },
+            {
+              label: 'Supprimer',
+              icon: <Trash2 size={16} />,
+              onClick: () => {
+                setCurrentRow(row.original)
+                setOpen('delete')
+              },
+              className: 'text-red-500!',
+              separator: true,
+            },
+          ]
+          }
+        />
+      ),
+    },
+    // {
+    //   id: 'actions',
+    //   header: () => (
+    //     <span className='text-xs font-medium text-muted-foreground'>Actions</span>
+    //   ),
+    //   cell: ({ row }) => (
+    //     <Button
+    //       type='button'
+    //       variant='outline'
+    //       size='sm'
+    //       className='h-8 gap-1.5 border-primary/20 bg-primary/10 text-xs font-semibold text-primary hover:bg-primary hover:text-primary-foreground'
+    //       onClick={(e) => {
+    //         e.stopPropagation()
+    //         onDetail(row.original)
+    //       }}
+    //     >
+    //       <Eye className='h-3.5 w-3.5' />
+    //       Détails
+    //     </Button>
+    //   ),
+    //   meta: { thClassName: 'text-center pe-4', className: 'text-center pe-4' },
+    //   enableSorting: false,
+    //   enableHiding: false,
+    // },
   ]
 }

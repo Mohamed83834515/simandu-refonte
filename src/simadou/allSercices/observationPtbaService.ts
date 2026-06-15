@@ -1,6 +1,7 @@
 import { apiClient } from "@/axios/api";
 import { ObservationPtbaFormData } from "../schemas/observationPtbaSchemas";
 import type { ObservationPtba } from "../allTypes";
+import { filterObservationsByActiviteCode } from "../lib/observationPtbaUtils";
 
 const ENDPOINT = "/observation_ptba/";
 
@@ -23,10 +24,8 @@ const observationPtbaService = {
    * Récupère toutes les observations pour une activité PTBA spécifique
    */
   async getByActivite(codeActivite: string): Promise<ObservationPtba[]> {
-    return apiClient.request(ENDPOINT, {
-      method: "GET",
-      params: { ptba: codeActivite },
-    });
+    const all = await this.getAll();
+    return filterObservationsByActiviteCode(all, codeActivite);
   },
 
   /**

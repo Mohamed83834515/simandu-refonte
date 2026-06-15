@@ -76,6 +76,45 @@ export const activiteProjetSchema = z.object({
 // Schéma pour la création (sans l'ID)
 export const activiteProjetCreateSchema = activiteProjetSchema;
 
+export function getActiviteProjetFormSchema({
+  fixedCodeLength,
+  niveau,
+  parentNiveauLabel,
+}: {
+  fixedCodeLength: number;
+  niveau: number;
+  parentNiveauLabel: string;
+}) {
+  return activiteProjetSchema.extend({
+    code_activite_projet: z
+      .string()
+      .length(
+        fixedCodeLength,
+        `Le code doit contenir exactement ${fixedCodeLength} caractère(s) selon la configuration du niveau ${niveau}`,
+      ),
+    parent_activite_projet:
+      niveau > 1
+        ? z
+            .number()
+            .int("L'ID du parent doit être un entier")
+            .positive("L'ID du parent doit être positif")
+            .nullable()
+            .refine((value) => value != null, {
+              message: `Sélectionnez un ${parentNiveauLabel.toLowerCase()}`,
+            })
+        : z
+            .number()
+            .int("L'ID du parent doit être un entier")
+            .positive("L'ID du parent doit être positif")
+            .nullable()
+            .optional(),
+    code_projet: z
+      .string()
+      .min(1, "Le projet est requis")
+      .max(50, "Le code projet ne peut pas dépasser 50 caractères"),
+  });
+}
+
 // Schéma pour la mise à jour (tous les champs optionnels sauf l'ID)
 export const activiteProjetUpdateSchema = activiteProjetSchema.partial();
 

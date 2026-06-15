@@ -54,7 +54,7 @@ export const getVersionPtbaFormConfig = (): FormConfig => ({
             name: "documentUrl",
             label: "Document",
             type: "file",
-            accept: ".pdf,.doc,.docx",
+            accept: 'application/pdf,image/*,.doc,.docx',
             maxSize: 10,
             helperText: "Formats acceptés: PDF, DOC, DOCX (max 10MB)",
             required: false,

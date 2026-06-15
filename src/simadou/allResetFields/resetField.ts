@@ -65,7 +65,7 @@ export const CADRE_ANALYTIQUE = {
   abgrege_ca: "",
   niveau_ca: "",
   cout_axe: "",
-  partenaire_ca: null,
+  partenaire_ca: [],
   parent_ca: null,
   programme_ca: null,
 };
@@ -98,7 +98,7 @@ export const CADRE_STRATEGIQUE = {
   abgrege_cs: "",
   niveau_cs: "",
   etat: null,
-  partenaire_cs: null,
+  partenaire_cs: [],
   parent_cs: null,
   programme_cs: null,
 };
@@ -150,14 +150,14 @@ export const UNITE_INDICATEUR = {
 // =========INDICATEUR_CMR==================
 export const INDICATEUR_CMR = {
   code_ref_ind: "",
-  resultat_cmr: "",
+  resultat_cmr: null,
   intitule_ref_ind: "",
   reference_cmr: "",
   annee_reference: "",
   responsable_collecte_cmr: "",
   cible_cmr: "",
   fonction_agregat_cmr: "",
-  unite_cmr: null,
+  referentiel_cmr: null,
 };
 
 // =========NIVEAU_LOCALITE==================
@@ -309,8 +309,8 @@ export const NIVEAU_STRUCTURE = {
   id_programme: null,
 };
 
-// =========NIVEAU_STRUCTURE_CONFIG==================
-export const NIVEAU_STRUCTURE_CONFIG = {
+// =========niveaux_structure_config==================
+export const niveaux_structure_config = {
   nombre_nsc: "",
   libelle_nsc: "",
   code_number_nsc: "",
@@ -503,3 +503,71 @@ export const ZONE_COLLECTE = {
   nom_zone: "",
   type_zone: "",
 };
+
+// ======SET_PASSWORD=====
+export const SET_PASSWORD = {
+  new_password : "",
+  confirm_new_password : ""
+}
+
+
+// =========GENERAL_PARAMS_IDENTITE==================
+export const GENERAL_PARAMS_IDENTITE = {
+  systemSigle:      '',
+  systemTitle:      '',
+  structureSigle:   '',
+  structureName:    '',
+  structureAddress: '',
+}
+
+
+
+// =========GENERAL_PARAMS_FINANCE==================
+export const GENERAL_PARAMS_FINANCE = {
+  currencyCode: '',
+  baseCurrency: '',
+  exchangeRate: 0,
+}
+
+// =========GENERAL_PARAMS_SECURITE==================
+export const GENERAL_PARAMS_SECURITE = {
+  maintenanceMode:            false,
+  inactivityDelayMinutes:     0,
+  maxSessions:                0,
+  loginAttemptsLimit:         0,
+  tpCodeDelayMinutes:         0,
+  passwordChangeDelayMonths:  0,
+  deleteOrUpdateDelaySeconds: 0,
+}
+
+
+
+
+
+// GENERAL_PARAMS_NOTIFICATIONS
+export const GENERAL_PARAMS_NOTIFICATIONS = {
+  whatsappInstanceCode:      '',
+  whatsappNumberId:          '',
+  notificationEmail:         '',
+  notificationEmailPassword: '',
+  smtpHost:                  '',
+  smtpPort:                  587,
+  smtpEncryption:            '',
+  smtpFromName:              '',
+}
+
+// GENERAL_PARAMS_INTEGRATIONS
+export const GENERAL_PARAMS_INTEGRATIONS = {
+  parentApiUrl:            '',
+  parentApiKey:            '',
+  parentApiSecret:         '',
+  parentApiTimeoutSeconds: 30,
+  whatsappApiKey:          '',
+}
+
+// GENERAL_PARAMS_CONTACTS — trimmed to match API
+export const GENERAL_PARAMS_CONTACTS = {
+  structureEmail:    '',
+  structurePhone:    '',
+  structureWhatsapp: '',
+}

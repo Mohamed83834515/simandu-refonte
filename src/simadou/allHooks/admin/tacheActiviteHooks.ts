@@ -1,6 +1,8 @@
 import tacheActivitePtbaService from "@/simadou/allSercices/tacheActivitePtbaService";
-import { TacheActivitePtbaFormData } from "@/simadou/schemas/tacheActivitePtbaSchemas";
+import type { TacheActivitePtbaApiPayload } from "@/simadou/lib/tacheActivitePtbaUtils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
+const BASE_URL = "/tache_activite_ptba/"
 
 export const suiviPtbaQueryKeys = {
     tachesAll: ['taches-activite-all'] as const,
@@ -11,14 +13,14 @@ export const suiviPtbaQueryKeys = {
 export const useGetAllTachesActivite = (enabled = true) =>
     useQuery({
         queryKey: suiviPtbaQueryKeys.tachesAll,
-        queryFn: () => tacheActivitePtbaService.getAll(),
+        queryFn: () => tacheActivitePtbaService.getAll(BASE_URL),
         enabled,
     })
 
 export const useGetTachesByActivite = (idActivite: number) =>
     useQuery({
         queryKey: suiviPtbaQueryKeys.tachesActivite(idActivite),
-        queryFn: () => tacheActivitePtbaService.getByActivite(idActivite),
+        queryFn: () => tacheActivitePtbaService.getByActivite(BASE_URL, idActivite),
         enabled: Number.isFinite(idActivite),
     })
 
@@ -27,8 +29,8 @@ export const useCreateTacheActivite = (idActivite: number) => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (
-      data: TacheActivitePtbaFormData
-    ) => tacheActivitePtbaService.create(data),
+      data: TacheActivitePtbaApiPayload
+    ) => tacheActivitePtbaService.create(BASE_URL, data),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: suiviPtbaQueryKeys.tachesActivite(idActivite),
@@ -46,8 +48,8 @@ export const useUpdateTacheActivite = (idActivite: number) => {
       data,
     }: {
       id: number
-      data: TacheActivitePtbaFormData 
-    }) => tacheActivitePtbaService.update(id, data),
+      data: TacheActivitePtbaApiPayload
+    }) => tacheActivitePtbaService.update(BASE_URL, id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: suiviPtbaQueryKeys.tachesActivite(idActivite),
@@ -61,7 +63,7 @@ export const useUpdateTacheActivite = (idActivite: number) => {
 export const useDeleteTachePtba = (id_ptba: number) => {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (id: number) => tacheActivitePtbaService.delete(id),
+    mutationFn: (id: number) => tacheActivitePtbaService.delete(BASE_URL, id),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: suiviPtbaQueryKeys.tachesActivite(id_ptba),

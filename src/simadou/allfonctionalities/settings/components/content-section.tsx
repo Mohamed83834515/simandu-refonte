@@ -1,18 +1,13 @@
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+
 import { Separator } from '@/components/ui/separator'
+import { cn } from '@/lib/utils'
 import { useMe } from '@/simadou/allHooks/auth/authHooks'
 import {
-  BadgeCheck,
-  Camera,
-  MessageCircleWarning,
+  AlertCircle,
+  ShieldCheck,
 } from 'lucide-react'
+import { ProfileAvatar } from '../profile/profileAvatar'
+import { Skeleton } from '@/components/ui/skeleton'
 
 type ContentSectionProps = {
   title: string
@@ -20,95 +15,105 @@ type ContentSectionProps = {
   children: React.JSX.Element
 }
 
-export function ContentSection({
-  children,
-}: ContentSectionProps) {
-  const { data :personnel } = useMe()
-
+export function ContentSection({  children }: ContentSectionProps) {
+  const { data: personnel, isLoading } = useMe()
   const isActive = personnel?.statut === 1
+  const initials = personnel?.nom_perso?.charAt(0).toUpperCase() ?? 'U'
 
-  const initials = personnel?.nom
-    ? personnel.nom_perso?.charAt(0).toUpperCase()
-    : 'U'
+  if (isLoading) return (
+  <div className="flex w-full flex-1 flex-col">
+    {/* Profile header skeleton */}
+    <div className="flex items-center gap-4 pb-5">
+      {/* Avatar */}
+      <Skeleton className="size-30 rounded-full flex-shrink-0" />
+
+      {/* Identity */}
+      <div className="flex-1 space-y-2.5">
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-4 w-32" />
+          <Skeleton className="h-5 w-20 rounded-full" />
+        </div>
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-3 w-40" />
+          <Skeleton className="h-3 w-3 rounded-full" />
+          <Skeleton className="h-3 w-16" />
+          <Skeleton className="h-5 w-12 rounded-full" />
+        </div>
+      </div>
+    </div>
+
+    <Separator className="flex-none" />
+
+    {/* Content skeleton */}
+    <div className="px-1.5 pt-4 space-y-3">
+      <Skeleton className="h-4 w-1/3" />
+      <Skeleton className="h-10 w-full" />
+      <Skeleton className="h-10 w-full" />
+      <Skeleton className="h-4 w-1/4 mt-4" />
+      <Skeleton className="h-10 w-full" />
+      <Skeleton className="h-10 w-2/3" />
+    </div>
+  </div>
+)
 
   return (
-    <div className='flex flex-1 flex-col w-full'>
-      <div className='flex flex-col md:flex-row items-start gap-3 md:items-center justify-between w-full text-gray-500'>
-        <div className='flex flex-col md:flex-row items-start md:items-center gap-3'>
-          <div className='relative'>
-            <Avatar className='w-28 h-28 border-4 border-background shadow-xl'>
-              <AvatarImage src={''} />
+   <>
+   {personnel && (
+     <div className="flex w-full flex-1 flex-col">
 
-              <AvatarFallback className='text-4xl font-bold bg-primary text-primary-foreground'>
-                {initials}
-              </AvatarFallback>
-            </Avatar>
+      {/* Profile header */}
+      <div className="flex items-center gap-4 pb-5">
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className='absolute -bottom-1 -right-1 flex items-center justify-center rounded-full border bg-background p-2 shadow-md transition hover:scale-105'>
-                  <Camera className='w-4 h-4 text-foreground' />
-                </button>
-              </DropdownMenuTrigger>
+       <ProfileAvatar 
+       n_personel={personnel?.n_personnel ?? 0}
+       currentPicture={personnel?.personnel_profile_picture ?? ''}
+       initials={initials}
+       />
 
-              <DropdownMenuContent align='end'>
-                <DropdownMenuItem>
-                  Changer la photo
-                </DropdownMenuItem>
-
-                {/* {personnel?.photo && (
-                  <DropdownMenuItem className='text-red-600'>
-                    Supprimer la photo
-                  </DropdownMenuItem>
-                )} */}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-
-          <div className='flex flex-col space-y-4'>
-            <Badge
-              className={`px-3 py-1 text-xs rounded-full font-medium
-                ${
-                  isActive
-                    ? 'bg-green-100 text-green-700'
-                    : 'bg-red-100 text-red-700'
-                }
-              `}
-              variant='secondary'
-            >
-              {isActive ? (
-                <>
-                  <BadgeCheck
-                    className='h-4 w-4'
-                    data-icon='inline-start'
-                  />
-                  Compte actif
-                </>
-              ) : (
-                <>
-                  <MessageCircleWarning
-                    className='h-4 w-4'
-                    data-icon='inline-start'
-                  />
-                  Action requise
-                </>
-              )}
-            </Badge>
-
-            <span className='px-3 py-1 text-xs rounded-full bg-muted'>
-              {personnel?.id_personnel_perso
-                ? `${personnel.email} (${personnel.id_personnel_perso})`
-                : 'Email indisponible'}
+        {/* Identity */}
+        <div className="flex-1 min-w-0 pb-0.5">
+          <div className="flex flex-wrap items-center gap-2 mb-1">
+            <span className="text-base font-medium text-foreground">
+              {personnel?.nom_perso ?? 'Utilisateur'}
             </span>
+            <span className={cn(
+              'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium',
+              isActive
+                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400'
+                : 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400'
+            )}>
+              {isActive
+                ? <><ShieldCheck className="size-3" />Compte actif</>
+                : <><AlertCircle className="size-3" />Action requise</>
+              }
+            </span>
+          </div>
+          <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+            <span>{personnel?.email ?? 'Email indisponible'}</span>
+            {personnel?.id_personnel_perso && (
+              <>
+                <span className="size-1 rounded-full bg-border" />
+                <span>{personnel.id_personnel_perso}</span>
+              </>
+            )}
+            {personnel?.is_admin && (
+              <span className="rounded-full bg-muted px-2 py-0.5 text-[11px]">
+                admin
+              </span>
+            )}
           </div>
         </div>
       </div>
 
-      <Separator className='my-4 flex-none' />
+      <Separator className="flex-none" />
 
-      <div className='faded-bottom h-[75] overflow-y-auto w-full scroll-smooth pe-4 pb-12'>
-        <div className='px-1.5 w-full'>{children}</div>
+      {/* Content */}
+      <div className="h-[75vh] w-full overflow-y-auto scroll-smooth pb-12 pe-4">
+        <div className="px-1.5 pt-4 w-full">{children}</div>
       </div>
+
     </div>
+   )}
+   </>
   )
 }

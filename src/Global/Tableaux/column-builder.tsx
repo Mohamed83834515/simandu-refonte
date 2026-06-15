@@ -75,7 +75,12 @@ export function buildColumns<T>(configs: ColumnConfig<T>[]): ColumnDef<T>[] {
       case 'actions':
         return {
           id: 'actions',
+          header: ({ column }) => (
+            <DataTableColumnHeader column={column} title='Actions' />
+          ),
           cell: config.cell,
+          enableSorting: false,
+          enableHiding: false,
         }
 
       case 'text':

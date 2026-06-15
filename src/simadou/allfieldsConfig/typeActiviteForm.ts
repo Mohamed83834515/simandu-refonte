@@ -28,7 +28,7 @@ export const getTypeActiviteFormConfig = (): FormConfig => ({
             type: "textarea",
             placeholder: "Description détaillée du type d'activité...",
             rows: 4,
-            required: true,
+            required: false,
             gridCols: 1,
         },
     ]

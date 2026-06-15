@@ -1,3 +1,4 @@
+import { Fragment } from 'react'
 import { DotsHorizontalIcon } from '@radix-ui/react-icons'
 import { type Row } from '@tanstack/react-table'
 import { Button } from '@/components/ui/button'
@@ -40,11 +41,13 @@ export function GenericRowActions<TData>({
       </DropdownMenuTrigger>
       <DropdownMenuContent align='end' className='w-40'>
         {actions.map((action, index) => (
-          <>
-            {action.separator && <DropdownMenuSeparator key={`sep-${index}`} />}
+          <Fragment key={`${action.label}-${index}`}>
+            {action.separator && <DropdownMenuSeparator />}
             <DropdownMenuItem
-              key={index}
-              onClick={() => action.onClick(row.original)}
+              onSelect={(e) => {
+                e.preventDefault()
+                action.onClick(row.original)
+              }}
               className={action.className}
             >
               {action.label}
@@ -52,7 +55,7 @@ export function GenericRowActions<TData>({
                 <DropdownMenuShortcut>{action.icon}</DropdownMenuShortcut>
               )}
             </DropdownMenuItem>
-          </>
+          </Fragment>
         ))}
       </DropdownMenuContent>
     </DropdownMenu>

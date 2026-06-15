@@ -1,192 +1,173 @@
-import type { FormConfig } from "../../Global/types/formConfig";
+import type { FormConfig, SelectOption } from '@/Global/types/formConfig'
+import type {
+  Acteur,
+  Fonction,
+  Localite,
+  PlanSite,
+  TitrePersonnel,
+} from '@/simadou/allTypes'
+import { NIVEAU_ACCES_OPTIONS } from '@/simadou/schemas/personnelWriteSchema'
 
-export const getPersonnelFormConfig = (): FormConfig => ({
+type PersonnelFormDeps = {
+  titres: TitrePersonnel[]
+  fonctions: Fonction[]
+  planSites: PlanSite[]
+  regions: Localite[]
+  structures: Acteur[]
+  isLoadingTitres?: boolean
+  isLoadingFonctions?: boolean
+  isLoadingPlanSites?: boolean
+  isLoadingRegions?: boolean
+  isLoadingStructures?: boolean
+}
 
+function mapOptions<T>(
+  items: T[],
+  valueKey: (item: T) => number,
+  labelKey: (item: T) => string
+): SelectOption[] {
+  return items.map((item) => ({
+    value: valueKey(item),
+    label: labelKey(item),
+  }))
+}
+
+export function getPersonnelFormConfigForDialog({
+  titres,
+  fonctions,
+  planSites,
+  regions,
+  structures,
+  isLoadingTitres,
+  isLoadingFonctions,
+  isLoadingPlanSites,
+  isLoadingRegions,
+  isLoadingStructures,
+}: PersonnelFormDeps): FormConfig {
+  return {
     fields: [
-        // checkbox - Admin
-        {
-            name: "is_admin",
-            label: "Administrateur",
-            type: "checkbox",
-            defaultChecked: false,
-            gridCols: 1,
-        },
-        // checkbox - Mot de passe défini
-        {
-            name: "is_password_set",
-            label: "Mot de passe défini",
-            type: "checkbox",
-            defaultChecked: false,
-            gridCols: 1,
-        },
-        // texte - ID personnel (optionnel)
-        {
-            name: "id_personnel_perso",
-            label: "ID personnel",
-            type: "text",
-            placeholder: "Ex: P001, EMP01...",
-            required: false,
-            gridCols: 1,
-        },
-        // select - Titre personnel (optionnel)
-        {
-            name: "titre_personnel",
-            label: "Titre personnel",
-            type: "select",
-            placeholder: "Sélectionner un titre (optionnel)",
-            required: false,
-            options: [], // À remplir dynamiquement depuis l'API
-            gridCols: 1,
-        },
-        // texte - Nom (optionnel)
-        {
-            name: "nom_perso",
-            label: "Nom",
-            type: "text",
-            placeholder: "Nom du personnel",
-            required: false,
-            gridCols: 1,
-        },
-        // texte - Prénom (optionnel)
-        {
-            name: "prenom_perso",
-            label: "Prénom",
-            type: "text",
-            placeholder: "Prénom du personnel",
-            required: false,
-            gridCols: 1,
-        },
-        // email - Email (optionnel)
-        {
-            name: "email",
-            label: "Email",
-            type: "email",
-            placeholder: "exemple@domaine.com",
-            required: false,
-            gridCols: 1,
-        },
-        // texte - Contact (optionnel)
-        {
-            name: "contact_perso",
-            label: "Contact",
-            type: "text",
-            placeholder: "Téléphone, WhatsApp...",
-            required: false,
-            gridCols: 1,
-        },
-        // select - Fonction (optionnel)
-        {
-            name: "fonction_perso",
-            label: "Fonction",
-            type: "select",
-            placeholder: "Sélectionner une fonction (optionnel)",
-            required: false,
-            options: [], // À remplir dynamiquement depuis l'API
-            gridCols: 1,
-        },
-        // select - Service (optionnel)
-        {
-            name: "service_perso",
-            label: "Service",
-            type: "select",
-            placeholder: "Sélectionner un service (optionnel)",
-            required: false,
-            options: [], // À remplir dynamiquement depuis l'API
-            gridCols: 1,
-        },
-        // number - Niveau personnel (optionnel)
-        {
-            name: "niveau_perso",
-            label: "Niveau personnel",
-            type: "number",
-            placeholder: "Ex: 1, 2, 3...",
-            required: false,
-            min: 1,
-            gridCols: 1,
-        },
-        // checkbox - Rapport mensuel
-        {
-            name: "rapport_mensuel_perso",
-            label: "Rapport mensuel",
-            type: "checkbox",
-            defaultChecked: false,
-            gridCols: 1,
-        },
-        // checkbox - Rapport trimestriel
-        {
-            name: "rapport_trimestriel_perso",
-            label: "Rapport trimestriel",
-            type: "checkbox",
-            defaultChecked: false,
-            gridCols: 1,
-        },
-        // checkbox - Rapport semestriel
-        {
-            name: "rapport_semestriel_perso",
-            label: "Rapport semestriel",
-            type: "checkbox",
-            defaultChecked: false,
-            gridCols: 1,
-        },
-        // checkbox - Rapport annuel
-        {
-            name: "rapport_annuel_perso",
-            label: "Rapport annuel",
-            type: "checkbox",
-            defaultChecked: false,
-            gridCols: 1,
-        },
-        // select - Statut
-        {
-            name: "statut",
-            label: "Statut",
-            type: "select",
-            placeholder: "Sélectionner un statut",
-            required: false,
-            options: [
-                { value: 1, label: "Actif" },
-                { value: 0, label: "Inactif" }
-            ],
-            gridCols: 1,
-        },
-        // select - Région (optionnel)
-        {
-            name: "region_perso",
-            label: "Région",
-            type: "select",
-            placeholder: "Sélectionner une région (optionnel)",
-            required: false,
-            options: [], // À remplir dynamiquement depuis l'API
-            gridCols: 1,
-        },
-        // select - Structure (optionnel)
-        {
-            name: "structure_perso",
-            label: "Structure",
-            type: "select",
-            placeholder: "Sélectionner une structure (optionnel)",
-            required: false,
-            options: [], // À remplir dynamiquement depuis l'API
-            gridCols: 1,
-        },
-        // texte - UGL personnel (optionnel)
-        {
-            name: "ugl_perso",
-            label: "UGL personnel",
-            type: "text",
-            placeholder: "Code UGL (optionnel)",
-            required: false,
-            gridCols: 1,
-        },
-        // password - Mot de passe (optionnel)
-        {
-            name: "pass",
-            label: "Mot de passe",
-            type: "password",
-            placeholder: "Nouveau mot de passe",
-            required: false,
-            gridCols: 1,
-        },
-    ]
-
-})
+      {
+        name: 'nom_perso',
+        label: 'Nom',
+        type: 'text',
+        placeholder: 'Nom de famille',
+        required: true,
+        gridCols: 2,
+      },
+      {
+        name: 'prenom_perso',
+        label: 'Prénom(s)',
+        type: 'text',
+        placeholder: 'Prénom(s)',
+        required: true,
+        gridCols: 2,
+      },
+      {
+        name: 'id_personnel_perso',
+        label: 'Identifiant',
+        type: 'text',
+        placeholder: 'Identifiant de connexion',
+        required: true,
+        gridCols: 2,
+      },
+      {
+        name: 'email',
+        label: 'Email',
+        type: 'email',
+        placeholder: 'email@exemple.com',
+        required: true,
+        gridCols: 2,
+      },
+      {
+        name: 'titre_personnel',
+        label: 'Titre',
+        type: 'select',
+        placeholder: 'Sélectionner un titre…',
+        required: true,
+        options: mapOptions(
+          titres,
+          (t) => t.id_titre,
+          (t) => t.libelle_titre
+        ),
+        isLoading: isLoadingTitres,
+        gridCols: 2,
+      },
+      {
+        name: 'contact_perso',
+        label: 'Contact',
+        type: 'tel',
+        placeholder: '+224…',
+        required: true,
+        gridCols: 2,
+      },
+      {
+        name: 'structure_perso',
+        label: 'Structure',
+        type: 'select',
+        placeholder: 'Sélectionner une structure…',
+        required: true,
+        options: mapOptions(
+          structures,
+          (s) => s.id_acteur!,
+          (s) => `${s.nom_acteur} (${s.code_acteur})`
+        ),
+        isLoading: isLoadingStructures,
+        gridCols: 2,
+      },
+      {
+        name: 'fonction_perso',
+        label: 'Fonction',
+        type: 'select',
+        placeholder: 'Sélectionner une fonction…',
+        required: true,
+        options: mapOptions(
+          fonctions,
+          (f) => f.id_fonction!,
+          (f) => f.nom_fonction
+        ),
+        isLoading: isLoadingFonctions,
+        gridCols: 2,
+      },
+      {
+        name: 'service_perso',
+        label: 'Service / Direction',
+        type: 'select',
+        placeholder: 'Optionnel',
+        required: false,
+        options: mapOptions(
+          planSites,
+          (p) => p.id_ds!,
+          (p) => `${p.intutile_ds} (${p.code_ds})`
+        ),
+        isLoading: isLoadingPlanSites,
+        gridCols: 2,
+      },
+      {
+        name: 'region_perso',
+        label: 'Région',
+        type: 'select',
+        placeholder: 'Sélectionner une région…',
+        required: true,
+        options: mapOptions(
+          regions,
+          (r) => r.id_loca!,
+          (r) => `${r.intitule_loca} (${r.code_loca})`
+        ),
+        isLoading: isLoadingRegions,
+        gridCols: 2,
+      },
+      {
+        name: 'niveau_perso',
+        label: "Niveau d'accès",
+        type: 'select',
+        placeholder: "Sélectionner un niveau…",
+        required: true,
+        options: NIVEAU_ACCES_OPTIONS.map((o) => ({
+          value: o.value,
+          label: o.label,
+        })),
+        gridCols: 2,
+      },
+    ],
+  }
+}

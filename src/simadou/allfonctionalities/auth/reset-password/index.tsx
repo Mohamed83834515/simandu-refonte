@@ -1,9 +1,24 @@
-import { Link } from '@tanstack/react-router'
+import { Link, useSearch } from '@tanstack/react-router'
 import { AuthLayout } from '../auth-layout'
 import { ResetPasswordForm } from './components/reset-password-form'
 import { Logo } from '@/assets/logo'
 
+const CONTENT = {
+  setup: {
+    title:       'Définir mon mot de passe',
+    description: 'Entrez votre adresse email. Vous recevrez un lien pour définir votre mot de passe et activer votre compte.',
+    resend:      "Vous n'avez pas reçu l'email ? Vérifiez vos spams ou",
+  },
+  reset: {
+    title:       'Mot de passe oublié',
+    description: 'Entrez votre adresse email. Vous recevrez un lien pour réinitialiser votre mot de passe.',
+    resend:      "Vous n'avez pas reçu l'email ? Vérifiez vos spams ou",
+  },
+}
+
 export function ResetPassword() {
+  const { mode } = useSearch({ strict: false }) 
+    const ctx = mode === 'reset' ? CONTENT.reset : CONTENT.setup
   return (
     <AuthLayout>
       <div className='flex min-h-screen w-screen'>
@@ -218,7 +233,7 @@ export function ResetPassword() {
             {/* En-tête */}
             <div className='space-y-1'>
               <h1 className='text-2xl font-bold tracking-tight text-zinc-900'>
-               Réinitialisation de Mot de passe
+               {ctx.title}
               </h1>
             </div>
 

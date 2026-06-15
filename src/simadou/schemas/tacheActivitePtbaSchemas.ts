@@ -44,7 +44,8 @@ export const tacheActivitePtbaSchema = z.object({
   responsable_gt: z
     .number()
     .int("L'ID du responsable doit être un entier")
-    .positive("L'ID du responsable doit être positif"),
+    .positive("L'ID du responsable doit être positif")
+    .optional(),
 
   id_activite: z
     .number()

@@ -7,8 +7,8 @@ export const cadreStrategiqueService = {
   getAll: async (programmeId?: number): Promise<CadreStrategique[]> => {
     try {
       const url = programmeId
-        ? `/cadre_strategique/?programme_cs=${programmeId}`
-        : "/cadre_strategique/";
+        ? `/cadres-strategiques/?programme_cs=${programmeId}`
+        : "/cadres-strategiques/";
       const response = await apiClient.request<CadreStrategique[]>(url);
       return Array.isArray(response) ? response : [];
     } catch (error) {
@@ -21,7 +21,7 @@ export const cadreStrategiqueService = {
   getById: async (id: number): Promise<CadreStrategique> => {
     try {
       return await apiClient.request<CadreStrategique>(
-        `/cadre_strategique/${id}/`,
+        `/cadres-strategiques/${id}/`,
       );
     } catch (error) {
       toast.error("Erreur lors de la récupération du cadre stratégique");
@@ -33,7 +33,7 @@ export const cadreStrategiqueService = {
   getHierarchy: async (): Promise<CadreStrategique[]> => {
     try {
       const response = await apiClient.request<CadreStrategique[]>(
-        "/cadre_strategique/hierarchy/",
+        "/cadres-strategiques/hierarchy/",
       );
       return Array.isArray(response) ? response : [];
     } catch (error) {
@@ -46,8 +46,8 @@ export const cadreStrategiqueService = {
   getByParent: async (parentId: number | null): Promise<CadreStrategique[]> => {
     try {
       const url = parentId
-        ? `/cadre_strategique/parent/${parentId}/`
-        : "/cadre_strategique/root/";
+        ? `/cadres-strategiques/parent/${parentId}/`
+        : "/cadres-strategiques/root/";
       const response = await apiClient.request<CadreStrategique[]>(url);
       return Array.isArray(response) ? response : [];
     } catch (error) {
@@ -60,7 +60,7 @@ export const cadreStrategiqueService = {
   getByNiveau: async (niveau: number): Promise<CadreStrategique[]> => {
     try {
       const response = await apiClient.request<CadreStrategique[]>(
-        `/cadre_strategique/?niveau_cs=${niveau}`,
+        `/cadres-strategiques/?niveau_cs=${niveau}`,
       );
       return Array.isArray(response) ? response : [];
     } catch (error) {
@@ -73,7 +73,7 @@ export const cadreStrategiqueService = {
   getByProjet: async (projetId: number): Promise<CadreStrategique[]> => {
     try {
       const response = await apiClient.request<CadreStrategique[]>(
-        `/cadre_strategique/?projet_cs=${projetId}`,
+        `/cadres-strategiques/?projet_cs=${projetId}`,
       );
       return Array.isArray(response) ? response : [];
     } catch (error) {
@@ -86,7 +86,7 @@ export const cadreStrategiqueService = {
   searchByCode: async (code: string): Promise<CadreStrategique[]> => {
     try {
       const response = await apiClient.request<CadreStrategique[]>(
-        `/cadre_strategique/?code_cs__icontains=${code}`,
+        `/cadres-strategiques/?code_cs__icontains=${code}`,
       );
       return Array.isArray(response) ? response : [];
     } catch (error) {
@@ -97,20 +97,10 @@ export const cadreStrategiqueService = {
 
   // Create new cadre strategique
   create: async (data: CadreStrategiqueFormData): Promise<CadreStrategique> => {
-    try {
-      const response = await apiClient.request<CadreStrategique>(
-        "/cadre_strategique/",
-        {
-          method: "POST",
-          data,
-        },
-      );
-      toast.success("Cadre stratégique créé avec succès");
-      return response;
-    } catch (error) {
-      toast.error("Erreur lors de la création du cadre stratégique");
-      throw error;
-    }
+    return await apiClient.request<CadreStrategique>("/cadres-strategiques/", {
+      method: "POST",
+      data,
+    });
   },
 
   // Update cadre strategique
@@ -118,57 +108,37 @@ export const cadreStrategiqueService = {
     id: number,
     data: Partial<CadreStrategiqueFormData>,
   ): Promise<CadreStrategique> => {
-    try {
-      const response = await apiClient.request<CadreStrategique>(
-        `/cadre_strategique/${id}/`,
-        {
-          method: "PUT",
-          data,
-        },
-      );
-      toast.success("Cadre stratégique mis à jour avec succès");
-      return response;
-    } catch (error) {
-      toast.error("Erreur lors de la mise à jour du cadre stratégique");
-      throw error;
-    }
+    return await apiClient.request<CadreStrategique>(
+      `/cadres-strategiques/${id}/`,
+      {
+        method: "PUT",
+        data,
+      },
+    );
   },
 
   // Delete cadre strategique
   delete: async (id: number): Promise<void> => {
-    try {
-      await apiClient.request(`/cadre_strategique/${id}/`, {
-        method: "DELETE",
-      });
-      toast.success("Cadre stratégique supprimé avec succès");
-    } catch (error) {
-      toast.error("Erreur lors de la suppression du cadre stratégique");
-      throw error;
-    }
+    await apiClient.request(`/cadres-strategiques/${id}/`, {
+      method: "DELETE",
+    });
   },
 
   // Toggle status
   toggleStatus: async (id: number): Promise<CadreStrategique> => {
-    try {
-      const response = await apiClient.request<CadreStrategique>(
-        `/cadre_strategique/${id}/toggle_status/`,
-        {
-          method: "PATCH",
-        },
-      );
-      toast.success("Statut du cadre stratégique mis à jour avec succès");
-      return response;
-    } catch (error) {
-      toast.error("Erreur lors de la mise à jour du statut");
-      throw error;
-    }
+    return await apiClient.request<CadreStrategique>(
+      `/cadres-strategiques/${id}/toggle_status/`,
+      {
+        method: "PATCH",
+      },
+    );
   },
 
   // Get children of a cadre
   getChildren: async (parentId: number): Promise<CadreStrategique[]> => {
     try {
       const response = await apiClient.request<CadreStrategique[]>(
-        `/cadre_strategique/children/${parentId}/`,
+        `/cadres-strategiques/children/${parentId}/`,
       );
       return Array.isArray(response) ? response : [];
     } catch (error) {
@@ -181,7 +151,7 @@ export const cadreStrategiqueService = {
   validateCode: async (code: string, excludeId?: number): Promise<boolean> => {
     try {
       const response = await apiClient.request<{ isUnique: boolean }>(
-        "/cadre_strategique/validate_code/",
+        "/cadres-strategiques/validate_code/",
         {
           method: "POST",
           data: { code_cs: code, exclude_id: excludeId },

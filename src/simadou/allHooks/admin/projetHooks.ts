@@ -1,8 +1,77 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
+import { AxiosError } from 'axios'
 import { useActiveProgrammeId } from '@/hooks/use-active-programme'
+import type { Projet } from '@/simadou/allTypes/projet'
 import { projetBelongsToProgramme } from '@/simadou/allTypes/projet'
 import { projetService } from '@/simadou/allSercices/projetService'
 import type { ProjectCreateSubmitData } from '@/simadou/schemas/projetSchema'
+import { toast } from 'sonner'
+
+function findProjetByRouteId(projets: Projet[], id: number | string): Projet | undefined {
+  const idStr = String(id)
+  const numericId = Number(id)
+
+  return projets.find(
+    (p) =>
+      String(p.id_projet) === idStr ||
+      p.code_projet === idStr ||
+      (Number.isFinite(numericId) && p.id_projet === numericId)
+  )
+}
+
+function findProjetInCache(
+  queryClient: QueryClient,
+  idProgramme: number | undefined,
+  id: number | string
+): Projet | undefined {
+  const programmeKey = projetQueryKeys.byProgramme(idProgramme)
+  const fromProgramme = queryClient.getQueryData<Projet[]>(programmeKey)
+  const inProgramme = fromProgramme ? findProjetByRouteId(fromProgramme, id) : undefined
+  if (inProgramme) return inProgramme
+
+  const unfiltered = queryClient.getQueryData<Projet[]>([
+    ...projetQueryKeys.all,
+    'unfiltered',
+  ])
+  const inUnfiltered = unfiltered ? findProjetByRouteId(unfiltered, id) : undefined
+  if (inUnfiltered) return inUnfiltered
+
+  for (const query of queryClient.getQueryCache().findAll({ queryKey: projetQueryKeys.all })) {
+    const data = query.state.data
+    if (Array.isArray(data)) {
+      const found = findProjetByRouteId(data as Projet[], id)
+      if (found) return found
+    }
+  }
+
+  return undefined
+}
+
+async function resolveProjetByRouteId(
+  id: number | string,
+  idProgramme: number | undefined
+): Promise<Projet> {
+  try {
+    const projets = await projetService.getAll()
+    const scoped =
+      idProgramme != null
+        ? projets.filter((p) => projetBelongsToProgramme(p, idProgramme))
+        : projets
+
+    const found =
+      findProjetByRouteId(scoped, id) ?? findProjetByRouteId(projets, id)
+
+    if (!found) {
+      throw new Error('Projet introuvable')
+    }
+    return found
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      throw new Error('Impossible de charger le projet')
+    }
+    throw error
+  }
+}
 
 export const projetQueryKeys = {
   all: ['projets'] as const,
@@ -24,6 +93,28 @@ export function useGetProjets() {
   })
 }
 
+/** Tous les projets (sans filtre programme) — ex. sélecteurs de formulaires comme l'ancienne app. */
+export function useGetAllProjets() {
+  return useQuery({
+    queryKey: [...projetQueryKeys.all, 'unfiltered'] as const,
+    queryFn: () => projetService.getAll(),
+  })
+}
+
+export function useGetProjet(id: number | string | undefined) {
+  const idProgramme = useActiveProgrammeId()
+  const queryClient = useQueryClient()
+
+  return useQuery({
+    queryKey: [...projetQueryKeys.all, 'detail', id, idProgramme] as const,
+    queryFn: () => resolveProjetByRouteId(id!, idProgramme),
+    initialData: () => findProjetInCache(queryClient, idProgramme, id!),
+    staleTime: 30_000,
+    enabled: id != null && String(id).length > 0,
+    meta: { suppressGlobalErrorToast: true },
+  })
+}
+
 export function useCreateProjet(idProgramme: number | undefined) {
   const queryClient = useQueryClient()
 
@@ -39,6 +130,34 @@ export function useCreateProjet(idProgramme: number | undefined) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: projetQueryKeys.all })
+    },
+  })
+}
+
+export function useUpdateProjet(id:number) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (data: ProjectCreateSubmitData) => {
+      return projetService.update(id, data)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: projetQueryKeys.all })
+    },
+  })
+}
+
+export function useDeleteProjet() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (id: number) => projetService.delete(id),
+    onSuccess: () => {
+      toast.success('Projet supprimée avec succès')
+      queryClient.invalidateQueries({ queryKey: projetQueryKeys.all })
+    },
+    onError: () => {
+      toast.error("Erreur lors de la suppression du projet ")
     },
   })
 }

@@ -25,7 +25,8 @@ type TacheActiviteDialogType = 'delete'
 export function buildTachePtbaColumns(
     setOpen: (dialog: TacheActiviteDialogType | null) => void,
     setCurrentRow: React.Dispatch<React.SetStateAction<TacheActivitePtba | null>>,
-    onEdit: (tache: TacheActivitePtba) => void
+    onEdit: (tache: TacheActivitePtba) => void,
+    getResponsableLabel?: (tache: TacheActivitePtba) => string
 ): ColumnDef<TacheActivitePtba>[] {
     const tacheColumn: ColumnDef<TachePtbaTableRow> = {
         id: 'intutile_tache_gt',
@@ -135,13 +136,11 @@ export function buildTachePtbaColumns(
             <DataTableColumnHeader column={column} title='Responsable' />
         ),
         cell: ({ row }) => {
-
             const tache = row.original
+            const label = getResponsableLabel?.(tache)?.trim()
             return (
                 <span className='whitespace-nowrap text-muted-foreground'>
-                    {typeof tache.responsable_gt === 'object' ? 
-                    `${tache.responsable_gt?.prenom_perso} ${tache.responsable_gt?.nom_perso}`
-                     : 'Non défini'}
+                    {label || 'Non défini'}
                 </span>
             )
         },

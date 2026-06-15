@@ -47,8 +47,9 @@ export function Header({ className, fixed, children, ...props }: HeaderProps) {
           {children}
         </div>
 
-        {/* Droite : sélecteur de projet */}
-        <div className='ml-auto flex items-center gap-2'>
+        {/* Droite : programme actif (mis en avant) */}
+        <div className='ml-auto flex items-center gap-3'>
+          <Separator orientation='vertical' className='hidden h-8 sm:block' />
           <ProgrammeSwitcher />
         </div>
       </div>

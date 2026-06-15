@@ -8,7 +8,7 @@ export const getUniteIndicateurFormConfig = (): FormConfig => ({
             name: "unite_ui",
             label: "Unité",
             type: "text",
-            placeholder: "Ex: Kg, %, Nbre, FCFA...",
+            placeholder: "Ex: Kg, %, Nbre, GNF...",
             required: true,
             gridCols: 1,
         },
@@ -20,7 +20,7 @@ export const getUniteIndicateurFormConfig = (): FormConfig => ({
             placeholder: "Définition de l'unité de mesure...",
             rows: 3,
             required: true,
-            gridCols: 2,
+            gridCols: 1,
         },
     ]
 

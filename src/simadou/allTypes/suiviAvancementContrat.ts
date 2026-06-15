@@ -30,6 +30,29 @@ export function resolveActivitePtbaId(
   return ref;
 }
 
+export function normalizeSuiviAvancementContrat(
+  raw: SuiviAvancementContrat,
+): SuiviAvancementContrat {
+  const activiteId = resolveActivitePtbaId(raw.activite_ptba as number | Ptba);
+
+  return {
+    ...raw,
+    id_suivi: Number(raw.id_suivi),
+    activite_ptba: activiteId ?? raw.activite_ptba,
+  };
+}
+
+export function filterSuivisAvancementByActivite(
+  items: SuiviAvancementContrat[],
+  idActivite: number,
+): SuiviAvancementContrat[] {
+  return items
+    .map(normalizeSuiviAvancementContrat)
+    .filter(
+      (item) => resolveActivitePtbaId(item.activite_ptba as number | Ptba) === idActivite,
+    );
+}
+
 export function resolvePersonnelId(
   ref: number | Personnel | undefined | null,
 ): number | undefined {

@@ -1,66 +1,83 @@
-import { FieldType } from "@/Global/types/formConfig"
-import { z } from "zod"
+import { FieldType } from '@/Global/types/formConfig'
+import { z } from 'zod'
 
-export const GeneralParamsSchema = z.object({
-  id: z.string(),
-
-  // App branding
-  appName: z.string(),
-  logoUrl: z.string().nullable().optional(),
-  logoPublicId: z.string().nullable().optional(),
-  primaryColor: z.string().nullable().optional(),
-
-  // Contacts structure
-  contactEmail: z.string().email().nullable().optional(),
-  contactPhone: z.string().nullable().optional(),
-  address: z.string().nullable().optional(),
-  website: z.string().url().nullable().optional(),
-
-  // Structure CEP / système
-  systemSigle: z.string().nullable().optional(),
-  systemTitle: z.string().nullable().optional(),
-
-  structureSigle: z.string().nullable().optional(),
-  structureName: z.string().nullable().optional(),
-  structureLogo: z.string().nullable().optional(),
-  structureAddress: z.string().nullable().optional(),
-  structureEmail: z.string().email().nullable().optional(),
-  structurePhone: z.string().nullable().optional(),
-  structureWhatsapp: z.string().nullable().optional(),
-
-  // Finance
-  currencyCode: z.string().nullable().optional(),
-  baseCurrency: z.string().nullable().optional(),
-  exchangeRate: z.number().nullable().optional(),
-
-  // Sécurité / système
-  maintenanceMode: z.boolean().optional(),
-  inactivityDelayMinutes: z.number().int().positive().optional(),
-  maxSessions: z.number().int().positive().optional(),
-  loginAttemptsLimit: z.number().int().positive().optional(),
-  tpCodeDelayMinutes: z.number().int().positive().optional(),
-  passwordChangeDelayMonths: z.number().int().positive().optional(),
-  deleteOrUpdateDelaySeconds: z.number().int().positive().optional(),
-
-  // WhatsApp / email / SMTP
-  whatsappInstanceCode: z.string().nullable().optional(),
-  notificationEmail: z.string().email().nullable().optional(),
-  notificationEmailPassword: z.string().nullable().optional(),
-  smtpHost: z.string().nullable().optional(),
-  parentApiUrl: z.string().url().nullable().optional(),
-
-  createdAt: z.string(),
-  updatedAt: z.string(),
+export const GeneralParamsAPISchema = z.object({
+  id:                          z.number().int(),
+  is_default:                  z.boolean(),
+  system_sigle:                z.string(),
+  system_name:                 z.string(),
+  structure_sigle:             z.string(),
+  structure_name:              z.string(),
+  structure_logo:              z.string().nullable(),
+  structure_address:           z.string(),
+  structure_email:             z.string().email().nullable(),
+  structure_whatsapp_number:   z.string().nullable(),
+  structure_phone_number:      z.string().nullable(),
+  local_currency_sigle:        z.string(),
+  main_currency_sigle:         z.string(),
+  main_currency_rate:          z.string(),
+  is_maintenance:              z.boolean(),
+  inactivity_minute:           z.number().int().min(0),
+  max_sessions:                z.number().int().min(0),
+  max_login_attempts:          z.number().int().min(0),
+  otp_validity_minute:         z.number().int().min(0),
+  password_expiry_month:       z.number().int().min(0),
+  delay_update_second:         z.number().int().min(0),
+  whatsapp_instance:           z.string().nullable(),
+  whatsapp_number_id:          z.string().nullable(),
+  notif_email:                 z.string().email().nullable(),
+  notif_email_smtp_host:       z.string().nullable(),
+  notif_email_smtp_port:       z.number().int(),
+  notif_email_smtp_encryption: z.string().nullable(),
+  notif_email_from_name:       z.string().nullable(),
+  parent_api_url:              z.string().nullable(),
+  parent_api_key:              z.string().nullable(),
+  parent_api_timeout_seconds:  z.number().int(),
+  created_at:                  z.string(),
+  updated_at:                  z.string(),
 })
 
-export type GeneralParamsInput = z.infer<typeof GeneralParamsSchema>
+// Transform to camelCase for frontend consumption
+export const GeneralParamsSchema = GeneralParamsAPISchema.transform(d => ({
+  id:                         d.id,
+  systemSigle:                d.system_sigle,
+  systemTitle:                d.system_name,
+  structureSigle:             d.structure_sigle,
+  structureName:              d.structure_name,
+  structureLogo:              d.structure_logo,
+  structureAddress:           d.structure_address,
+  structureEmail:             d.structure_email,
+  structurePhone:             d.structure_phone_number,
+  structureWhatsapp:          d.structure_whatsapp_number,
+  currencyCode:               d.local_currency_sigle,
+  baseCurrency:               d.main_currency_sigle,
+  exchangeRate:               Number(d.main_currency_rate),
+  maintenanceMode:            d.is_maintenance,
+  inactivityDelayMinutes:     d.inactivity_minute,
+  maxSessions:                d.max_sessions,
+  loginAttemptsLimit:         d.max_login_attempts,
+  tpCodeDelayMinutes:         d.otp_validity_minute,
+  passwordChangeDelayMonths:  d.password_expiry_month,
+  deleteOrUpdateDelaySeconds: d.delay_update_second,
+  whatsappInstanceCode:       d.whatsapp_instance,
+  whatsappNumberId:           d.whatsapp_number_id,
+  notificationEmail:          d.notif_email,
+  notificationEmailPassword:  null as string | null,  // PATCH only, never returned
+  smtpHost:                   d.notif_email_smtp_host,
+  smtpPort:                   d.notif_email_smtp_port,
+  smtpEncryption:             d.notif_email_smtp_encryption,
+  smtpFromName:               d.notif_email_from_name,
+  parentApiUrl:               d.parent_api_url,
+  parentApiKey:               d.parent_api_key,
+  parentApiSecret:            null as string | null,   // PATCH only, never returned
+  parentApiTimeoutSeconds:    d.parent_api_timeout_seconds,
+  whatsappApiKey:             null as string | null,   // PATCH only, never returned
+  isDefault:                  d.is_default,
+  createdAt:                  d.created_at,
+  updatedAt:                  d.updated_at,
+}))
 
 
-
-
-
-
-// Returns the right zod schema based on field type
 export function getFieldSchema(type: FieldType, required?: boolean) {
   const base = (() => {
     switch (type) {
@@ -71,13 +88,24 @@ export function getFieldSchema(type: FieldType, required?: boolean) {
       case 'tel':
         return z.string().min(8, 'Numéro invalide').max(20, 'Numéro invalide')
       case 'number':
-        return z.coerce.number({error : (iss)=> iss.input === undefined ? "Entrez un nombre valide" : "Entrée invalide"}).min(0)
-    
+        return z.coerce.number({
+          error: (iss) => iss.input === undefined
+            ? 'Entrez un nombre valide'
+            : 'Entrée invalide'
+        }).min(0)
       default:
         return z.string().min(1, 'Ce champ est requis')
     }
   })()
 
-  // Most params fields are optional
-  return required ? base : base.optional().or(z.literal(''))
+  if (required) return base
+
+  // number stays number | undefined — no empty string fallback
+  if (type === 'number') return base.optional()
+
+  // strings get the empty string fallback for uncontrolled inputs
+  return base.optional().or(z.literal(''))
 }
+
+export type GeneralParamsRaw   = z.input<typeof GeneralParamsSchema>
+export type GeneralParamsInput = z.output<typeof GeneralParamsSchema>

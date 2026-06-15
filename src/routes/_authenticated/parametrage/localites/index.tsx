@@ -1,9 +1,7 @@
+ 
 import { createFileRoute } from '@tanstack/react-router'
+import ListeLocalite from '@/simadou/allfonctionalities/parametrage/localite/ListeLocalite'
 
 export const Route = createFileRoute('/_authenticated/parametrage/localites/')({
-  component: RouteComponent,
+  component: ListeLocalite,
 })
-
-function RouteComponent() {
-  return <div>Hello "/_authenticated/parametrage/localites/"!</div>
-}

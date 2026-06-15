@@ -33,12 +33,15 @@ interface DynamicFormProps {
   submitText?: string
   loadingText?: string
   onFieldChange?: (fieldName: string, value: unknown) => void
-  /** Bouton secondaire (ex. Annuler / Retour) dans le pied du formulaire */
   onCancel?: () => void
   cancelText?: string
-  /** Bouton retour étape précédente (ex. formulaire multi-étapes) */
   onBack?: () => void
   backText?: string
+  embedded?: boolean
+  className?: string
+  hideFormFooter?: boolean
+  formId?: string
+  renderAfter?: React.ReactNode  // ← Ajoute cette ligne
 }
 
 export interface DynamicFormHandle {
@@ -62,6 +65,11 @@ export const DynamicForm = forwardRef<DynamicFormHandle, DynamicFormProps>(
       cancelText = 'Annuler',
       onBack,
       backText = 'Précédent',
+      embedded = false,
+      className,
+      hideFormFooter,
+      formId,
+      renderAfter
     },
     ref
   ) => {
@@ -83,8 +91,8 @@ export const DynamicForm = forwardRef<DynamicFormHandle, DynamicFormProps>(
     } = form
 
     useEffect(() => {
-  reset(defaultValues);
-}, [defaultValues]);
+      reset(defaultValues);
+    }, [defaultValues]);
 
     useImperativeHandle(ref, () => ({
       setValue: (name: string, value: any) =>
@@ -110,7 +118,10 @@ export const DynamicForm = forwardRef<DynamicFormHandle, DynamicFormProps>(
       return true
     }
 
-    const visibleFields = config.fields.filter(shouldShowField)
+    const visibleFields = config.fields.filter(
+      (field) => field.type !== 'hidden' && shouldShowField(field)
+    )
+    const hiddenFields = config.fields.filter((field) => field.type === 'hidden')
     const hasErrors = Object.keys(errors).length > 0
     const errorCount = Object.keys(errors).length
 
@@ -118,44 +129,56 @@ export const DynamicForm = forwardRef<DynamicFormHandle, DynamicFormProps>(
 
     const status = hasErrors
       ? {
-          icon: <AlertCircle className='h-3.5 w-3.5' />,
-          label: `${errorCount} erreur${errorCount > 1 ? 's' : ''} à corriger`,
-          variant: 'destructive' as const,
-          dot: 'bg-destructive',
-        }
+        icon: <AlertCircle className='h-3.5 w-3.5' />,
+        label: `${errorCount} erreur${errorCount > 1 ? 's' : ''} à corriger`,
+        variant: 'destructive' as const,
+        dot: 'bg-destructive',
+      }
       : isDirty
         ? {
-            icon: <PenLine className='h-3.5 w-3.5' />,
-            label: 'Modifications en attente',
-            variant: 'secondary' as const,
-            dot: 'bg-amber-400',
-          }
+          icon: <PenLine className='h-3.5 w-3.5' />,
+          label: 'Modifications en attente',
+          variant: 'secondary' as const,
+          dot: 'bg-amber-400',
+        }
         : {
-            icon: <CheckCircle2 className='h-3.5 w-3.5' />,
-            label: 'Formulaire prêt',
-            variant: 'outline' as const,
-            dot: 'bg-emerald-400',
-          }
+          icon: <CheckCircle2 className='h-3.5 w-3.5' />,
+          label: 'Formulaire prêt',
+          variant: 'outline' as const,
+          dot: 'bg-emerald-400',
+        }
 
     return (
       <div
         className={cn(
-          'overflow-hidden rounded-xl border border-border/60 bg-card shadow-sm',
-          'transition-shadow duration-300 hover:shadow-md'
+          embedded
+            ? 'overflow-visible border-0 bg-transparent shadow-none'
+            : 'overflow-hidden rounded-xl border border-border/60 bg-card shadow-sm transition-shadow duration-300 hover:shadow-md',
+          className
         )}
       >
-        <div className='h-px w-full bg-gradient-to-r from-transparent via-border to-transparent' />
+        {!embedded && (
+          <div className='h-px w-full bg-gradient-to-r from-transparent via-border to-transparent' />
+        )}
 
         {/* ── Corps du formulaire ── */}
         <Form {...form}>
-          <form onSubmit={handleSubmit(onSubmit as any)}>
-            <div className='p-6'>
-              <div className='grid grid-cols-1 gap-x-5 gap-y-5 sm:grid-cols-2'>
+          <form onSubmit={handleSubmit(onSubmit as any)} id={formId}  >
+            {hiddenFields.map((field) => (
+              <input key={field.name} type='hidden' {...register(field.name)} />
+            ))}
+            <div className={cn(embedded ? 'px-0 pt-0 pb-1' : 'p-6')}>
+              <div
+                className={cn(
+                  'grid grid-cols-1 sm:grid-cols-2',
+                  embedded ? 'gap-x-5 gap-y-3' : 'gap-x-5 gap-y-5'
+                )}
+              >
                 {visibleFields.map((field, index) => (
                   <div
                     key={field.name}
                     className={cn(
-                      'animate-in duration-300 fade-in-0 fill-mode-both slide-in-from-bottom-2',
+                      'animate-in duration-300 fade-in-0 fill-mode-both slide-in-from-bottom-2 min-w-0',
                       field.gridCols === 1
                         ? 'col-span-1 sm:col-span-2'
                         : 'col-span-1'
@@ -173,41 +196,60 @@ export const DynamicForm = forwardRef<DynamicFormHandle, DynamicFormProps>(
                   </div>
                 ))}
               </div>
+              {renderAfter && (
+                <div className="mt-6">
+                  {renderAfter}
+                </div>
+              )}
             </div>
 
-            <div className='mx-6 h-px bg-border/50' />
+            <div
+              className={cn(
+                'h-px bg-border/50',
+                embedded ? 'mt-3' : 'mx-6'
+              )}
+            />
 
-            {/* ── Pied du formulaire (aligné StepDynamicForm / PTBA) ── */}
-            <div className='flex items-center justify-between gap-4 px-6 py-4'>
-                {/* Indicateur de statut */}
-                <div className='flex items-center gap-2'>
-                  <span className='relative flex h-2 w-2'>
-                    {(isDirty || hasErrors) && (
+            {/* ── Pied du formulaire (aligné StepDynamicForm / PTBA) ── Cacher si hideFormFooter */}
+            {!hideFormFooter && (
+              <div
+                className={cn(
+                  'flex items-center gap-4',
+                  embedded ? 'justify-end pt-3' : 'justify-between px-6 py-4',
+
+                )}
+              >
+                {/* Indicateur de statut (masqué en modal embarqué sauf erreurs) */}
+                {(!embedded || hasErrors) && (
+                  <div className='flex min-w-0 shrink items-center gap-2'>
+                    <span className='relative flex h-2 w-2'>
+                      {(isDirty || hasErrors) && (
+                        <span
+                          className={cn(
+                            'absolute inline-flex h-full w-full animate-ping rounded-full opacity-60',
+                            status.dot
+                          )}
+                        />
+                      )}
                       <span
                         className={cn(
-                          'absolute inline-flex h-full w-full animate-ping rounded-full opacity-60',
+                          'relative inline-flex h-2 w-2 rounded-full',
                           status.dot
                         )}
                       />
-                    )}
-                    <span
-                      className={cn(
-                        'relative inline-flex h-2 w-2 rounded-full',
-                        status.dot
-                      )}
-                    />
-                  </span>
+                    </span>
 
-                  <Badge
-                    variant={status.variant}
-                    className='gap-1.5 rounded-md px-2 py-0.5 text-[11px] font-medium'
-                  >
-                    {status.icon}
-                    {status.label}
-                  </Badge>
-                </div>
+                    <Badge
+                      variant={status.variant}
+                      className='gap-1.5 rounded-md px-2 py-0.5 text-[11px] font-medium'
+                    >
+                      {status.icon}
+                      {status.label}
+                    </Badge>
+                  </div>
+                )}
 
-                <div className='flex items-center gap-2'>
+                <div className='flex shrink-0 items-center gap-2'>
                   {onBack && (
                     <Button
                       type='button'
@@ -257,7 +299,8 @@ export const DynamicForm = forwardRef<DynamicFormHandle, DynamicFormProps>(
                     )}
                   </Button>
                 </div>
-            </div>
+              </div>
+            )}
           </form>
         </Form>
       </div>

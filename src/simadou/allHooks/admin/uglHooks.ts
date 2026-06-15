@@ -1,16 +1,67 @@
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { uglService } from '@/simadou/allSercices/uglService';
+import { UGLFormData } from '@/simadou/allTypes/entities';
+import { toast } from 'sonner';
 
-// Gardez votre hook existant pour les composants React
+export const uglQueryKeys = {
+  all: ['ugls'] as const,
+  lists: () => [...uglQueryKeys.all, 'list'] as const,
+  list: () => [...uglQueryKeys.lists()] as const,
+  details: () => [...uglQueryKeys.all, 'detail'] as const,
+  detail: (id: number) => [...uglQueryKeys.details(), id] as const,
+  localites: ['localites'] as const,
+}
+
 export const useGetUgls = () => {
   return useQuery({
-    queryKey: ['ugls'],
-    queryFn: () => uglService.getAll()
-  });
-};
+    queryKey: uglQueryKeys.list(),
+    queryFn: () => uglService.getAll(),
+  })
+}
 
 // Ajoutez cette fonction pour une utilisation en dehors des composants React
 export const getUgls = async () => {
   const response = await uglService.getAll();
   return response;
 };
+
+export const useSaveUgl = (isEdit: boolean, currentRow?: any, onSuccess?: () => void) => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (data: UGLFormData) =>
+      isEdit && currentRow?.id_ugl
+        ? uglService.update(currentRow.id_ugl, data)
+        : uglService.create(data),
+
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: uglQueryKeys.list(),
+      })
+      toast.success(isEdit ? 'UGL modifiée avec succès' : 'UGL créée avec succès')
+
+      onSuccess?.()
+    },
+
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Une erreur est survenue')
+    },
+  })
+}
+
+export const useDeleteUgl = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (id: number) => uglService.delete(id),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: uglQueryKeys.list(),
+      })
+      toast.success('UGL supprimée avec succès')
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Erreur lors de la suppression')
+    },
+  })
+}

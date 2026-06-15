@@ -10,7 +10,9 @@ export const indicateurStrategiqueService = {
   },
 
   // Créer un nouvel indicateur
-  async create(data: IndicateurStrategique): Promise<IndicateurStrategique> {
+  async create(
+    data: Omit<IndicateurStrategique, "id_indicateur_str">
+  ): Promise<IndicateurStrategique> {
     return await apiClient.request<IndicateurStrategique>(BASE_URL, {
       method: "POST",
       data,
@@ -18,7 +20,10 @@ export const indicateurStrategiqueService = {
   },
 
   // Mettre à jour un indicateur
-  async update(id: number, data: IndicateurStrategique): Promise<IndicateurStrategique> {
+  async update(
+    id: number,
+    data: Partial<IndicateurStrategique>
+  ): Promise<IndicateurStrategique> {
     return await apiClient.request<IndicateurStrategique>(`${BASE_URL}${id}/`, {
       method: "PUT",
       data,

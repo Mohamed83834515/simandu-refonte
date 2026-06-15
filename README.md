@@ -502,8 +502,29 @@ export const useDeleteProduitLocal = () => {
 
 ### 2) Manipulation de hook Generic
 
+* [ ]  ETAT DE CHARGEMENT (GENERIC AU NIVEAU DU DATABASE ET REUTILISABLE)
 
+Pour ce faire il y a trois choses a faire très simple.
 
-# EN COURS DE REDACTION
+1) S'assurez dans le tableau qu'on manipule qu'on n'a pas ajouter une animation ou animation manuell
+2) Prenons exemple sur le composant : ListePtba.tsx
+   Dans ce composant on doit appéler les données pour les affichées, donc dans le corps de la requêtte ajouter : isLoading
 
-* [ ]
+```js
+//isLoading extrait de  NavigationProgress global s'en charge visuellement
+  const { data: ptbas = [], isLoading } = useGetPtbas()
+```
+
+### Puisque "Ptba" hérite du GenericTable alors ajouter donc isLoading
+
+```js
+ <GenericTable<Ptba>
+        data={filteredPtbas}
+        columns={columns}
+        search={search}
+        navigate={navigate}
+      
+        isLoading={isLoading} // ✅ déclenche NavigationProgress global
+```
+
+c'est tout.......

@@ -1,6 +1,3 @@
-import { useState } from "react"
-
-
 import { DynamicForm } from "@/Global/Forms/DynamicForm"
 
 import { getVersionPtbaFormConfig } from "@/simadou/allfieldsConfig/versionPtbaForm"
@@ -9,6 +6,7 @@ import { useSaveVersion } from "@/simadou/allHooks/admin/versionHooks"
 import { versionPtbaSchema } from "@/simadou/schemas/ptbaSchemas"
 import { VersionPtba } from "@/simadou/allTypes"
 import { useActiveProgrammeCode } from "@/hooks/use-active-programme"
+import { useMe } from "@/simadou/allHooks/auth/authHooks"
 
 type Props = {
     currentRow?: VersionPtba | null
@@ -27,12 +25,9 @@ export default function AddVersionPtba({
     const formConfig =
         getVersionPtbaFormConfig()
 
-    const [selectedFile, setSelectedFile] =
-        useState<File | null>(null)
-
-
     const codeProgramme = useActiveProgrammeCode()
 
+    const { data: user } = useMe()
     const defaultValues = {
         annee_ptba:
             currentRow?.annee_ptba ||
@@ -57,21 +52,21 @@ export default function AddVersionPtba({
             currentRow?.statut_version || 0,
 
         programme:
-            currentRow?.programme || codeProgramme || "",
+            (typeof currentRow?.programme === 'object' && currentRow?.programme !== null
+                ? currentRow?.programme.code_programme
+                : codeProgramme) || codeProgramme || "",
 
-        id_personnel: currentRow?.id_personnel || 16,
+        id_personnel: user?.n_personnel,
 
         etat: currentRow?.id_version_ptba ? "Modifiée" : "Créée",
 
     }
-
-
     const mutation = useSaveVersion(isEdit, currentRow, onSuccess)
-
+    
     const handleSubmit = (data: any) => {
         mutation.mutate({
             data,
-            file: selectedFile || undefined,
+            file: data.documentUrl || undefined,
         })
     }
 
@@ -88,19 +83,6 @@ export default function AddVersionPtba({
                     : "Ajouter"
             }
             loadingText="Enregistrement..."
-            onFieldChange={(
-                fieldName,
-                value
-            ) => {
-                if (
-                    fieldName === "documentUrl"
-                ) {
-                    if (value instanceof File) {
-                        setSelectedFile(value)
-                    }
-                }
-            }}
-
             onCancel={onBack}
             cancelText='Retour'
         />

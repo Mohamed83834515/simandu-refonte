@@ -1,11 +1,7 @@
+import ListePlanSite from '@/simadou/allfonctionalities/parametrage/plan-site/ListePlanSite'
 import { createFileRoute } from '@tanstack/react-router'
-
 export const Route = createFileRoute(
   '/_authenticated/parametrage/plans-de-site/',
 )({
-  component: RouteComponent,
+  component: ListePlanSite,
 })
-
-function RouteComponent() {
-  return <div>Hello "/_authenticated/parametrage/plans-de-site/"!</div>
-}

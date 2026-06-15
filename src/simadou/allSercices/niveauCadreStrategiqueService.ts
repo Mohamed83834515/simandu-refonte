@@ -7,6 +7,7 @@ export interface NiveauCadreStrategiqueFormData {
   libelle_nsc: string;
   code_number_nsc: number;
   type_niveau: number;
+  programme?: string;
 }
 
 export const niveauCadreStrategiqueService = {

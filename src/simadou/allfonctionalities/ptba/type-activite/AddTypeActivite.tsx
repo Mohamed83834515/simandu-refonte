@@ -3,6 +3,7 @@ import { getTypeActiviteFormConfig } from "@/simadou/allfieldsConfig/typeActivit
 import { useSaveTypeActivite } from "@/simadou/allHooks/admin/typeActivitesHooks"
 import { TypeActivite } from "@/simadou/allTypes/entities"
 import { typeActiviteSchema } from "@/simadou/schemas/ptbaSchemas"
+import { useMemo } from "react"
 
 type Props = {
   currentRow?: TypeActivite | null
@@ -18,14 +19,26 @@ export default function AddTypeActivite({
 }: Props) {
   const isEdit = !!currentRow
 
-  const formConfig = getTypeActiviteFormConfig()
-
   const defaultValues = {
     code_type: currentRow?.code_type || "",
     intutile_type: currentRow?.intutile_type || "",
     description: currentRow?.description || "",
   }
+  const formConfig = useMemo(() => {
+    const config = getTypeActiviteFormConfig()
 
+    // Mettre à jour les options des champs select
+    return {
+      fields: config.fields.map((field) => {
+        if (field.name === 'code_type' && currentRow !== null) {
+
+          console.log('ok')
+          return { ...field, disabled: true }
+        }
+        return field
+      }),
+    }
+  }, [currentRow])
   const mutation = useSaveTypeActivite(isEdit, currentRow, onSuccess)
 
   const handleSubmit = (data: any) => {

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { getRouteApi } from '@tanstack/react-router'
 import {
   Dialog,
@@ -8,17 +8,20 @@ import {
 } from '@/components/ui/dialog'
 import { GenericTable } from '@/Global/Generic/Generictable'
 import { DIALOG_SIZES } from '@/Global/Forms/dialog'
-import type { Ptba } from '@/simadou/allTypes'
+import type { Ptba, SuiviAvancementContrat } from '@/simadou/allTypes'
 import { buildSuiviPtbaColumns } from '@/simadou/allColonnes/suivi-ptba-columns'
 import { useActiveProgrammeCode } from '@/hooks/use-active-programme'
 import { useGetPtbas } from '@/simadou/allHooks/admin/ptbaHooks'
 import { usePtbaVersionSelection } from '@/simadou/allHooks/admin/versionHooks'
+import { PtbaVersionSelect } from '@/simadou/allfonctionalities/ptba/PtbaVersionSelect'
 import { useSuiviPtbaActivitesProgress } from '@/simadou/allHooks/admin/suiviPtbaHooks'
 import ActiviteTabbedDialog from './ActiviteTabbedDialog'
 import ObservationPtbaManager from './observations/ObservationPtbaManager'
 import SuiviAvancementContratManager from './suivi-avancement-contrat/SuiviAvancementContratManager'
 import SuiviIndicateurManager from './suivi-indicateur/SuiviIndicateurManager'
 import SuiviTacheActiviteManager from './suivi-tache/SuiviTacheActiviteManager'
+import SuiviDecaissementPtbaManager from './suivi-decaissement/SuiviDecaissementPtbaManager'
+import suiviAvancementContratService from '@/simadou/allSercices/suiviAvancementContratService'
 
 const route = getRouteApi('/_authenticated/programmation/suivi-ptba/')
 
@@ -27,14 +30,12 @@ export default function ListeSuiviPtba() {
   const search = route.useSearch()
   const navigate = route.useNavigate()
 
-  const { selectedVersionId, setSelectedVersionId, versionOptions } =
+  const { selectedVersionId, handleChangeVersion, versionOptions } =
     usePtbaVersionSelection(codeProgramme)
   const [suiviActivite, setSuiviActivite] = useState<Ptba | null>(null)
   const [showSuiviModal, setShowSuiviModal] = useState(false)
   const [showObservationModal, setShowObservationModal] = useState(false)
-  const [observationActivite, setObservationActivite] = useState<Ptba | null>(
-    null
-  )
+  const [observationActivite, setObservationActivite] = useState<Ptba | null>(null)
 
   const { data: ptbas = [] } = useGetPtbas()
 
@@ -59,6 +60,34 @@ export default function ListeSuiviPtba() {
     isLoading: progressLoading,
   } = useSuiviPtbaActivitesProgress(activiteIds)
 
+  // Récupérer les observations pour chaque PTBA
+  const [observationsByActivite, setObservationsByActivite] = useState<Map<number, SuiviAvancementContrat[]>>(new Map())
+  const [isLoadingObservations, setIsLoadingObservations] = useState(true)
+
+  useEffect(() => {
+    const fetchAllObservations = async () => {
+      setIsLoadingObservations(true)
+      const map = new Map<number, SuiviAvancementContrat[]>()
+      
+      for (const ptba of filteredPtbas) {
+        try {
+          const observations = await suiviAvancementContratService.getByActivite(ptba.id_ptba)
+          map.set(ptba.id_ptba, observations)
+        } catch (error) {
+          console.error(`Erreur chargement observations pour PTBA ${ptba.id_ptba}`, error)
+          map.set(ptba.id_ptba, [])
+        }
+      }
+      
+      setObservationsByActivite(map)
+      setIsLoadingObservations(false)
+    }
+    
+    if (filteredPtbas.length > 0) {
+      fetchAllObservations()
+    }
+  }, [filteredPtbas])
+
   const columns = useMemo(
     () =>
       buildSuiviPtbaColumns({
@@ -73,11 +102,15 @@ export default function ListeSuiviPtba() {
         tachesByActivite,
         avancementByActivite,
         progressLoading,
+        observationsByActivite,
+        isLoadingObservations,
       }),
     [
       tachesByActivite,
       avancementByActivite,
       progressLoading,
+      observationsByActivite,
+      isLoadingObservations,
     ]
   )
 
@@ -97,16 +130,14 @@ export default function ListeSuiviPtba() {
             type: 'string',
           },
         ]}
-        facetedFilters={[
-          {
-            columnId: 'version_ptba',
-            title: 'Version PTBA',
-            options: versionOptions,
-            onValueChange: (value: string | undefined) =>
-              setSelectedVersionId(value || null),
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          } as any,
-        ]}
+        toolbarEndSlot={
+          <PtbaVersionSelect
+            options={versionOptions}
+            value={selectedVersionId}
+            onChange={handleChangeVersion}
+          />
+        }
+        showViewOptions={false}
         initialState={{
           columnVisibility: {
             version_ptba: false,
@@ -128,22 +159,26 @@ export default function ListeSuiviPtba() {
                 {
                   value: 'taches',
                   label: 'Suivi des tâches',
-                  content: (
-                    <SuiviTacheActiviteManager activite={suiviActivite} />
-                  ),
+                  content: <SuiviTacheActiviteManager activite={suiviActivite} />,
                 },
                 {
                   value: 'indicateurs',
                   label: 'Suivi des indicateurs',
-                  content: (
-                    <SuiviIndicateurManager activite={suiviActivite} />
-                  ),
+                  content: <SuiviIndicateurManager activite={suiviActivite} />,
+                },
+                {
+                  value: 'decaissement',
+                  label: 'Suivi décaissement',
+                  content: <SuiviDecaissementPtbaManager activite={suiviActivite} />,
                 },
                 {
                   value: 'avancement-contrat',
                   label: "Observation globale sur l'activité",
                   content: (
-                    <SuiviAvancementContratManager activite={suiviActivite} />
+                    <SuiviAvancementContratManager
+                      key={suiviActivite.id_ptba}
+                      activite={suiviActivite}
+                    />
                   ),
                 },
               ]
@@ -163,7 +198,10 @@ export default function ListeSuiviPtba() {
             <DialogTitle>Observations</DialogTitle>
           </DialogHeader>
           {observationActivite && (
-            <ObservationPtbaManager activite={observationActivite} />
+            <ObservationPtbaManager
+              key={observationActivite.id_ptba}
+              activite={observationActivite}
+            />
           )}
         </DialogContent>
       </Dialog>

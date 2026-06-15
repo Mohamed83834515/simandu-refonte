@@ -19,7 +19,7 @@ export const getTypeZoneFormConfig = (): FormConfig => ({
             type: "text",
             placeholder: "Ex: Région, Département, Commune...",
             required: true,
-            gridCols: 2,
+            gridCols: 1,
         },
     ]
 

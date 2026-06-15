@@ -8,6 +8,7 @@ import {
   CommandGroup,
   CommandInput,
   CommandItem,
+  CommandList,
 } from "@/components/ui/command";
 import {
   Popover,
@@ -58,19 +59,19 @@ export function MultiSelect({
     .map((option) => option.label);
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={setOpen} modal={false}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
           role="combobox"
           aria-expanded={open}
           className={cn(
-            "w-full justify-between h-auto min-h-10",
+            "w-full min-w-0 justify-between gap-2 overflow-hidden whitespace-normal h-auto min-h-10",
             !selected.length && "text-muted-foreground",
             className
           )}
           disabled={disabled}>
-          <div className="flex flex-wrap gap-1">
+          <div className="flex min-w-0 flex-1 flex-wrap gap-1 overflow-hidden">
             {selected.length === 0 ? (
               placeholder
             ) : (
@@ -100,28 +101,37 @@ export function MultiSelect({
           <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full p-0">
+      <PopoverContent
+        className="z-[100] p-0"
+        align="start"
+        style={{ width: "var(--radix-popover-trigger-width)" }}
+        onWheel={(e) => e.stopPropagation()}
+        onTouchMove={(e) => e.stopPropagation()}
+      >
         <Command>
-          <CommandInput placeholder="Rechercher..." />
-          <CommandEmpty>Aucun résultat trouvé.</CommandEmpty>
-          <CommandGroup className="max-h-64 overflow-auto">
-            {options.map((option) => (
-              <CommandItem
-                key={option.value}
-                onSelect={() => handleSelect(option.value)}
-              >
-                <Check
-                  className={cn(
-                    "mr-2 h-4 w-4",
-                    selected.includes(option.value)
-                      ? "opacity-100"
-                      : "opacity-0"
-                  )}
-                />
-                {option.label}
-              </CommandItem>
-            ))}
-          </CommandGroup>
+          <CommandInput placeholder="Rechercher..." className="h-9" />
+          <CommandList className="max-h-64">
+            <CommandEmpty>Aucun résultat trouvé.</CommandEmpty>
+            <CommandGroup>
+              {options.map((option) => (
+                <CommandItem
+                  key={option.value}
+                  value={option.label}
+                  onSelect={() => handleSelect(option.value)}
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      selected.includes(option.value)
+                        ? "opacity-100"
+                        : "opacity-0"
+                    )}
+                  />
+                  {option.label}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
         </Command>
       </PopoverContent>
     </Popover>

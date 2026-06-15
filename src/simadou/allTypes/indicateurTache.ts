@@ -19,7 +19,8 @@ export interface IndicateurTacheRequest {
   intitule_indicateur_tache: string;
   unite_ind_tache: number;
   code_indicateur_ptba: string;
-  indicateur_cmr: number; 
+  indicateur_cmr: number;
+  id_activite: number;
   trimestre_1: string;
   trimestre_2: string;
   trimestre_3: string;

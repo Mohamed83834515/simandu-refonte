@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useCallback } from 'react'
 import { GenericTable } from '@/Global/Generic/Generictable'
 import { useEmbeddedTableState } from '@/hooks/use-embedded-table-state'
 import type { TacheActivitePtba } from '@/simadou/allTypes'
@@ -8,6 +8,8 @@ import { useDeleteTachePtba } from '@/simadou/allHooks/admin/tacheActiviteHooks'
 import { toast } from 'sonner'
 import { GenericDeleteDialog } from '@/Global/Tableaux/GenericDeleteDialog'
 import { DataTableToolbarOutlineButton } from '@/components/data-table/toolbar-outline-button'
+import { useGetPersonnels } from '@/simadou/allHooks/admin/personnelHooks'
+import { resolvePersonnelLabel } from '@/simadou/lib/resolveApiRelation'
 
 type SuiviTacheActiviteListProps = {
   taches: TacheActivitePtba[]
@@ -28,9 +30,26 @@ export default function TacheActiviteList({
   const [currentRow, setCurrentRow] =
     useState<TacheActivitePtba | null>(null)
 
+  const { data: personnels = [] } = useGetPersonnels()
+  const personnelsById = useMemo(
+    () =>
+      new Map(
+        personnels
+          .filter((p) => p.n_personnel != null)
+          .map((p) => [p.n_personnel!, p])
+      ),
+    [personnels]
+  )
+
+  const getResponsableLabel = useCallback(
+    (tache: TacheActivitePtba) =>
+      resolvePersonnelLabel(tache.responsable_gt, personnelsById) ?? '',
+    [personnelsById]
+  )
+
   const columns = useMemo(
-    () => buildTachePtbaColumns(setOpen, setCurrentRow, onEdit),
-    [onEdit, setOpen, setCurrentRow]
+    () => buildTachePtbaColumns(setOpen, setCurrentRow, onEdit, getResponsableLabel),
+    [onEdit, setOpen, setCurrentRow, getResponsableLabel]
   )
 
   const deleteMutation = useDeleteTachePtba(idActivite)

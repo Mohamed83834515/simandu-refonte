@@ -1,9 +1,9 @@
 import { type ColumnDef } from '@tanstack/react-table'
-import { ClipboardList } from 'lucide-react'
+import { ClipboardList, Eye } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { DataTableColumnHeader } from '@/components/data-table'
 import { buildColumns } from '@/Global/Tableaux/column-builder'
-import type { Ptba, TacheActivitePtba } from '@/simadou/allTypes'
+import type { Ptba, TacheActivitePtba, SuiviAvancementContrat } from '@/simadou/allTypes'
 import TacheAvancementProgressBar from '@/simadou/allfonctionalities/suivi-ptba/TacheAvancementProgressBar'
 
 export type SuiviPtbaColumnHandlers = {
@@ -12,6 +12,8 @@ export type SuiviPtbaColumnHandlers = {
   tachesByActivite: Map<number, TacheActivitePtba[]>
   avancementByActivite: Map<number, number>
   progressLoading: boolean
+  observationsByActivite: Map<number, SuiviAvancementContrat[]>
+  isLoadingObservations: boolean
 }
 
 export function buildSuiviPtbaColumns(
@@ -23,6 +25,8 @@ export function buildSuiviPtbaColumns(
     tachesByActivite,
     avancementByActivite,
     progressLoading,
+    observationsByActivite,
+    isLoadingObservations,
   } = handlers
 
   const baseColumns = buildColumns<Ptba>([
@@ -41,40 +45,7 @@ export function buildSuiviPtbaColumns(
     { type: 'plain', key: 'version_ptba', title: 'Version PTBA' },
   ])
 
-  const suiviColumn: ColumnDef<Ptba> = {
-    id: 'suivi',
-    header: ({ column }) => (
-      <DataTableColumnHeader
-        column={column}
-        title='Suivis'
-        className='w-full text-center'
-      />
-    ),
-    cell: ({ row }) => {
-      const activite = row.original
-      return (
-        <Button
-          type='button'
-          variant='ghost'
-          size='icon'
-          className='mx-auto flex h-8 w-8 shrink-0 text-primary'
-          onClick={() => onOpenSuivi(activite)}
-          aria-label='Ouvrir le suivi des tâches et indicateurs'
-          title='Suivi des tâches et indicateurs'
-        >
-          <ClipboardList className='h-5 w-5' /> Suivre
-        </Button>
-      )
-    },
-    meta: {
-      thClassName: 'text-center w-[72px]',
-      className: 'text-center align-middle',
-    },
-    size: 72,
-    enableSorting: false,
-    enableHiding: false,
-  }
-
+  // Colonne Avancement des tâches
   const avancementColumn: ColumnDef<Ptba> = {
     id: 'avancement_taches',
     header: ({ column }) => (
@@ -83,9 +54,7 @@ export function buildSuiviPtbaColumns(
     cell: ({ row }) => {
       const id = row.original.id_ptba
       if (progressLoading) {
-        return (
-          <div className='h-2 max-w-[120px] animate-pulse rounded-full bg-muted' />
-        )
+        return <div className='h-2 max-w-[120px] animate-pulse rounded-full bg-muted' />
       }
       if ((tachesByActivite.get(id) ?? []).length === 0) {
         return <span className='text-xs text-muted-foreground'>—</span>
@@ -97,28 +66,138 @@ export function buildSuiviPtbaColumns(
         />
       )
     },
+    maxSize: 150,
     enableSorting: false,
     enableHiding: false,
   }
 
+  // Colonne État d'avancement (dernière observation)
+  const etatAvancementColumn: ColumnDef<Ptba> = {
+    id: 'etat_avancement',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title='État avancement' />
+    ),
+    cell: ({ row }) => {
+      const id = row.original.id_ptba
+      const observations = observationsByActivite.get(id) ?? []
+      
+      if (isLoadingObservations) {
+        return <div className='h-2 max-w-[120px] animate-pulse rounded-full bg-muted' />
+      }
+      
+      if (observations.length === 0) {
+        return <span className='text-xs text-muted-foreground'>—</span>
+      }
+      
+      const dernier = [...observations].sort((a, b) => 
+        new Date(b.date_suivi).getTime() - new Date(a.date_suivi).getTime()
+      )[0]
+      
+      return (
+        <div className='flex flex-col gap-0.5'>
+          <span className='text-sm font-medium'>{dernier.etat_avancement || '—'}</span>
+          <span className='text-[10px] text-muted-foreground'>
+            {new Date(dernier.date_suivi).toLocaleDateString('fr-FR')}
+          </span>
+        </div>
+      )
+    },
+    maxSize: 200,
+    enableSorting: false,
+    enableHiding: false,
+  }
+
+  // Colonne Difficultés rencontrées (dernière observation)
+  const difficulteColumn: ColumnDef<Ptba> = {
+    id: 'difficultes',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title='Difficultés' />
+    ),
+    cell: ({ row }) => {
+      const id = row.original.id_ptba
+      const observations = observationsByActivite.get(id) ?? []
+      
+      if (isLoadingObservations) {
+        return <div className='h-2 max-w-[120px] animate-pulse rounded-full bg-muted' />
+      }
+      
+      if (observations.length === 0) {
+        return <span className='text-xs text-muted-foreground'>—</span>
+      }
+      
+      const dernier = [...observations].sort((a, b) => 
+        new Date(b.date_suivi).getTime() - new Date(a.date_suivi).getTime()
+      )[0]
+      
+      return (
+        <span className='text-sm text-amber-600 dark:text-amber-400'>
+          {dernier.difficultes_rencontrees && dernier.difficultes_rencontrees !== 'N/A' 
+            ? dernier.difficultes_rencontrees 
+            : '—'}
+        </span>
+      )
+    },
+    maxSize: 200,
+    enableSorting: false,
+    enableHiding: false,
+  }
+
+  // Colonne Suivi (bouton)
+  const suiviColumn: ColumnDef<Ptba> = {
+    id: 'suivi',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title='Suivi' className='text-center' />
+    ),
+    cell: ({ row }) => {
+      const activite = row.original
+      return (
+        <div className='flex justify-center'>
+          <Button
+            type='button'
+            variant='outline'
+            size='sm'
+            className='gap-2 border-yellow-200 bg-yellow-50 text-yellow-700 transition-all duration-200 hover:bg-yellow-100 hover:text-yellow-800 dark:border-yellow-800 dark:bg-yellow-950/30 dark:text-yellow-400 dark:hover:bg-yellow-950/50'
+            onClick={() => onOpenSuivi(activite)}
+            aria-label='Ouvrir le suivi'
+            title='Suivi des tâches et indicateurs'
+          >
+            <ClipboardList className='h-4 w-4' />
+            <span className='text-xs font-medium'>Suivre</span>
+          </Button>
+        </div>
+      )
+    },
+    meta: { thClassName: 'text-center', className: 'text-center' },
+    size: 100,
+    enableSorting: false,
+    enableHiding: false,
+  }
+
+  // Colonne Observations (bouton)
   const observationsColumn: ColumnDef<Ptba> = {
     id: 'observations',
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Observations' />
+      <DataTableColumnHeader column={column} title='Observations' className='text-center' />
     ),
     cell: ({ row }) => (
-      <Button
-        type='button'
-        variant='link'
-        className='h-auto p-0 text-xs'
-        onClick={() => onOpenObservations(row.original)}
-      >
-        Observations
-      </Button>
+      <div className='flex justify-center'>
+        <Button
+          type='button'
+          variant='ghost'
+          size='sm'
+          className='gap-1'
+          onClick={() => onOpenObservations(row.original)}
+        >
+          <Eye className='h-4 w-4' />
+          <span className='text-xs'>Voir</span>
+        </Button>
+      </div>
     ),
+    meta: { thClassName: 'text-center', className: 'text-center' },
+    size: 100,
     enableSorting: false,
     enableHiding: false,
   }
 
-  return [...baseColumns, suiviColumn, avancementColumn, observationsColumn]
+  return [...baseColumns, avancementColumn, etatAvancementColumn, difficulteColumn, suiviColumn, observationsColumn]
 }

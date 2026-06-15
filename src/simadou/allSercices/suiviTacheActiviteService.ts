@@ -9,7 +9,7 @@ import {
 const ENDPOINT = "/suivi-tache-activites/";
 const WITH_LIVRABLES_ENDPOINT = "/suivi-tache-activites/with-livrables/";
 
-type SuiviFieldsJson = Omit<SuiviTacheActiviteFormData, "livrable_fichier"> & {
+export type SuiviFieldsJson = Omit<SuiviTacheActiviteFormData, "livrable_fichier"> & {
   id_activite_ptba: number;
   lot_realisee: number;
 };

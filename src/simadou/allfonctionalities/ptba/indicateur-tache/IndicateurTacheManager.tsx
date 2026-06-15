@@ -1,16 +1,18 @@
-// simadou/components/suivi/IndicateurTacheManager.tsx
 import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { Loader2 } from 'lucide-react'
 import type { Ptba } from '@/simadou/allTypes'
-import { suiviPtbaQueryKeys } from '@/simadou/allHooks/admin/indicateurTacheHooks'
+import { IndicateurTache } from '@/simadou/allTypes/indicateurTache'
+import {
+  suiviPtbaQueryKeys,
+  useGetIndicateursByActivite,
+} from '@/simadou/allHooks/admin/indicateurTacheHooks'
+import ActiviteTabbedFormPanel from '../ActiviteTabbedFormPanel'
 import {
   ActiviteTabbedSubViewHeader,
   useActiviteTabbedSubView,
 } from '../ActiviteTabbedDialogContext'
-import { useGetIndicateursByActivite } from '@/simadou/allHooks/admin/indicateurTacheHooks'
 import IndicateurTacheForm from './IndicateurTacheForm'
-import { IndicateurTache } from '@/simadou/allTypes/indicateurTache'
 import IndicateurTacheList from './IndicateurTacheList'
 
 type IndicateurTacheManagerProps = {
@@ -55,56 +57,53 @@ export default function IndicateurTacheManager({
 
   if (isLoading) {
     return (
-      <div className='flex items-center justify-center py-12'>
+      <div className='flex items-center justify-center py-8'>
         <Loader2 className='h-8 w-8 animate-spin text-muted-foreground' />
       </div>
     )
   }
 
   return (
-    <>
-      <div className='flex-1 overflow-y-auto'>
-        {showForm ? (
-          <div>
+    <div className='flex min-h-0 flex-1 flex-col overflow-hidden'>
+      {showForm ? (
+        <ActiviteTabbedFormPanel
+          header={
             <ActiviteTabbedSubViewHeader
-              sectionLabel="Indicateurs de l'activité"
-              className='-mt-2 border-0 px-6'
+              sectionLabel={
+                editing
+                  ? `Modifier — ${editing.intitule_indicateur_tache}`
+                  : 'Nouvel indicateur'
+              }
+              className='shrink-0 border-0 px-0 pb-0 text-sm font-semibold text-foreground'
             />
-            <div className='p-6 pt-2'>
-              <IndicateurTacheForm
-                indicateur={editing}
-                activite={activite}
-                onClose={handleCloseForm}
-                onSuccess={handleSuccess}
-              />
-            </div>
-          </div>
-        ) : (
-          <div className='p-6'>
-            <IndicateurTacheList
-              indicateurs={indicateurs}
-              idActivite={activite.id_ptba}
-              onEdit={handleEdit}
-              onAdd={handleAdd}
-            />
-          </div>
-        )}
-      </div>
+          }
+        >
+          <IndicateurTacheForm
+            indicateur={editing}
+            activite={activite}
+            onClose={handleCloseForm}
+            onSuccess={handleSuccess}
+          />
+        </ActiviteTabbedFormPanel>
+      ) : (
+        <div className='min-h-0 flex-1 overflow-y-auto px-3 py-2 sm:px-4 sm:py-3'>
+          <IndicateurTacheList
+            indicateurs={indicateurs}
+            idActivite={activite.id_ptba}
+            onEdit={handleEdit}
+            onAdd={handleAdd}
+          />
+        </div>
+      )}
 
       {!showForm && (
-        <div className='border-t bg-muted/40 px-6 py-4 text-sm'>
-          <div className='flex flex-wrap items-center justify-between gap-4'>
-            <div>
-              <span className='font-medium'>Activité :</span>{' '}
-              {activite.code_activite_ptba} — {activite.intitule_activite_ptba}
-            </div>
-            <div>
-              <span className='font-medium'>Total indicateurs :</span>{' '}
-              {indicateurs.length}
-            </div>
+        <div className='shrink-0 border-t bg-muted/40 px-3 py-2 text-sm sm:px-4'>
+          <div className='text-xs text-muted-foreground'>
+            {indicateurs.length}{' '}
+            {indicateurs.length === 1 ? 'indicateur' : 'indicateurs'}
           </div>
         </div>
       )}
-    </>
+    </div>
   )
 }

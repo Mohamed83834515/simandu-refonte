@@ -20,7 +20,7 @@ export const getFonctionFormConfig = (): FormConfig => ({
             placeholder: "Description détaillée de la fonction...",
             rows: 4,
             required: true,
-            gridCols: 2,
+            gridCols: 1,
         },
     ]
 

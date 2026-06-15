@@ -86,16 +86,17 @@ const versionPtbaService = {
       method: "DELETE",
     });
   },
-
   async valider(id: number): Promise<VersionPtba> {
-    return apiClient.request(`${ENDPOINT}${id}/valider/`, {
+    return apiClient.request(`${ENDPOINT}${id}/`, {
       method: "PATCH",
+      data: { statut_version: 1 }
     });
   },
 
   async archiver(id: number): Promise<VersionPtba> {
-    return apiClient.request(`${ENDPOINT}${id}/archiver/`, {
+    return apiClient.request(`${ENDPOINT}${id}/`, {
       method: "PATCH",
+      data: { statut_version: 2 }
     });
   },
 };

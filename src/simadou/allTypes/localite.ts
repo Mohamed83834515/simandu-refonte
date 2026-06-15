@@ -6,5 +6,5 @@ export interface Localite extends Record<string, unknown> {
   intitule_loca: string;
   code_national_loca: string;
   parent_loca: number | null;
-  niveau_loca: NiveauLocalite;
+  niveau_loca: NiveauLocalite | number;
 }

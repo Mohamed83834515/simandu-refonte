@@ -1,7 +1,7 @@
 import type { FormConfig } from '../../Global/types/formConfig'
 import { statutActiviteOptions } from '../schemas/suiviAvancementContratSchemas'
 
-/** Champs formulaire alignés sur suiviAvancementContratSchema (écran suivi PTBA). */
+/** Champs formulaire alignés sur suiviAvancementContratSuiviPtbaSchema (écran suivi PTBA). */
 export const getSuiviAvancementContratFormConfigForSuivi = (): FormConfig => ({
   fields: [
     {
@@ -9,7 +9,6 @@ export const getSuiviAvancementContratFormConfigForSuivi = (): FormConfig => ({
       label: 'Date du suivi',
       type: 'date',
       required: true,
-      gridCols: 1,
     },
     {
       name: 'statut_activite',
@@ -17,7 +16,6 @@ export const getSuiviAvancementContratFormConfigForSuivi = (): FormConfig => ({
       type: 'select',
       required: true,
       options: [...statutActiviteOptions],
-      gridCols: 1,
     },
     {
       name: 'etat_avancement',
@@ -25,23 +23,7 @@ export const getSuiviAvancementContratFormConfigForSuivi = (): FormConfig => ({
       type: 'textarea',
       rows: 2,
       required: true,
-      gridCols: 2,
-    },
-    {
-      name: 'difficultes_rencontrees',
-      label: 'Difficultés rencontrées',
-      type: 'textarea',
-      rows: 3,
-      required: true,
-      gridCols: 2,
-    },
-    {
-      name: 'pistes_solutions',
-      label: 'Pistes de solutions',
-      type: 'textarea',
-      rows: 3,
-      required: true,
-      gridCols: 2,
+      className: 'resize-y',
     },
     {
       name: 'observation',
@@ -49,7 +31,23 @@ export const getSuiviAvancementContratFormConfigForSuivi = (): FormConfig => ({
       type: 'textarea',
       rows: 2,
       required: true,
-      gridCols: 2,
+      className: 'resize-y',
+    },
+    {
+      name: 'difficultes_rencontrees',
+      label: 'Difficultés rencontrées',
+      type: 'textarea',
+      rows: 2,
+      required: true,
+      className: 'resize-y',
+    },
+    {
+      name: 'pistes_solutions',
+      label: 'Pistes de solutions',
+      type: 'textarea',
+      rows: 2,
+      required: true,
+      className: 'resize-y',
     },
     {
       name: 'documents_fichiers',
@@ -60,7 +58,7 @@ export const getSuiviAvancementContratFormConfigForSuivi = (): FormConfig => ({
       maxSize: 10,
       helperText: 'PDF, images ou documents (max 10 Mo par fichier)',
       required: false,
-      gridCols: 2,
+      gridCols: 1,
     },
   ],
 })

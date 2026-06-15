@@ -11,7 +11,7 @@ export const getNiveauLocaliteFormConfig = (): FormConfig => ({
             placeholder: "Ex: 1, 2, 3...",
             required: true,
             min: 1,
-            gridCols: 1,
+            gridCols: 2,
         },
         // texte - Libellé niveau localité
         {
@@ -30,7 +30,7 @@ export const getNiveauLocaliteFormConfig = (): FormConfig => ({
             placeholder: "Ex: 01, 02, 03...",
             required: true,
             min: 0,
-            gridCols: 1,
+            gridCols: 2,
         },
     ]
 

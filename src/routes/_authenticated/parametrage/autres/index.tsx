@@ -1,9 +1,13 @@
-import { createFileRoute } from '@tanstack/react-router'
+
+
+import { createFileRoute, redirect } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/_authenticated/parametrage/autres/')({
-  component: RouteComponent,
+  beforeLoad: () => {
+    throw redirect({ to: '/parametrage/autres/system' })
+  },
 })
 
-function RouteComponent() {
-  return <div>Hello "/_authenticated/parametrage/autres/"!</div>
-}
+
+
+

@@ -10,7 +10,7 @@ export interface CadreStrategique extends Record<string, unknown> {
   date_enregistrement: string;
   date_modification: string;
   etat?: number;
-  partenaire_cs?: Acteur | null;
+  partenaire_cs?: number[] | Acteur[] | number | Acteur | null;
   parent_cs?: CadreStrategique | number | null;
   programme_cs?: Programme | null;
   created_at?: string;

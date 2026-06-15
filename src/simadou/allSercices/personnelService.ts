@@ -4,6 +4,9 @@ import type { Personnel } from "../allTypes";
 import { PersonnelFormData } from "../allTypes/entities";
 
 
+interface UpdateProfilePictureResponse {
+   personnel_profile_picture: "string"
+}
 const BASE_URL = "/personnels/";
 
 export const personnelService = {
@@ -38,6 +41,7 @@ export const personnelService = {
         method: "POST",
         data,
       });
+      toast.success("Personnel créé avec succès");
       return response;
     } catch (error) {
       toast.error("Erreur lors de la création du personnel");
@@ -51,14 +55,12 @@ export const personnelService = {
     data: PersonnelFormData,
   ): Promise<Personnel> {
     try {
-      data.projet_active_perso =
-        (data.projet_active_perso as string)
-          ?.split(",")
-          .map((p) => p.trim() || undefined) || [];
-      data.projet_active_perso = (data.projet_active_perso as string[])?.filter(
-        Boolean,
-      );
-      console.log(data);
+      if (typeof data.projet_active_perso === "string") {
+        data.projet_active_perso = data.projet_active_perso
+          .split(",")
+          .map((p) => p.trim())
+          .filter(Boolean);
+      }
       const response = await apiClient.request<Personnel>(
         `${BASE_URL}${n_personnel}/`,
         {
@@ -125,4 +127,42 @@ export const personnelService = {
       throw error;
     }
   },
+  //  Update profile picture
+  async updateProfilePicture(n_personnel : number, file : File) : Promise<UpdateProfilePictureResponse>{
+    try {
+      const formData = new FormData()
+  formData.append('personnel_profile_picture', file)
+     const res = await apiClient.request<UpdateProfilePictureResponse>(
+    `/personnels/${n_personnel}/profile-picture/`, {
+      data : formData,
+      headers : { 'Content-Type': 'multipart/form-data' },
+      method : 'PATCH'
+    })
+    return  res
+    } catch (error) {
+      toast.error("Erreur lors de la modification de la photo de profile");
+      throw error;
+    }
+  },
+
+
+  // Delete profile picture
+  async deleteProfilePicture (n_personel : number) : Promise<void> {
+    try {
+        await apiClient.request<void>(`/personnels/${n_personel}/profile-picture/`, {
+          method : 'DELETE'
+        })
+        toast.success("Photo de profile supprimée");
+    } catch (error) {
+      toast.error("Erreur lors de la suppression de la photo de profile");
+      throw new Error
+      
+    }
+  }
+
+
+
 };
+
+
+

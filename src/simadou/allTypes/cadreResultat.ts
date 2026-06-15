@@ -12,8 +12,8 @@ export interface CadreResultat extends Record<string, unknown> {
   etat?: string | null;
   niveau_cr?: number | null;
   partenaire_cr?: Acteur | string | null;
-  parent_cr?: number | null;
-  projet_cr?: number | null;
+  parent_cr?: string | number | null;
+  projet_cr?: string | number | null;
   // Relations populées
   niveau?: NiveauCadreResultat | null;
   partenaire?: Acteur | null;

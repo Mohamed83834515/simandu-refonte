@@ -1,73 +1,38 @@
-import { toast } from "sonner";
 import { apiClient } from "@/axios/api";
 import type {
   NiveauCadreResultat,
   NiveauCadreResultatFormData,
 } from "../allTypes";
+import { normalizeApiList } from "./apiListUtils";
 
 export const niveauCadreResultatService = {
-  // Get all niveaux
   getAll: async (): Promise<NiveauCadreResultat[]> => {
-    try {
-      const response = await apiClient.request<NiveauCadreResultat[]>(
-        "/niveau_cadre_resultat/",
-      );
-      return Array.isArray(response)
-        ? response.sort((a, b) => b.nombre_ncr - a.nombre_ncr)
-        : [];
-    } catch (error) {
-      toast.error(
-        "Erreur lors de la récupération des niveaux de cadre de résultat",
-      );
-      throw error;
-    }
+    const response = await apiClient.request<unknown>("/niveau_cadre_resultat/");
+    return normalizeApiList<NiveauCadreResultat>(response).sort(
+      (a, b) => a.nombre_ncr - b.nombre_ncr,
+    );
   },
 
-  // Get niveau by ID
   getById: async (id: number): Promise<NiveauCadreResultat> => {
-    try {
-      return await apiClient.request<NiveauCadreResultat>(
-        `/niveau_cadre_resultat/${id}/`,
-      );
-    } catch (error) {
-      toast.error(
-        "Erreur lors de la récupération du niveau de cadre de résultat",
-      );
-      throw error;
-    }
+    return await apiClient.request<NiveauCadreResultat>(
+      `/niveau_cadre_resultat/${id}/`,
+    );
   },
 
-  // Get niveaux by type
   getByType: async (type: 1 | 2 | 3): Promise<NiveauCadreResultat[]> => {
-    try {
-      const response = await apiClient.request<NiveauCadreResultat[]>(
-        `/niveau_cadre_resultat/?type_niveau=${type}`,
-      );
-      return Array.isArray(response) ? response : [];
-    } catch (error) {
-      toast.error(
-        "Erreur lors de la récupération des niveaux de cadre de résultat",
-      );
-      throw error;
-    }
+    const response = await apiClient.request<unknown>(
+      `/niveau_cadre_resultat/?type_niveau=${type}`,
+    );
+    return normalizeApiList<NiveauCadreResultat>(response);
   },
 
-  // Search niveaux
   search: async (query: string): Promise<NiveauCadreResultat[]> => {
-    try {
-      const response = await apiClient.request<NiveauCadreResultat[]>(
-        `/niveau_cadre_resultat/?search=${encodeURIComponent(query)}`,
-      );
-      return Array.isArray(response) ? response : [];
-    } catch (error) {
-      toast.error(
-        "Erreur lors de la recherche des niveaux de cadre de résultat",
-      );
-      throw error;
-    }
+    const response = await apiClient.request<unknown>(
+      `/niveau_cadre_resultat/?search=${encodeURIComponent(query)}`,
+    );
+    return normalizeApiList<NiveauCadreResultat>(response);
   },
 
-  // Create new niveau
   create: async (
     data: NiveauCadreResultatFormData,
   ): Promise<NiveauCadreResultat> => {
@@ -80,7 +45,6 @@ export const niveauCadreResultatService = {
     );
   },
 
-  // Update niveau
   update: async (
     id: number,
     data: Partial<NiveauCadreResultatFormData>,
@@ -94,7 +58,6 @@ export const niveauCadreResultatService = {
     );
   },
 
-  // Delete niveau
   delete: async (id: number): Promise<void> => {
     await apiClient.request(`/niveau_cadre_resultat/${id}/`, {
       method: "DELETE",

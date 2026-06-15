@@ -115,17 +115,6 @@ export function buildSuiviAvancementContratColumns(
     enableHiding: false,
   }
 
-  const etatColumn: ColumnDef<SuiviAvancementContrat> = {
-    id: 'etat',
-    accessorKey: 'etat',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='État' />
-    ),
-    cell: ({ row }) => truncate(row.original.etat, 60),
-    enableSorting: false,
-    enableHiding: false,
-  }
-
   const actionsColumn = buildColumns<SuiviAvancementContrat>([
     {
       type: 'actions',
@@ -140,7 +129,7 @@ export function buildSuiviAvancementContratColumns(
     },
   ])[0]
 
-  // Plain cells show raw values; override statut/etat for truncation
+  // Plain cells show raw values; override statut/etat_avancement for truncation
   const statutColumn: ColumnDef<SuiviAvancementContrat> = {
     ...baseColumns[0],
     cell: ({ row }) => truncate(row.original.statut_activite, 80),
@@ -155,7 +144,6 @@ export function buildSuiviAvancementContratColumns(
     statutColumn,
     etatAvancementColumn,
     observationColumn,
-    etatColumn,
     actionsColumn,
   ]
 }

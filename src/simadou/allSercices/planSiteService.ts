@@ -1,84 +1,59 @@
-import { toast } from "sonner";
 import { apiClient } from "@/axios/api";
-import type { PlanSite } from "../allTypes";
-import { PlanSiteFormData } from "../allTypes/entities";
+import type { NiveauStructure, PlanSite } from "../allTypes";
+const BASE_URL = '/plan-sites/'
 
 export const planSiteService = {
-  // Récupérer tous les plans de site
   async getAll(): Promise<PlanSite[]> {
-    try {
-      const response = await apiClient.request<PlanSite[]>("/plan_site/");
-      return response || [];
-    } catch (error) {
-      toast.error("Erreur lors de la récupération des plans de site");
-      throw error;
-    }
+    return await apiClient.request<PlanSite[]>(BASE_URL)
   },
 
-  // Récupérer un plan de site par ID
   async getById(id: number): Promise<PlanSite> {
-    try {
-      const response = await apiClient.request<PlanSite>(`/plan_site/${id}/`);
-      return response;
-    } catch (error) {
-      toast.error("Erreur lors de la récupération du plan de site");
-      throw error;
-    }
+    return await apiClient.request<PlanSite>(`${BASE_URL}${id}/`)
   },
 
-  // Créer un nouveau plan de site
-  async create(data: PlanSiteFormData): Promise<PlanSite> {
-    try {
-      const response = await apiClient.request<PlanSite>("/plan_site/", {
-        method: "POST",
-        data,
-      });
-      toast.success("Plan de site créé avec succès");
-      return response;
-    } catch (error) {
-      toast.error("Erreur lors de la création du plan de site");
-      throw error;
-    }
+  async create(data: PlanSite): Promise<PlanSite> {
+    return await apiClient.request<PlanSite>(BASE_URL, {
+      method: "POST",
+      data,
+    })
   },
 
-  // Mettre à jour un plan de site
-  async update(id: number, data: PlanSiteFormData): Promise<PlanSite> {
-    try {
-      const response = await apiClient.request<PlanSite>(`/plan_site/${id}/`, {
-        method: "PUT",
-        data,
-      });
-      toast.success("Plan de site modifié avec succès");
-      return response;
-    } catch (error) {
-      toast.error("Erreur lors de la modification du plan de site");
-      throw error;
-    }
+  async update(id: number, data: PlanSite): Promise<PlanSite> {
+    return await apiClient.request<PlanSite>(`${BASE_URL}${id}/`, {
+      method: "PUT",
+      data,
+    })
   },
 
-  // Supprimer un plan de site
   async delete(id: number): Promise<void> {
-    try {
-      await apiClient.request<void>(`/plan_site/${id}/`, {
-        method: "DELETE",
-      });
-      toast.success("Plan de site supprimé avec succès");
-    } catch (error) {
-      toast.error("Erreur lors de la suppression du plan de site");
-      throw error;
-    }
+    await apiClient.request<void>(`${BASE_URL}${id}/`, {
+      method: "DELETE",
+    })
+  },
+}
+
+
+const BASE_URL_NIVEAU = '/niveaux-niveaux-structure-config/'
+
+export const NiveauStructureService = {
+  async getAll(): Promise<NiveauStructure[]> {
+    return await apiClient.request<NiveauStructure[]>(BASE_URL_NIVEAU)
   },
 
-  // Rechercher des plans de site
-  async search(query: string): Promise<PlanSite[]> {
-    try {
-      const response = await apiClient.request<PlanSite[]>(
-        `/plan_site/search/?q=${encodeURIComponent(query)}`,
-      );
-      return response || [];
-    } catch (error) {
-      toast.error("Erreur lors de la recherche de plans de site");
-      throw error;
-    }
+  async getById(id: number): Promise<NiveauStructure> {
+    return await apiClient.request<NiveauStructure>(`${BASE_URL_NIVEAU}${id}/`)
   },
-};
+
+  async create(data: NiveauStructure[]): Promise<any> {
+    return await apiClient.request(BASE_URL_NIVEAU, {
+      method: "POST",
+      data,
+    })
+  },
+
+  async delete(id: number): Promise<void> {
+    await apiClient.request<void>(`${BASE_URL_NIVEAU}${id}/`, {
+      method: "DELETE",
+    })
+  },
+}

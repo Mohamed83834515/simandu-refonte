@@ -1,12 +1,15 @@
 import { apiClient } from "@/axios/api";
 import type { IndicateurPerformanceProjet } from "../allTypes";
 
+const prefix = "/indicateurs-performance-projet/"
+
 const indicateurPerformanceProjetService = {
   /**
    * Récupère tous les indicateurs de performance
    */
+
   async getAll(): Promise<IndicateurPerformanceProjet[]> {
-    return apiClient.request("/indicateur_performance_projet/", {
+    return apiClient.request(prefix, {
       method: "GET",
     });
   },
@@ -15,7 +18,7 @@ const indicateurPerformanceProjetService = {
    * Récupère un indicateur par son ID
    */
   async getById(id: number): Promise<IndicateurPerformanceProjet> {
-    return apiClient.request(`/indicateur_performance_projet/${id}/`, {
+    return apiClient.request(`${prefix}${id}/`, {
       method: "GET",
     });
   },
@@ -25,7 +28,7 @@ const indicateurPerformanceProjetService = {
    */
   async getByCode(code: string): Promise<IndicateurPerformanceProjet> {
     const response = await apiClient.request<IndicateurPerformanceProjet[]>(
-      "/indicateur_performance_projet/",
+      prefix,
       {
         method: "GET",
         params: { code_indicateur_performance: code },
@@ -40,7 +43,7 @@ const indicateurPerformanceProjetService = {
   async getByActiviteProjet(
     codeActivite: string,
   ): Promise<IndicateurPerformanceProjet[]> {
-    return apiClient.request("/indicateur_performance_projet/", {
+    return apiClient.request(prefix, {
       method: "GET",
       params: { code_activite_projet: codeActivite },
     });
@@ -52,7 +55,7 @@ const indicateurPerformanceProjetService = {
   async create(
     data: Omit<IndicateurPerformanceProjet, "id_indicateur_performance">,
   ): Promise<IndicateurPerformanceProjet> {
-    return apiClient.request("/indicateur_performance_projet/", {
+    return apiClient.request(prefix+ "with-cibles/", {
       method: "POST",
       data,
     });
@@ -67,8 +70,8 @@ const indicateurPerformanceProjetService = {
       Omit<IndicateurPerformanceProjet, "id_indicateur_performance">
     >,
   ): Promise<IndicateurPerformanceProjet> {
-    return apiClient.request(`/indicateur_performance_projet/${id}/`, {
-      method: "PUT",
+    return apiClient.request(`${prefix}${id}/with-cibles/`, {
+      method: "PATCH",
       data,
     });
   },
@@ -77,7 +80,7 @@ const indicateurPerformanceProjetService = {
    * Supprime un indicateur
    */
   async delete(id: number): Promise<void> {
-    await apiClient.request(`/indicateur_performance_projet/${id}/`, {
+    await apiClient.request(`${prefix}${id}/`, {
       method: "DELETE",
     });
   },
@@ -86,7 +89,7 @@ const indicateurPerformanceProjetService = {
    * Recherche des indicateurs
    */
   async search(query: string): Promise<IndicateurPerformanceProjet[]> {
-    return apiClient.request("/indicateur_performance_projet/", {
+    return apiClient.request(prefix, {
       method: "GET",
       params: { search: query },
     });
