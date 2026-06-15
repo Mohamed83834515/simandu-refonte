@@ -21,8 +21,14 @@ export default defineConfig({
       '.ngrok-free.app',
       '.trycloudflare.com',
       'eleven-baffle-untrue.ngrok-free.dev',
-      // Add any other domains you use
     ],
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        secure: false,
+      },
+    },
   },
   resolve: {
     alias: {

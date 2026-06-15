@@ -4,9 +4,10 @@ import { useAuthStore } from '@/stores/auth-store'
 import { useSessionStore } from '@/stores/others/session.store'
 import { getConfigDuration } from '@/lib/session-config'
 
+// En dev : URL relative → proxy Vite redirige vers localhost:8000 (pas de CORS)
+// En prod : VITE_API_BASE_URL doit pointer vers https://api.ruche-sectoriel.net/api/
 const BASE_URL =
-  (import.meta.env.VITE_API_BASE_URL as string) ||
-  'http://localhost:8000/api/'
+  (import.meta.env.VITE_API_BASE_URL as string) || '/api/'
 
 export const api = axios.create({
   baseURL: BASE_URL,
