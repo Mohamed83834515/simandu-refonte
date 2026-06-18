@@ -12,12 +12,12 @@ export interface Projet {
   date_demarrage_projet: string;
   partenaire_projet: Acteur | null;
   programme_projet?: Programme | number;
-  mps?: boolean;
   structure_projet: number;
   signataires_projet: Acteur[];
   partenaires_execution_projet: Acteur[];
   zone_projet: Localite[];
   budget_projet?: number,
+  type_projet?: number,
 }
 
 export type ProjetFormData = Omit<Projet, "id_projet">;

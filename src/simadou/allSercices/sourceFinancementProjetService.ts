@@ -13,16 +13,16 @@ const sourceFinancementProjetService = {
         return apiClient.request(`${ENDPOINT}${id}/`, { method: "GET" });
     },
 
-    async getByActivite(niveauId: string): Promise<{ sourceFinancement: SourFinancementProjet[] }> {
+    async getByActivite(niveauId: number): Promise<{ sourceFinancement: SourFinancementProjet[] }> {
         const allSource = await this.getAll()
         // Filtrer les localités dont l'objet niveau_loca a l'id correspondant
         const filtered = allSource.filter((src) => {
             // Si niveau_loca est un objet, comparer son id
             if (src.code_activite_projet && src.code_activite_projet !== null) {
-                return src.code_activite_projet === niveauId
+                return Number(src.code_activite_projet) === niveauId
             }
             // Si c'est un nombre (ancienne structure), comparer directement
-            return src.niveau_loca === niveauId
+            return Number(src.code_activite_projet)=== niveauId
         })
         return { sourceFinancement: filtered }
     },

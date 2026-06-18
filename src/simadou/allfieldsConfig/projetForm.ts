@@ -1,4 +1,5 @@
 import type { FormConfig, SelectOption } from '../../Global/types/formConfig'
+import { UGL } from '../allTypes'
 import type { Acteur } from '../allTypes/acteur'
 import type { CategorieActeur } from '../allTypes/categorieActeur'
 import type { Localite } from '../allTypes/localite'
@@ -22,17 +23,14 @@ function acteurOptionsByCode(acteurs: Acteur[], code: string): SelectOption[] {
     .map((a) => ({ value: a.id_acteur, label: a.nom_acteur }))
 }
 
-function ptfOptions(acteurs: Acteur[]): SelectOption[] {
-  // Partenaires financiers = catégorie '02' ou '04'
-  return acteurs
-    .filter((a) => acteurHasCategoryCode(a, '02') || acteurHasCategoryCode(a, '04'))
-    .map((a) => ({ value: a.id_acteur, label: a.nom_acteur }))
-}
-
 function zoneOptions(localites: Localite[]): SelectOption[] {
   return localites
     .filter((z) => typeof z.niveau_loca === 'object' && z.niveau_loca?.nombre_nlc === 2)
     .map((z) => ({ value: z.id_loca, label: z.intitule_loca }))
+}
+function uglOptions(ugls: UGL[]): SelectOption[] {
+  return ugls
+    .map((z) => ({ value: z.id_ugl, label: z.nom_ugl }))
 }
 
 // ── Config principale ──────────────────────────────────────────────────────────
@@ -41,7 +39,8 @@ function zoneOptions(localites: Localite[]): SelectOption[] {
 
 export const getProjetFormConfig = (
   acteurs: Acteur[] = [],
-  localites: Localite[] = []
+  localites: Localite[] = [],
+  ugls: UGL[]
 ): FormConfig => ({
   // ── Étapes déclarées une seule fois ──
   steps: [
@@ -106,14 +105,6 @@ export const getProjetFormConfig = (
       gridCols: 2,
       formStep: 1,
     },
-    {
-      name: 'mps',
-      label: 'Méga projet',
-      type: 'switch',
-      helperText: 'Définir le projet comme étant un méga projet',
-      className: 'field-card',
-      gridCols: 2,
-    },
 
     // ════════════ ÉTAPE 2 — Acteurs & zones ════════════
 
@@ -123,7 +114,7 @@ export const getProjetFormConfig = (
       type: 'multiselect',
       placeholder: 'Sélectionner un ou plusieurs PTF',
       required: true,
-      options: ptfOptions(acteurs),
+      options: acteurOptionsByCode(acteurs, '04'),
       gridCols: 2,
       formStep: 2,
     },
@@ -133,7 +124,7 @@ export const getProjetFormConfig = (
       type: 'select',
       placeholder: 'Sélectionner une unité de gestion',
       required: true,
-      options: acteurOptionsByCode(acteurs, '05'),
+      options: uglOptions(ugls),
       gridCols: 2,
       formStep: 2,
     },

@@ -9,7 +9,6 @@ import { useActiveProgrammeCode } from '@/hooks/use-active-programme'
 import { useEmbeddedTableState } from '@/hooks/use-embedded-table-state'
 import type { Projet } from '@/simadou/allTypes'
 import type { PtbaProjet } from '@/simadou/allTypes/ptbaProjet'
-import { buildPtbasColumns } from '@/simadou/allColonnes/ptbas-columns'
 import {
   useDeletePtbaProjet,
   useGetPtbasProjet,
@@ -23,6 +22,7 @@ import AddPtbaProjet from './AddPtbaProjet'
 import TacheActiviteProjetManager from './tache-activite-projet/TacheActiviteManager'
 import IndicateurTacheProjetManager from './indicateur-tache-projet/IndicateurTacheManager'
 import { useGeneralParamsQuery } from '@/simadou/allHooks/generalParams/queries'
+import { buildPtbasProjetColumns } from '@/simadou/allColonnes/ptbas-projet-columns'
 
 type ProjetPtbaPanelProps = {
   projet: Projet
@@ -83,7 +83,7 @@ export default function ProjetPtbaPanel({ projet }: ProjetPtbaPanelProps) {
 
   const columns = useMemo(
     () =>
-      buildPtbasColumns(
+      buildPtbasProjetColumns(
         setOpen,
         setCurrentRow,
         onOpenPlanification,
@@ -100,7 +100,7 @@ export default function ProjetPtbaPanel({ projet }: ProjetPtbaPanelProps) {
         </p>
         <Button type='button' onClick={() => setOpen('add')}>
           <Plus className='h-4 w-4' />
-          Ajouter PTBA
+          Ajouter PTBA 
         </Button>
       </div>
 

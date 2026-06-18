@@ -169,7 +169,12 @@ export default function ListeSuiviPtba() {
                 {
                   value: 'decaissement',
                   label: 'Suivi décaissement',
-                  content: <SuiviDecaissementPtbaManager activite={suiviActivite} />,
+                  content: (
+                    <SuiviDecaissementPtbaManager
+                      key={suiviActivite.id_ptba}
+                      activite={suiviActivite}
+                    />
+                  ),
                 },
                 {
                   value: 'avancement-contrat',

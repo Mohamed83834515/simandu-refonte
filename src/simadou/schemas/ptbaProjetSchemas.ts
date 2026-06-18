@@ -38,6 +38,7 @@ export const ptbaProjetSchema = z.object({
     .positive('Le responsable doit être sélectionné')
     .optional(),
   ugl_ptba: z.string().optional(),
+  cout_ptba: z.number().optional(),
   code_projet: z.string().min(1, 'Le code projet est requis'),
   code_actvite_projet: z
     .number()

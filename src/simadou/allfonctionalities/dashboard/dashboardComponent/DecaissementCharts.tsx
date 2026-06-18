@@ -100,16 +100,16 @@ const DecaissementCharts: React.FC<DecaissementChartsProps> = ({
 }) => {
   const { color } = useColor();
   const { stroke } = CHART_COLORS[color];
-  
+
   const pieData = dataBailleur.map((d) => ({
     name: d.bailleur,
     value: d.montant_decaisse,
   }));
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
       {/* Décaissement par bailleur - barres groupées */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-5">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-3">
         <div className="mb-4">
           <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
             Décaissement par bailleur
@@ -147,7 +147,7 @@ const DecaissementCharts: React.FC<DecaissementChartsProps> = ({
       </div>
 
       {/* Répartition des décaissements - camembert */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-5">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-3">
         <div className="mb-4">
           <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
             Répartition des décaissements
@@ -200,7 +200,7 @@ const DecaissementCharts: React.FC<DecaissementChartsProps> = ({
       </div>
 
       {/* Évolution mensuelle */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-5 lg:col-span-2">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-3 lg:col-span-2">
         <div className="mb-4">
           <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
             Évolution mensuelle des décaissements

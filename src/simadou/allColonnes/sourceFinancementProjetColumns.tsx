@@ -28,13 +28,20 @@ export const buildSourceFinancementProjetColumns = (
       id: 'montant_source_financement',
       accessorKey: 'montant_source_financement',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title='Montant' />
+        <DataTableColumnHeader
+          column={column}
+          title={`Montant ${currencyCode || 'GNF'}`}
+          className='justify-center'
+        />
       ),
       cell: ({ row }) => (
-        <div className='font-mono tabular-nums'>
-          {new Intl.NumberFormat('fr-FR').format(Number(row.original.montant_source_financement))} {currencyCode || "GNF"}
+        <div className='w-full text-center font-mono tabular-nums'>
+          {new Intl.NumberFormat('fr-FR').format(
+            Number(row.original.montant_source_financement)
+          )}
         </div>
       ),
+      meta: { thClassName: 'text-center', className: 'text-center' },
     },
     {
       id: 'date_signature_convention',

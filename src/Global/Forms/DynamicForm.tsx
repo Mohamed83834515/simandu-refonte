@@ -122,6 +122,7 @@ export const DynamicForm = forwardRef<DynamicFormHandle, DynamicFormProps>(
       (field) => field.type !== 'hidden' && shouldShowField(field)
     )
     const hiddenFields = config.fields.filter((field) => field.type === 'hidden')
+    const useThreeColumnGrid = visibleFields.some((field) => field.gridCols === 3)
     const hasErrors = Object.keys(errors).length > 0
     const errorCount = Object.keys(errors).length
 
@@ -153,25 +154,22 @@ export const DynamicForm = forwardRef<DynamicFormHandle, DynamicFormProps>(
         className={cn(
           embedded
             ? 'overflow-visible border-0 bg-transparent shadow-none'
-            : 'overflow-hidden rounded-xl border border-border/60 bg-card shadow-sm transition-shadow duration-300 hover:shadow-md',
+            : 'overflow-visible border-0 bg-transparent shadow-none',
           className
         )}
       >
-        {!embedded && (
-          <div className='h-px w-full bg-gradient-to-r from-transparent via-border to-transparent' />
-        )}
-
         {/* ── Corps du formulaire ── */}
         <Form {...form}>
           <form onSubmit={handleSubmit(onSubmit as any)} id={formId}  >
             {hiddenFields.map((field) => (
               <input key={field.name} type='hidden' {...register(field.name)} />
             ))}
-            <div className={cn(embedded ? 'px-0 pt-0 pb-1' : 'p-6')}>
+            <div className={cn(embedded ? 'px-0 pt-0 pb-1' : 'px-2 pt-0 pb-1')}>
               <div
                 className={cn(
-                  'grid grid-cols-1 sm:grid-cols-2',
-                  embedded ? 'gap-x-5 gap-y-3' : 'gap-x-5 gap-y-5'
+                  'grid grid-cols-1',
+                  useThreeColumnGrid ? 'sm:grid-cols-3' : 'sm:grid-cols-2',
+                  embedded ? 'gap-x-5 gap-y-3' : 'gap-x-4 gap-y-3'
                 )}
               >
                 {visibleFields.map((field, index) => (
@@ -179,9 +177,13 @@ export const DynamicForm = forwardRef<DynamicFormHandle, DynamicFormProps>(
                     key={field.name}
                     className={cn(
                       'animate-in duration-300 fade-in-0 fill-mode-both slide-in-from-bottom-2 min-w-0',
-                      field.gridCols === 1
-                        ? 'col-span-1 sm:col-span-2'
-                        : 'col-span-1'
+                      useThreeColumnGrid
+                        ? field.gridCols === 1
+                          ? 'col-span-1 sm:col-span-3'
+                          : 'col-span-1'
+                        : field.gridCols === 1
+                          ? 'col-span-1 sm:col-span-2'
+                          : 'col-span-1'
                     )}
                     style={{ animationDelay: `${index * 40}ms` }}
                   >
@@ -206,7 +208,7 @@ export const DynamicForm = forwardRef<DynamicFormHandle, DynamicFormProps>(
             <div
               className={cn(
                 'h-px bg-border/50',
-                embedded ? 'mt-3' : 'mx-6'
+                embedded ? 'mt-3' : 'mx-2 mt-3'
               )}
             />
 
@@ -215,7 +217,7 @@ export const DynamicForm = forwardRef<DynamicFormHandle, DynamicFormProps>(
               <div
                 className={cn(
                   'flex items-center gap-4',
-                  embedded ? 'justify-end pt-3' : 'justify-between px-6 py-4',
+                  embedded ? 'justify-end pt-3' : 'justify-between px-2 pt-3',
 
                 )}
               >

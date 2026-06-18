@@ -64,7 +64,7 @@ function CadreAnalytiqueNiveauTable({
   onDeleteRequest: (row: CadreAnalytique) => void
 }) {
   const { search, navigate } = useEmbeddedTableState()
-  
+
   const columns = useMemo(
     () =>
       buildCadreAnalytiqueColumns({
@@ -245,16 +245,16 @@ export default function ListeCadreAnalytique() {
   }
 
   return (
-    <div className='space-y-4'>
+    <div className='space-y-2 px-2'>
       <Tabs
         orientation='vertical'
-        className='space-y-4'
+        className='gap-1 space-y-1'
         style={tabsStyle}
         key={sortedNiveaux.length}
         value={String(currentNiveauCode)}
         onValueChange={handleTabChange}
       >
-        <div className='flex items-center justify-between gap-4'>
+        <div className='flex items-center justify-between gap-2'>
           <div className='flex-1 overflow-x-auto'>
             <NiveauTabsList>
               {sortedNiveaux.map((n) => (
@@ -269,7 +269,7 @@ export default function ListeCadreAnalytique() {
             </NiveauTabsList>
           </div>
 
-          <div className='flex shrink-0 flex-col gap-2 sm:flex-row sm:items-center'>
+          <div className='flex shrink-0 flex-col gap-1 sm:flex-row sm:items-center'>
             <div className='relative'>
               <Search className='absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
               <Input
@@ -330,14 +330,14 @@ export default function ListeCadreAnalytique() {
 
       <Dialog open={showForm} onOpenChange={(o) => !o && handleCloseForm()}>
         <DialogContent className='gap-0 overflow-hidden p-0 sm:max-w-3xl' aria-describedby={undefined}>
-          <DialogHeader className='border-b px-6 py-4'>
+          <DialogHeader className='border-b px-4 py-3'>
             <DialogTitle>
               {selectedCadre
                 ? `Mise à jour d’un ${currentNiveauLibelle}`
                 : `Ajout d’un ${currentNiveauLibelle}`}
             </DialogTitle>
           </DialogHeader>
-          <div className='px-6 py-4'>
+          <div className='px-4 py-3'>
             <CadreAnalytiqueFormPanel
               programmeId={programmeId}
               codeProgramme={codeProgramme}

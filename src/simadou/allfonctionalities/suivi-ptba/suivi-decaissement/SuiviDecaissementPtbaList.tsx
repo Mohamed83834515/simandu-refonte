@@ -65,6 +65,7 @@ export default function SuiviDecaissementPtbaList({
           },
         ]}
         defaultPageSize={10}
+        compactPagination
         showViewOptions={false}
         toolbarEndSlot={
           <DataTableToolbarOutlineButton className='ms-auto' onClick={onAdd}>

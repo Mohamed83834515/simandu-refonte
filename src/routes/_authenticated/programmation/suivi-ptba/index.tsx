@@ -12,7 +12,7 @@ export const Route = createFileRoute(
 function RouteComponent() {
   return (
     <PageRouteLayout
-      title='Suivi du PTBA'
+      title="Suivi du Plan d'Action Operationnel"
       icon={Eye}
       showAddButton={false}
       listComponent={ListeSuiviPtba}

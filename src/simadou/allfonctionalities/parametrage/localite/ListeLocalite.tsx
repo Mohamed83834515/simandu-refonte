@@ -105,8 +105,8 @@ export default function ListeLocalite() {
     }
 
     return (
-        <div className='space-y-4'>
-            <div className='flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between'>
+        <div className='space-y-2 px-2'>
+            <div className='flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between'>
                 <p className='text-sm text-muted-foreground'>
                     Configurez d&apos;abord les niveaux, puis ajoutez les localités par niveau.
                 </p>
@@ -121,7 +121,7 @@ export default function ListeLocalite() {
 
             {!isLoadingNiveaux && !hasNiveaux ? (
                 <Card className='border-dashed text-center'>
-                    <p className='mb-3 text-sm text-muted-foreground'>
+                    <p className='mb-2 text-sm text-muted-foreground'>
                         Configurez les niveaux des localités avant d&apos;ajouter des localités.
                     </p>
                     <Button type='button' onClick={() => setShowModal('niveaux')}>
@@ -133,13 +133,13 @@ export default function ListeLocalite() {
                 <Tabs
                     orientation='vertical'
                     defaultValue='overview'
-                    className='space-y-4'
+                    className='space-y-2'
                     style={tabsStyle}
                     key={sortedNiveaux.length}
                     value={String(currentNiveauId)}
                     onValueChange={setActiveNiveauId}
                 >
-                    <div className='flex items-center justify-between gap-4'>
+                    <div className='flex items-center justify-between gap-2'>
                         <div className='overflow-x-auto flex-1'>
                             <NiveauTabsList>
                                 {sortedNiveaux.map((n: any) => (

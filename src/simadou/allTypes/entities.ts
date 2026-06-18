@@ -155,7 +155,7 @@ export interface ProjetActivePerso {
   date_demarrage_projet: string;
   partenaire_projet: number;
   programme_projet: number;
-  structure_projet: number[];
+  structure_projet: number;
   signataires_projet: number[];
   partenaires_execution_projet: number[];
   zone_projet: number[];

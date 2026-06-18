@@ -5,6 +5,7 @@ import {
   FileText,
   Layout,
   LayoutDashboard,
+  OctagonAlert,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -16,6 +17,7 @@ export type ProjetDetailTabKey =
   | 'results_framework'
   | 'cmr_indicators'
   | 'documents'
+  | 'points_blocage'
 
 export type ProjetDetailTab = {
   key: ProjetDetailTabKey
@@ -66,5 +68,11 @@ export const projetDetailTabs: ProjetDetailTab[] = [
     name: 'Documents',
     icon: FileText,
     description: 'Documents rattachés au projet.',
+  },
+  {
+    key: 'points_blocage',
+    name: 'Points de blocage',
+    icon: OctagonAlert,
+    description: 'Recommandations et missions de supervision du projet.',
   },
 ]

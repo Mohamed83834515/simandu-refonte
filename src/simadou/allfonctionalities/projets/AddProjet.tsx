@@ -15,6 +15,8 @@ import { useCreateProjet, useUpdateProjet } from '@/simadou/allHooks/admin/proje
 import { ProjectCreateData, projectCreateSchema } from '@/simadou/schemas/projetSchema'
 import { toast } from 'sonner'
 import { StepDynamicForm } from '@/Global/Forms/StepDynamicForm'
+import { useGetUgls } from '@/simadou/allHooks/admin/uglHooks'
+import { useTypeProjetStore } from '@/stores/type-projet-store'
 
 interface OpenPropsProjet {
   currentRow?: any | null
@@ -29,12 +31,13 @@ export default function AddProjet({ open, onOpenChange, currentRow }: OpenPropsP
   // ── Données pour les options ──
   const { data: acteurs = [] } = useGetActeurs()
   const { data: localites = [] } = useGetLocalites()
+  const { data: ugls = [] } = useGetUgls()
 
-
+  const { selectedTypeProjetId } = useTypeProjetStore()
   // ── Config du formulaire (options injectées ici, pas dans le fichier config) ──
   const formConfig = useMemo(
-    () => getProjetFormConfig(acteurs, localites),
-    [acteurs, localites]
+    () => getProjetFormConfig(acteurs, localites, ugls),
+    [acteurs, localites, ugls]
   )
 
   // ── Mutations ──
@@ -47,6 +50,11 @@ export default function AddProjet({ open, onOpenChange, currentRow }: OpenPropsP
   const extractId = (item: any): number => {
     if (typeof item === 'number') return item
     if (item && typeof item === 'object') return item.id_acteur || item.id_loca || item.id_projet || 0
+    return 0
+  }
+  const extractUniteId = (item: any): number => {
+    if (typeof item === 'number') return item
+    if (item && typeof item === 'object') return item.id_ugl || item.nom_ugl || 0
     return 0
   }
 
@@ -63,9 +71,9 @@ export default function AddProjet({ open, onOpenChange, currentRow }: OpenPropsP
     date_signature_projet: currentRow?.date_signature_projet ?? '',
     date_demarrage_projet: currentRow?.date_demarrage_projet ?? '',
     duree_projet: currentRow?.duree_projet ?? 0,
-    mps: currentRow?.mps ?? false,
+    type_projet: selectedTypeProjetId ?? 0,
 
-    structure_projet: extractId(currentRow?.structure_projet?.[0] ?? 0),
+    structure_projet: extractUniteId(currentRow?.structure_projet ?? 0),
     signataires_projet: extractIds(currentRow?.signataires_projet),
     partenaires_execution_projet: extractIds(currentRow?.partenaires_execution_projet),
     zone_projet: extractIds(currentRow?.zone_projet),
@@ -80,7 +88,7 @@ export default function AddProjet({ open, onOpenChange, currentRow }: OpenPropsP
 
     const payload = {
       ...data,
-      structure_projet: [data.structure_projet],
+      structure_projet: data.structure_projet,
       signataires_projet: data.signataires_projet.map(Number),
       partenaires_execution_projet: data.partenaires_execution_projet.map(Number),
       zone_projet: data.zone_projet.map(Number),

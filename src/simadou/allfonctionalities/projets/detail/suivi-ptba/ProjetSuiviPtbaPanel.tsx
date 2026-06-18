@@ -18,6 +18,9 @@ import SuiviIndicateurProjetManager from './suivi-indicateur/SuiviIndicateurMana
 import SuiviAvancementContratProjetManager from './suivi-avancement-contrat/SuiviAvancementContratManager'
 import SuiviDecaissementPtbaProjetManager from './suivi-decaissement/SuiviDecaissementPtbaProjetManager'
 import { buildSuiviPtbaProjetColumns } from '@/simadou/allColonnes/suivi-ptba-projet-columns'
+import { PtbaVersionSelect } from '@/simadou/allfonctionalities/ptba/PtbaVersionSelect'
+import { usePtbaVersionSelection } from '@/simadou/allHooks/admin/versionHooks'
+import { useActiveProgrammeCode } from '@/hooks/use-active-programme'
 
 type ProjetSuiviPtbaPanelProps = {
   projet: Projet
@@ -25,8 +28,19 @@ type ProjetSuiviPtbaPanelProps = {
 
 export default function ProjetSuiviPtbaPanel({ projet }: ProjetSuiviPtbaPanelProps) {
   const codeProjet = projet.code_projet
+  const activeProgrammeCode = useActiveProgrammeCode()
+  const codeProgramme =
+    typeof projet.programme_projet === 'object' &&
+      projet.programme_projet?.code_programme
+      ? projet.programme_projet.code_programme
+      : activeProgrammeCode
+
   const { search, navigate } = useEmbeddedTableState()
   const { data: ptbas = [] } = useGetPtbasProjet(codeProjet)
+
+  // 📌 Filtre par version (année)
+  const { selectedVersionId, handleChangeVersion, versionOptions } =
+    usePtbaVersionSelection(codeProgramme)
 
   const [suiviActivite, setSuiviActivite] = useState<PtbaProjet | null>(null)
   const [showSuiviModal, setShowSuiviModal] = useState(false)
@@ -34,12 +48,21 @@ export default function ProjetSuiviPtbaPanel({ projet }: ProjetSuiviPtbaPanelPro
   const [observationActivite, setObservationActivite] =
     useState<PtbaProjet | null>(null)
 
+  // 📌 Filtrer les PTBA par version (année) sélectionnée
+  const filteredPtbas = useMemo(() => {
+    if (!selectedVersionId) return ptbas
+    return ptbas.filter(
+      (ptba) => ptba.version_ptba?.toString() === selectedVersionId
+    )
+  }, [ptbas, selectedVersionId])
+
+  // 📌 Extraire les IDs des activités filtrées
   const activiteIds = useMemo(
     () =>
-      ptbas
+      filteredPtbas
         .map((a) => a.id_ptba)
         .filter((id): id is number => Number.isFinite(id)),
-    [ptbas]
+    [filteredPtbas]
   )
 
   const {
@@ -68,12 +91,20 @@ export default function ProjetSuiviPtbaPanel({ projet }: ProjetSuiviPtbaPanelPro
 
   return (
     <div className='space-y-4'>
-      <p className='text-sm text-muted-foreground'>
-        Suivi d&apos;avancement des activités PTBA rattachées à ce projet.
-      </p>
+      <div className='flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between'>
+        <p className='text-sm text-muted-foreground'>
+          Suivi d&apos;avancement des activités PTBA rattachées à ce projet.
+        </p>
+        {/* 📌 Sélecteur de version (année) */}
+        <PtbaVersionSelect
+          options={versionOptions}
+          value={selectedVersionId}
+          onChange={handleChangeVersion}
+        />
+      </div>
 
       <GenericTable<PtbaProjet>
-        data={ptbas}
+        data={filteredPtbas}  
         columns={columns}
         search={search}
         navigate={navigate}

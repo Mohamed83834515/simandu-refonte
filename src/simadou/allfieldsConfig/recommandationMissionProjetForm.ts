@@ -1,0 +1,118 @@
+import type { FormConfig, SelectOption } from '@/Global/types/formConfig'
+import { typeMissionRecommandationOptions } from '../schemas/missionRecommandationSchemas'
+export function getRecommandationMissionProjetFormConfig(
+  personnelOptions: SelectOption[],
+  acteurOptions: SelectOption[],
+): FormConfig {
+  return {
+    steps: [
+      { step: 1, title: 'Identification' },
+      { step: 2, title: 'Détails' },
+    ],
+    fields: [
+      {
+        name: 'type_recommandation',
+        label: 'Type',
+        type: 'select',
+        placeholder: 'Sélectionner un état',
+        options: typeMissionRecommandationOptions,
+        gridCols: 2,
+        formStep: 1,
+      },
+      {
+        name: 'numero',
+        label: 'Numéro',
+        type: 'text',
+        maxLength: 50,
+        gridCols: 2,
+        formStep: 1,
+      },
+      {
+        name: 'ref_no',
+        label: 'Réf. n°',
+        type: 'text',
+        maxLength: 50,
+        gridCols: 2,
+        formStep: 1,
+      },
+      {
+        name: 'date_buttoir',
+        label: 'Date butoir',
+        type: 'date',
+        required: true,
+        gridCols: 2,
+        formStep: 1,
+      },
+
+      {
+        name: 'recommandation',
+        label: 'Recommandation',
+        type: 'textarea',
+        rows: 3,
+        gridCols: 2,
+        formStep: 1,
+      },
+      {
+        name: 'observation',
+        label: 'Observation',
+        type: 'textarea',
+        rows: 3,
+        gridCols: 2,
+        formStep: 1,
+      },
+      {
+        name: 'responsable',
+        label: 'Autre Responsable',
+        type: 'select',
+        placeholder: 'Sélectionner une personne',
+        options: personnelOptions,
+        gridCols: 2,
+        formStep: 1,
+      },
+      {
+        name: 'responsable_interne',
+        label: 'Responsable interne',
+        type: 'select',
+        placeholder: 'Sélectionner une personne',
+        options: personnelOptions,
+        gridCols: 2,
+        formStep: 1,
+      },
+      {
+        name: 'structure',
+        label: 'Structure',
+        type: 'select',
+        placeholder: 'Sélectionner une structure',
+        options: acteurOptions,
+        gridCols: 2,
+        formStep: 2,
+      },
+      {
+        name: 'volet_recommandation',
+        label: 'Volet',
+        type: 'text',
+        maxLength: 200,
+        gridCols: 2,
+        formStep: 2,
+      },
+      {
+        name: 'rubrique',
+        label: 'Rubrique',
+        type: 'text',
+        maxLength: 200,
+        gridCols: 2,
+        formStep: 2,
+      },
+      {
+        name: 'rapport',
+        label: 'Rapport',
+        type: 'file',
+        accept: 'application/pdf,image/*,.doc,.docx',
+        maxSize: 10,
+        helperText: 'PDF, DOC ou DOCX — max. 10 Mo',
+        gridCols: 1,
+        formStep: 2,
+      },
+    ],
+  }
+}

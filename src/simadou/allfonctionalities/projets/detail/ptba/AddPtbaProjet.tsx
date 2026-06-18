@@ -75,7 +75,8 @@ export default function AddPtbaProjet({
     projet.programme_projet?.code_programme
       ? projet.programme_projet.code_programme
       : activeProgrammeCode
-  const { selectedVersionId } = usePtbaVersionSelection(codeProgramme)
+  const {  selectedVersionId} = usePtbaVersionSelection(codeProgramme)
+  const reel_version = localStorage.getItem('selectedVersionId') ?? selectedVersionId
   const { data: activites = [] } = useGetActivitesProjet(codeProjet)
   const { data: cadresAnalytique = [] } = useGetCadresAnalytique(programmeId)
   const { data: niveaux = [] } = useGetNiveauxCadreAnalytique()
@@ -145,18 +146,19 @@ export default function AddPtbaProjet({
       ugl_ptba: resolveUglPtbaFormValue(currentRow ?? undefined),
       code_projet: codeProjet,
       statut_activite: currentRow?.statut_activite || 'Planifiée',
+      cout_ptba: currentRow?.cout_ptba || 0,
       version_ptba:
-        resolveVersionPtbaFormValue(currentRow ?? undefined, selectedVersionId) ??
+        resolveVersionPtbaFormValue(currentRow ?? undefined, reel_version) ??
         0,
     }
-  }, [currentRow, codeProjet, cadresAnalytique, selectedVersionId])
+  }, [currentRow, codeProjet, cadresAnalytique, reel_version])
 
   const createMutation = useCreatePtbaProjet(codeProjet)
   const updateMutation = useUpdatePtbaProjet(codeProjet)
 
   const onSubmit = (data: PtbaProjetFormData) => {
     const versionPtba =
-      resolveVersionPtbaFormValue(currentRow ?? undefined, selectedVersionId) ??
+      resolveVersionPtbaFormValue(currentRow ?? undefined, reel_version) ??
       (data.version_ptba != null && data.version_ptba > 0
         ? data.version_ptba
         : undefined)
@@ -195,7 +197,7 @@ export default function AddPtbaProjet({
       <DialogContent className={DIALOG_SIZES.xl}>
         <DialogHeader>
           <DialogTitle>
-            {isEdit ? 'Modifier une activité PTBA' : 'Ajouter une activité PTBA'}
+            {isEdit ? 'Modifier une activité PTBA' : 'Ajouter une activité PTBA'} {reel_version}
           </DialogTitle>
           <DialogDescription>
             {isEdit

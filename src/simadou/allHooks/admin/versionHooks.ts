@@ -135,16 +135,12 @@ export function versionBelongsToProgramme(
 
 const SELECTED_VERSION_STORAGE_KEY = 'selectedVersionId'
 
-/** Version PTBA + filtre programme pour les listes PTBA / suivi PTBA. */
-export function usePtbaVersionSelection(codeProgramme: string | undefined) {
+/** Version PTBA pour les listes PTBA / suivi PTBA (toutes les versions, sans filtre programme). */
+export function usePtbaVersionSelection(_codeProgramme?: string) {
   const { data: versions = [] } = useGetVersions()
   const [selectedVersionId, setSelectedVersionId] = useState<string | null>(null)
-  console.log(codeProgramme);
-  // Plus de filtrage par programme - on retourne toutes les versions
-  const versionsForProgramme = useMemo(
-    () => versions, // Retourne toutes les versions sans filtre
-    [versions]
-  )
+
+  const versionsForProgramme = useMemo(() => versions, [versions])
 
   const versionOptions = useMemo(
     () =>

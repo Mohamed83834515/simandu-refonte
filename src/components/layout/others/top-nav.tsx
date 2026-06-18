@@ -1300,7 +1300,6 @@ export function AppTopbar({ user }: UserProps) {
                 fontWeight: 800,
                 fontSize: 18,
                 letterSpacing: '2px',
-                textTransform: 'uppercase',
                 background: 'linear-gradient(135deg, #fff 0%, #FCD116 100%)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',

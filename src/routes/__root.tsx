@@ -6,13 +6,14 @@ import { Toaster } from '@/components/ui/sonner'
 import { NavigationProgress } from '@/components/others/navigation-progress'
 import { GeneralError } from '@/components/errors/general-error'
 import { NotFoundError } from '@/components/errors/not-found-error'
+import { SessionProvider } from '@/simadou/allContext/sessionProvider'
 
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient
 }>()({
   component: () => {
     return (
-      <>
+      <SessionProvider>
         <NavigationProgress />
         <Outlet />
         <Toaster duration={5000} />
@@ -22,7 +23,7 @@ export const Route = createRootRouteWithContext<{
             <TanStackRouterDevtools position='bottom-right' />
           </>
         )}
-      </>
+      </SessionProvider>
     )
   },
   notFoundComponent: NotFoundError,

@@ -19,7 +19,7 @@ export const typeActiviteSchema = z.object({
 export const versionPtbaSchema = z.object({
   annee_ptba: z
     .number()
-    .min(2020, "L'année doit être supérieure à 2020")
+    .min(2000, "L'année doit être supérieure à 2020")
     .max(2050, "L'année doit être inférieure à 2050"),
   version_ptba: z
     .string()

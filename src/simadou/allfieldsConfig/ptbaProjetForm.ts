@@ -3,6 +3,7 @@ import { getActeurs } from '../allHooks/admin/acteurHooks'
 import { getCadreStrategiques } from '../allHooks/admin/cadreStrategiqueHooks'
 import { getLocalites } from '../allHooks/admin/localiteHooks'
 import { getPersonnels } from '../allHooks/admin/personnelHooks'
+import { getTypeActivites } from '../allHooks/admin/typeActivitesHooks'
 import { getUgls } from '../allHooks/admin/uglHooks'
 
 const chronogrammeOptions = [
@@ -25,6 +26,7 @@ const acteurs = await getActeurs()
 const personnels = await getPersonnels()
 const cadre_strategiques = await getCadreStrategiques()
 const ugls = await getUgls()
+const typeActivitesData = await getTypeActivites();
 
 const cadreStrategiqueOptions = cadre_strategiques.map((cadre) => ({
   value: cadre.id_cs,
@@ -61,6 +63,11 @@ const uglOptions = ugls.map((ugl) => ({
   value: ugl.code_ugl,
   label: ugl.nom_ugl,
 }))
+const typeActivitesOptions = typeActivitesData?.map((item: any) => (
+  {
+    label: item.intutile_type,
+    value: String(item.code_type)
+  })) || [];
 
 export function getPtbaProjetFormConfig(
   activiteProjetOptions: SelectOption[],
@@ -91,6 +98,17 @@ export function getPtbaProjetFormConfig(
         gridCols: 2,
         formStep: 1,
       },
+      // select - Type activité
+      {
+        name: "type_activite",
+        label: "Type activité",
+        type: "select",
+        placeholder: "Sélectionner un type d'activité",
+        required: true,
+        options: typeActivitesOptions, // À remplir dynamiquement depuis l'API
+        gridCols: 2,
+        formStep: 1,
+      },
       {
         name: 'intitule_activite_ptba',
         label: 'Intitulé activité PTBA',
@@ -108,7 +126,16 @@ export function getPtbaProjetFormConfig(
         placeholder: 'Sélectionner un cadre analytique (optionnel)',
         required: true,
         options: cadreAnalytiqueOptions,
-        gridCols: 1,
+        gridCols: 2,
+        formStep: 1,
+      },
+      {
+        name: 'cout_ptba',
+        label: 'Cout Ptba',
+        type: 'number',
+        placeholder: "le cout de l'activite du ptba ",
+        required: true,
+        gridCols: 2,
         formStep: 1,
       },
       {

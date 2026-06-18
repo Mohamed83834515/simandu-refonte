@@ -15,6 +15,7 @@ export function buildActiviteProjetColumns({
   onDeleteRequest,
   onOpenPlanification,
   onOpenPlanificationIndicateur,
+  getIndicateurCount,
   isLastLevel,
 }: {
   showParent: boolean
@@ -25,6 +26,7 @@ export function buildActiviteProjetColumns({
   onDeleteRequest: (row: ActiviteProjet) => void
   onOpenPlanification: (activite: ActiviteProjet) => void
   onOpenPlanificationIndicateur: (activite: ActiviteProjet) => void
+  getIndicateurCount?: (activite: ActiviteProjet) => number
   isLastLevel?: boolean
 }): ColumnDef<ActiviteProjet>[] {
 
@@ -95,7 +97,10 @@ export function buildActiviteProjetColumns({
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title='Indicateurs' className='text-center' />
     ),
-    cell: ({ row }) => (
+    cell: ({ row }) => {
+      const count = getIndicateurCount?.(row.original) ?? 0
+
+      return (
       <div className='flex justify-center'>
         <Button
           type='button'
@@ -104,10 +109,12 @@ export function buildActiviteProjetColumns({
           className='gap-2 border-green-200 bg-green-50 text-green-700 hover:bg-green-100'
           onClick={() => onOpenPlanificationIndicateur(row.original)}
         >
-          <List className='h-4 w-4' /> Indicateurs
+          <List className='h-4 w-4' />
+          Indicateurs ({count})
         </Button>
       </div>
-    ),
+      )
+    },
     meta: { thClassName: 'text-center', className: 'text-center' },
     size: 100,
     enableSorting: false,
@@ -115,13 +122,13 @@ export function buildActiviteProjetColumns({
 
   const actionsColumn = buildEditDeleteActionsColumn({ onEdit, onDeleteRequest })
 
-  const columns = [...baseColumns]
+  const columns = []
 
   // Ajouter les colonnes des parents avec leurs libellés
   if (showParent && niveauActuel && niveauActuel > 1) {
-    columns.push(...parentColumns)
+    columns.push(...parentColumns,...baseColumns)
   } else {
-    columns.push(planificationColumn)
+    columns.push(...baseColumns, planificationColumn)
 
   }
 

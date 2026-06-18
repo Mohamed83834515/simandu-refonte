@@ -26,6 +26,8 @@ import {
   useGetActivitesProjet,
   useGetNiveauxActiviteProjet,
 } from '@/simadou/allHooks/admin/activiteProjetHooks'
+import { useGetAllIndicateursPerformanceProjet } from '@/simadou/allHooks/admin/indicateurPerformanceProjetHooks'
+import { buildIndicateurCountByActiviteCode } from '@/simadou/lib/indicateurPerformanceUtils'
 import ActiviteProjetFormDialog from './ActiviteProjetFormDialog'
 import NiveauActiviteProjetManager from './NiveauActiviteProjetManager'
 import SourceFinancementManager from './sourceFinancement/SourceFinancementProjetDialog'
@@ -43,6 +45,7 @@ function ActiviteProjetNiveauTable({
   onEdit,
   onDeleteRequest,
   isLastLevel,
+  indicateurCountByActiviteCode,
 }: {
   niveauNum: number
   showParent: boolean
@@ -53,6 +56,7 @@ function ActiviteProjetNiveauTable({
   onEdit: (row: ActiviteProjet) => void
   onDeleteRequest: (row: ActiviteProjet) => void
   isLastLevel: boolean
+  indicateurCountByActiviteCode: Map<string, number>
 }) {
   const { search, navigate } = useEmbeddedTableState()
   const [planifierSource, setPlanifierSource] = useState<ActiviteProjet | null>(null)
@@ -96,6 +100,12 @@ function ActiviteProjetNiveauTable({
     [allActivites, niveauNum]
   )
 
+  const getIndicateurCount = useCallback(
+    (activite: ActiviteProjet) =>
+      indicateurCountByActiviteCode.get(activite.code_activite_projet) ?? 0,
+    [indicateurCountByActiviteCode]
+  )
+
   const columns = useMemo(
     () =>
       buildActiviteProjetColumns({
@@ -107,9 +117,21 @@ function ActiviteProjetNiveauTable({
         onDeleteRequest,
         onOpenPlanification,
         onOpenPlanificationIndicateur,
+        getIndicateurCount,
         isLastLevel,
       }),
-    [showParent, getParentAtLevel, niveaux, niveauNum, onEdit, onDeleteRequest, onOpenPlanification, onOpenPlanificationIndicateur, isLastLevel]
+    [
+      showParent,
+      getParentAtLevel,
+      niveaux,
+      niveauNum,
+      onEdit,
+      onDeleteRequest,
+      onOpenPlanification,
+      onOpenPlanificationIndicateur,
+      getIndicateurCount,
+      isLastLevel,
+    ]
   )
 
   const rows = useMemo(
@@ -165,6 +187,8 @@ export default function ProjetActivitesPanel({ projet }: { projet: Projet }) {
   const { data: niveaux = [], isLoading: isLoadingNiveaux } =
     useGetNiveauxActiviteProjet(codeProjet)
   const { data: activites = [], dataUpdatedAt } = useGetActivitesProjet(codeProjet)
+  const { data: allIndicateurs = [], dataUpdatedAt: indicateursUpdatedAt } =
+    useGetAllIndicateursPerformanceProjet()
   const deleteMutation = useDeleteActiviteProjet()
 
   const sortedNiveaux = useMemo(
@@ -213,6 +237,11 @@ export default function ProjetActivitesPanel({ projet }: { projet: Projet }) {
     }
     return counts
   }, [activites])
+
+  const indicateurCountByActiviteCode = useMemo(
+    () => buildIndicateurCountByActiviteCode(allIndicateurs, activites),
+    [allIndicateurs, activites]
+  )
 
   const parentOptions = useMemo(() => {
     if (currentNiveau <= 1) return []
@@ -345,10 +374,11 @@ export default function ProjetActivitesPanel({ projet }: { projet: Projet }) {
                   activites={activites}
                   allActivites={activites}
                   niveaux={sortedNiveaux}
-                  tableKey={`activites-${niveau.nombre_niveau_activite_projet}-${dataUpdatedAt}-${activites.length}`}
+                  tableKey={`activites-${niveau.nombre_niveau_activite_projet}-${dataUpdatedAt}-${activites.length}-${indicateursUpdatedAt}`}
                   onEdit={handleEdit}
                   onDeleteRequest={handleDeleteRequest}
                   isLastLevel={isLastLevel}
+                  indicateurCountByActiviteCode={indicateurCountByActiviteCode}
                 />
               )}
             </TabsContent>

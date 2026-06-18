@@ -31,7 +31,7 @@ import {
   type ProjetDetailTab,
 } from './projetDetailTabs'
 
-const route = getRouteApi('/_authenticated/programmation/projets/$id')
+const route = getRouteApi('/_authenticated/projet-programme/projets/$id')
 
 /** Indicateurs démo (branche amadou) — API à brancher. */
 const DEMO_EXECUTION = 67
@@ -84,7 +84,7 @@ export default function ProjetDetail() {
     return (
       <div className='space-y-4 p-4'>
         <Button variant='outline' size='sm' asChild>
-          <Link to='/programmation/projets'>
+          <Link to='/projet-programme/projets'>
             <ArrowLeft className='h-4 w-4' />
             Retour aux projets
           </Link>
@@ -137,7 +137,7 @@ export default function ProjetDetail() {
             <CardHeader className='border-b bg-primary/5 px-3 py-2.5'>
               <div className='flex items-start gap-2.5'>
                 <div className='mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground'>
-                  <Link to='/programmation/projets'>
+                  <Link to='/projet-programme/projets'>
                     <ArrowLeft className='h-4 w-4' />
                   </Link>
                 </div>

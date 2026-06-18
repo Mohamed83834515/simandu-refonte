@@ -502,7 +502,7 @@ const DashboardPage: React.FC = () => {
     );
     // ── Données pour les nouvelles cartes (basées sur TES projets réels) ───────────
 
-    // Récupérer la dernière année PTBA disponible (depuis tes versions)
+    // Récupérer la dernière année PAO disponible (depuis tes versions)
     const derniereAnneePtba = useMemo(() => {
         if (versions.length === 0) return 2026;
         return Math.max(...versions.map(v => v.annee_ptba));
@@ -538,7 +538,7 @@ const DashboardPage: React.FC = () => {
         };
     }, [projets]);
 
-    // Données pour la carte 2 : PTBA Programme (avec données fictives pour montants)
+    // Données pour la carte 2 : PAO Programme (avec données fictives pour montants)
     const ptbaProgrammeStats = useMemo(() => {
         const versionIds = versions
             .filter(v => v.annee_ptba === derniereAnneePtba)
@@ -568,7 +568,7 @@ const DashboardPage: React.FC = () => {
         };
     }, [activites, versions, derniereAnneePtba]);
 
-    // Données pour la carte 3 : PTBA Département
+    // Données pour la carte 3 : PAO Département
     const ptbaDepartementStats = useMemo(() => {
         const versionIds = versions
             .filter(v => v.annee_ptba === derniereAnneePtba)
@@ -625,7 +625,7 @@ const DashboardPage: React.FC = () => {
 
     // ── Render ────────────────────────────────────────────────────────────────────
     return (
-        <div className="space-y-8 p-6 bg-gray-50 dark:bg-gray-950 min-h-screen">
+        <div className="space-y-3 p-2 bg-gray-50 dark:bg-gray-950 min-h-screen">
             {/* En-tête */}
             <DashboardHeader
                 nomProgramme={`Programme ${codeProgramme || "Demo"}`}
@@ -634,7 +634,7 @@ const DashboardPage: React.FC = () => {
             />
 
             {/* ── Cartes statistiques ── */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
                 {/* Carte 1 : Projet Programme */}
                 {/* Carte 1 : Projet Programme */}
                 <StatCard
@@ -647,9 +647,9 @@ const DashboardPage: React.FC = () => {
                     ]}
                 />
 
-                {/* Carte 2 : PTBA Programme */}
+                {/* Carte 2 : PAO Programme */}
                 <StatCard
-                    title={`PTBA ${ptbaProgrammeStats.annee} des Projets-Programmes`}
+                    title={`PAO ${ptbaProgrammeStats.annee} des Projets/Programmes`}
                     color="emerald"
                     rows={[
                         { label: "Montant Total Prévu", value: ptbaProgrammeStats.montantPrevu.toLocaleString('fr-FR'), suffix: "GNF" },
@@ -660,9 +660,9 @@ const DashboardPage: React.FC = () => {
                     progressColor="emerald"
                 />
 
-                {/* Carte 3 : PTBA Département */}
+                {/* Carte 3 : PAO Département */}
                 <StatCard
-                    title={`PTBA ${ptbaDepartementStats.annee} du MINAGRI`}
+                    title={`PAO ${ptbaDepartementStats.annee} du MINAGRI`}
                     color="purple"
                     rows={[
                         { label: "Montant Total Prévu", value: ptbaDepartementStats.montantPrevu.toLocaleString('fr-FR'), suffix: "GNF" },
@@ -696,8 +696,8 @@ const DashboardPage: React.FC = () => {
                 }}
             />
 
-            {/* ── Graphiques ligne 1 : PTBA par composante + Réalisation/Cibles ── */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* ── Graphiques ligne 1 : PAO par composante + Réalisation/Cibles ── */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
                 <PTBAComposanteChart
                     data={composanteData}
                     anneesDisponibles={anneesDisponibles}
@@ -712,7 +712,7 @@ const DashboardPage: React.FC = () => {
             </div>
 
             {/* ── Graphiques ligne 2 : Avancement par service ── */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
                 <AvancementServiceChart
                     data={avancementTaches}
                     mode="pourcentage"

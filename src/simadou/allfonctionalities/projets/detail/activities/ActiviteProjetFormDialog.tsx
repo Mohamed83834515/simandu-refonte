@@ -63,7 +63,7 @@ export default function ActiviteProjetFormDialog({
   )
 
 
-      const route = getRouteApi('/_authenticated/programmation/projets/$id')
+      const route = getRouteApi('/_authenticated/projet-programme/projets/$id')
   
       const { id } = route.useParams()
       const { data: currentProjet } = useGetProjet(id)

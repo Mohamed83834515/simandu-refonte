@@ -17,6 +17,7 @@ const TABS = [
   { to: '/parametrage/autres/system',             label: 'Système',              icon: Settings , value : "system"   },
   { to: '/parametrage/autres/unites-indicateur',                  label: 'Unités indicateurs', icon: Ruler  , value : "unity"  },
   { to: '/parametrage/autres/type-zone',                label: 'Type zone',                 icon: MapPin  , value : "zone"  },
+  { to: '/parametrage/autres/fonction',                label: 'Fonction',                 icon: MapPin  , value : "fonction"  },
 
 ] as const
 
@@ -39,7 +40,9 @@ function AutresParametrageLayout() {
         ? 'zone'
         : pathname.includes('/unites-indicateur')
           ? 'unity'
-          : 'system'
+          : pathname.includes('/fonction')
+          ? 'fonction'
+          :'system'
 
   return (
     <Main>

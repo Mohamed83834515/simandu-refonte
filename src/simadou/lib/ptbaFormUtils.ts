@@ -152,6 +152,7 @@ export function buildPtbaProjetApiPayload(
     chronogramme: data.chronogramme,
     statut_activite: data.statut_activite,
     code_actvite_projet: data.code_actvite_projet,
+    cout_ptba: data.cout_ptba,
     code_projet: data.code_projet.trim(),
   }
 

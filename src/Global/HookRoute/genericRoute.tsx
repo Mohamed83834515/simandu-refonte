@@ -58,7 +58,7 @@ export function PageRouteLayout({
 
   return (
     <div>
-      <div className="flex items-center justify-between gap-4 rounded-lg p-4">
+      <div className="flex items-center justify-between gap-4 rounded-lg px-6 pb-2">
 
         {/* TITRE */}
         <div className="flex items-center gap-2">

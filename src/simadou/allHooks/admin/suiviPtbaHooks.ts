@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
 import suiviTacheActiviteService from '@/simadou/allSercices/suiviTacheActiviteService'
 import tacheActivitePtbaService from '@/simadou/allSercices/tacheActivitePtbaService'
@@ -89,30 +90,37 @@ export function useSuiviTachesByActiviteIds(activiteIds: number[]) {
 
 /** Tâches groupées + avancement % par activité (tableau principal). */
 export function useSuiviPtbaActivitesProgress(activiteIds: number[]) {
-  const activiteIdSet = new Set(activiteIds)
+  const activiteIdsKey = activiteIds.join(',')
+  const activiteIdSet = useMemo(() => new Set(activiteIds), [activiteIdsKey])
   const { data: allTaches = [], isLoading: tachesLoading } =
     useGetAllTachesActivite(activiteIds.length > 0)
   const { suivisByActivite, isLoading: suivisLoading } =
     useSuiviTachesByActiviteIds(activiteIds)
 
-  const tachesByActivite = new Map<number, TacheActivitePtba[]>()
-  for (const id of activiteIds) {
-    tachesByActivite.set(id, [])
-  }
-  for (const tache of allTaches) {
-    const activiteId = resolveIdActivite(tache)
-    if (activiteId == null || !activiteIdSet.has(activiteId)) continue
-    const list = tachesByActivite.get(activiteId) ?? []
-    list.push(tache)
-    tachesByActivite.set(activiteId, list)
-  }
+  const tachesByActivite = useMemo(() => {
+    const map = new Map<number, TacheActivitePtba[]>()
+    for (const id of activiteIds) {
+      map.set(id, [])
+    }
+    for (const tache of allTaches) {
+      const activiteId = resolveIdActivite(tache)
+      if (activiteId == null || !activiteIdSet.has(activiteId)) continue
+      const list = map.get(activiteId) ?? []
+      list.push(tache)
+      map.set(activiteId, list)
+    }
+    return map
+  }, [activiteIdsKey, allTaches, activiteIdSet])
 
-  const avancementByActivite = new Map<number, number>()
-  for (const id of activiteIds) {
-    const taches = tachesByActivite.get(id) ?? []
-    const suivis = suivisByActivite.get(id) ?? []
-    avancementByActivite.set(id, tauxAvancementGlobalTaches(taches, suivis))
-  }
+  const avancementByActivite = useMemo(() => {
+    const map = new Map<number, number>()
+    for (const id of activiteIds) {
+      const taches = tachesByActivite.get(id) ?? []
+      const suivis = suivisByActivite.get(id) ?? []
+      map.set(id, tauxAvancementGlobalTaches(taches, suivis))
+    }
+    return map
+  }, [activiteIdsKey, tachesByActivite, suivisByActivite])
 
   return {
     tachesByActivite,

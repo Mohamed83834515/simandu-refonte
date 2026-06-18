@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouterState } from '@tanstack/react-router'
 import {
   type ColumnDef,
@@ -67,6 +67,11 @@ type GenericTableProps<TData> = {
   tableContainerClassName?: string
   toolbarEndSlot?: React.ReactNode
   onRowClick?: (row: TData) => void
+  /** Données filtrées visibles (hors pagination) pour l'export. */
+  onExportContext?: (context: {
+    filteredData: TData[]
+    visibleColumnIds: string[]
+  }) => void
   isLoading?: boolean
   initialState?: Partial<{
     columnVisibility: Record<string, boolean>
@@ -95,6 +100,7 @@ export function GenericTable<TData>({
   tableContainerClassName,
   toolbarEndSlot,
   onRowClick,
+  onExportContext,
   isLoading: isLoadingProp = false,
   initialState,
 }: GenericTableProps<TData>) {
@@ -143,9 +149,40 @@ export function GenericTable<TData>({
     getFacetedUniqueValues:   getFacetedUniqueValues(),
   })
 
+  const pageCount = table.getPageCount()
+  const exportSnapshotRef = useRef<{
+    filteredData: TData[]
+    visibleColumnIds: string[]
+  } | null>(null)
+
   useEffect(() => {
-    ensurePageInRange(table.getPageCount())
-  }, [table, ensurePageInRange])
+    ensurePageInRange(pageCount)
+  }, [pageCount, ensurePageInRange])
+
+  useEffect(() => {
+    if (!onExportContext) return
+
+    const filteredData = table.getFilteredRowModel().rows.map((row) => row.original)
+    const visibleColumnIds = table
+      .getVisibleLeafColumns()
+      .map((column) => column.id)
+
+    const prev = exportSnapshotRef.current
+    if (
+      prev &&
+      prev.filteredData.length === filteredData.length &&
+      prev.visibleColumnIds.length === visibleColumnIds.length &&
+      prev.filteredData.every((row, index) => row === filteredData[index]) &&
+      prev.visibleColumnIds.every(
+        (columnId, index) => columnId === visibleColumnIds[index]
+      )
+    ) {
+      return
+    }
+
+    exportSnapshotRef.current = { filteredData, visibleColumnIds }
+    onExportContext({ filteredData, visibleColumnIds })
+  }, [onExportContext, data, columnFilters, columnVisibility, sorting])
 
   return (
     <div

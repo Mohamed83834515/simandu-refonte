@@ -4,10 +4,10 @@ import { toast } from "sonner";
 
 export const sourceFinancementQueryKeys = {
   all: ['sources-financement'] as const,
-  byActivite: (idActivite: string) => ['sources-financement', 'activite', idActivite] as const,
+  byActivite: (idActivite: number) => ['sources-financement', 'activite', idActivite] as const,
 };
 
-export const useGetSourcesByActivite = (idActivite: string) => {
+export const useGetSourcesByActivite = (idActivite: number) => {
   return useQuery
   ({
     queryKey: sourceFinancementQueryKeys.byActivite(idActivite),
@@ -16,7 +16,7 @@ export const useGetSourcesByActivite = (idActivite: string) => {
   });
 };
 
-export const useCreateSourceFinancement = (idActivite: string) => {
+export const useCreateSourceFinancement = (idActivite: number) => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (data: any) => sourceFinancementProjetService.create({ ...data, id_activite_projet: idActivite }),
@@ -28,7 +28,7 @@ export const useCreateSourceFinancement = (idActivite: string) => {
   })
 }
 
-export const useUpdateSourceFinancement = (idActivite: string) => {
+export const useUpdateSourceFinancement = (idActivite: number) => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: any }) =>
@@ -41,7 +41,7 @@ export const useUpdateSourceFinancement = (idActivite: string) => {
   })
 }
 
-export const useDeleteSourceFinancement = (idActivite: string) => {
+export const useDeleteSourceFinancement = (idActivite: number) => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (id: number) => sourceFinancementProjetService.delete(id),

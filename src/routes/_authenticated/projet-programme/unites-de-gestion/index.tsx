@@ -5,7 +5,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { LayoutGrid } from 'lucide-react'
 
 export const Route = createFileRoute(
-  '/_authenticated/parametrage/unites-de-gestion/',
+  '/_authenticated/projet-programme/unites-de-gestion/',
 )({
   component: RouteComponent,
 })

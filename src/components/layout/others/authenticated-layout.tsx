@@ -62,19 +62,19 @@ function AuthenticatedLayoutInner({
   defaultOpen: boolean
 }) {
   const navMode = useLayout((s) => s.navMode)
-  const {data : user} =useMe()
-   const userInitials = getDisplayNameInitials(user?.nom_perso ?? '')
-    const [open, setOpen] = useDialogState()
+  const { data: user } = useMe()
+  const userInitials = getDisplayNameInitials(user?.nom_perso ?? '')
+  const [open, setOpen] = useDialogState()
   // ── Topbar mode ──────────────────────────────────────────────────────────
   if (navMode === 'topbar') {
     return (
       <SidebarProvider defaultOpen={false}>
         <SkipToMain />
         <div className='flex min-h-svh w-full flex-col'>
-         {user && (
-           <AppTopbar user={{nom_perso : user.nom_perso ?? "Simadou", email : user.email ?? "hello@gmail.com", id_personnel_perso: user.id_personnel_perso ?? "4", statut : user.statut ?? 1, personnel_profile_picture : user.personnel_profile_picture, prenom_perso : user.prenom_perso}} />
-         )}
-          <div className='flex-1 p-4 sm:px-6 sm:py-6'>
+          {user && (
+            <AppTopbar user={{ nom_perso: user.nom_perso ?? "Simadou", email: user.email ?? "hello@gmail.com", id_personnel_perso: user.id_personnel_perso ?? "4", statut: user.statut ?? 1, personnel_profile_picture: user.personnel_profile_picture, prenom_perso: user.prenom_perso }} />
+          )}
+          <div className='flex-1 p-4 sm:px-2 sm:py-2'>
             {children ?? <Outlet />}
           </div>
         </div>
@@ -100,25 +100,25 @@ function AuthenticatedLayoutInner({
           <div className="flex-1" />
           <ThemeSwitch />
           <ConfigDrawer />
-            {user && (
-              <ProfileDropdown
-            user={user}
-            side={ "bottom" }
-            onLogout={() => setOpen(true)}
-            trigger={
-              <Button className='rounded-full h-8 w-8'>
-                 <Avatar className='h-8 w-8 text-foreground font-semibold'>
-                  <AvatarImage src={user.personnel_profile_picture ?? ''} alt='profile' />
-                  <AvatarFallback>{userInitials}</AvatarFallback>
-                </Avatar>
-              </Button>
-            }
-          />
-            )}
+          {user && (
+            <ProfileDropdown
+              user={user}
+              side={"bottom"}
+              onLogout={() => setOpen(true)}
+              trigger={
+                <Button className='rounded-full h-8 w-8'>
+                  <Avatar className='h-8 w-8 text-foreground font-semibold'>
+                    <AvatarImage src={user.personnel_profile_picture ?? ''} alt='profile' />
+                    <AvatarFallback>{userInitials}</AvatarFallback>
+                  </Avatar>
+                </Button>
+              }
+            />
+          )}
         </Header>
         {children ?? <Outlet />}
       </SidebarInset>
-       <SignOutDialog open={!!open} onOpenChange={setOpen} />
+      <SignOutDialog open={!!open} onOpenChange={setOpen} />
     </SidebarProvider>
   )
 }

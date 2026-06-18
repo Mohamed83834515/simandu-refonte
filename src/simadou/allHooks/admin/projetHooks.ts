@@ -4,8 +4,8 @@ import { useActiveProgrammeId } from '@/hooks/use-active-programme'
 import type { Projet } from '@/simadou/allTypes/projet'
 import { projetBelongsToProgramme } from '@/simadou/allTypes/projet'
 import { projetService } from '@/simadou/allSercices/projetService'
-import type { ProjectCreateSubmitData } from '@/simadou/schemas/projetSchema'
 import { toast } from 'sonner'
+import { ProjectCreateData } from '@/simadou/schemas/projetSchema'
 
 function findProjetByRouteId(projets: Projet[], id: number | string): Projet | undefined {
   const idStr = String(id)
@@ -119,7 +119,7 @@ export function useCreateProjet(idProgramme: number | undefined) {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (data: ProjectCreateSubmitData) => {
+    mutationFn: (data: ProjectCreateData) => {
       if (idProgramme == null) {
         return Promise.reject(new Error('Programme actif requis'))
       }
@@ -138,7 +138,7 @@ export function useUpdateProjet(id:number) {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (data: ProjectCreateSubmitData) => {
+    mutationFn: (data: ProjectCreateData) => {
       return projetService.update(id, data)
     },
     onSuccess: () => {

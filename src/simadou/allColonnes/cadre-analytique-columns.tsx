@@ -12,14 +12,7 @@ import {
   getNextNiveauCadreAnalytique,
   resolvePartenaireCaIds,
 } from '@/simadou/lib/cadreAnalytiqueUtils'
-
-function formatCoutAxe(value: number | undefined): string {
-  return new Intl.NumberFormat('fr-FR', {
-    style: 'currency',
-    currency: 'GNF',  // ← Changé de XOF à GNF
-    maximumFractionDigits: 0,
-  }).format(value ?? 0)
-}
+import { formatNumber } from '../allSercices/montantFormater'
 
 
 export function buildCadreAnalytiqueColumns({
@@ -114,11 +107,11 @@ export function buildCadreAnalytiqueColumns({
       id: 'cout_axe',
       accessorKey: 'cout_axe',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title='Coût axe' />
+        <DataTableColumnHeader column={column} title='Budget GNF' />
       ),
       cell: ({ row }) => (
         <span className='whitespace-nowrap tabular-nums text-sm'>
-          {formatCoutAxe(row.original.cout_axe)}
+          {formatNumber(row.original.cout_axe)}
         </span>
       ),
       enableHiding: false,

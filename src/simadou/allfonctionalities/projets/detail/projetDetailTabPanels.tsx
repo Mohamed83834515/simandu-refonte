@@ -8,19 +8,21 @@ import ProjetSuiviPtbaPanel from './suivi-ptba/ProjetSuiviPtbaPanel'
 import ProjetCadreResultatsPanel from './resultsFramework/ProjetCadreResultatsPanel'
 import ProjetIndicateursCmrPanel from './cmrIndicators/ProjetIndicateursCmrPanel'
 import ProjetDocumentsPanel from './documents/ProjetDocumentsPanel'
+import ProjetPointsBlocagePanel from './points-blocage/ProjetPointsBlocagePanel'
 import ProjetDetailPlaceholder from './ProjetDetailPlaceholder'
 
 
 type TabPanelRenderer = (projet: Projet) => ReactNode
 
 const TAB_PANEL_RENDERERS: Record<ProjetDetailTabKey, TabPanelRenderer> = {
-  dashboard: (projet) => <ProjetDashboard codeProjet={projet.code_projet} />,
+  dashboard: (projet) => <ProjetDashboard projet={projet} />,
   activities: (projet) => <ProjetActivitesPanel projet={projet} />,
   ptba: (projet) => <ProjetPtbaPanel projet={projet} />,
   suivi_ptba: (projet) => <ProjetSuiviPtbaPanel projet={projet} />,
   results_framework: (projet) => <ProjetCadreResultatsPanel projet={projet} />,
   cmr_indicators: (projet) => <ProjetIndicateursCmrPanel projet={projet} />,
   documents: (projet) => <ProjetDocumentsPanel projet={projet} />,
+  points_blocage: (projet) => <ProjetPointsBlocagePanel projet={projet} />,
 }
 
 export function renderProjetDetailTabPanel(
