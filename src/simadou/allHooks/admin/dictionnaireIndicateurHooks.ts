@@ -8,10 +8,12 @@ export const dictionnaireIndicateurQueryKeys = {
   byId: (id: number) => ['dictionnaire-indicateur', id] as const,
 } as const
 
-export function useGetDictionnaireIndicateurs() {
+export function useGetDictionnaireIndicateurs(enabled = true) {
   return useQuery({
     queryKey: dictionnaireIndicateurQueryKeys.all,
     queryFn: () => dictionnaireIndicateurService.getAll(),
+    enabled,
+    staleTime: 5 * 60 * 1000,
   })
 }
 

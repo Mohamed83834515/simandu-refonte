@@ -21,6 +21,7 @@ import {
   FileBarChart,
   ListChecks,
   Wallet,
+  ClipboardCheck,
 } from 'lucide-react'
 import { type SidebarData } from '../../components/layout/others/types'
 
@@ -177,6 +178,19 @@ export const sidebarData: SidebarData = {
               title: 'Unités de gestion',
               url: '/projet-programme/unites-de-gestion',
               icon: LayoutGrid,
+            },
+          ],
+        },
+
+        // ── Suivi des résultats ───────────────────────────────
+        {
+          title: 'Suivi des résultats',
+          icon: ClipboardCheck,
+          items: [
+            {
+              title: 'Suivi des indicateurs',
+              url: '/suivi-resultats/suivi-indicateurs',
+              icon: LineChart,
             },
           ],
         },
