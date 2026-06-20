@@ -682,6 +682,7 @@ export const FormField = ({
                       </Button>
                     </PopoverTrigger>
 
+                    {comboboxOpen ? (
                     <PopoverContent
                       className='p-0'
                       style={{ width: 'var(--radix-popover-trigger-width)' }}
@@ -768,6 +769,7 @@ export const FormField = ({
                         </CommandList>
                       </Command>
                     </PopoverContent>
+                    ) : null}
                   </Popover>
 
                   {isValid && (
@@ -830,6 +832,7 @@ export const FormField = ({
                           <ChevronsUpDown className='h-4 w-4 shrink-0 opacity-50' />
                         </Button>
                       </PopoverTrigger>
+                      {comboboxOpen ? (
                       <PopoverContent
                         className='p-0'
                         style={{ width: 'var(--radix-popover-trigger-width)' }}
@@ -897,6 +900,7 @@ export const FormField = ({
                           </CommandList>
                         </Command>
                       </PopoverContent>
+                      ) : null}
                     </Popover>
                     {isValid && !isOtherSelected && (
                       <div className='pointer-events-none absolute top-1/2 right-10 -translate-y-1/2'>

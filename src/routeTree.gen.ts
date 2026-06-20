@@ -32,6 +32,7 @@ import { Route as AuthenticatedSettingsAppearanceRouteImport } from './routes/_a
 import { Route as AuthenticatedSettingsAccountRouteImport } from './routes/_authenticated/settings/account'
 import { Route as AuthenticatedErrorsErrorRouteImport } from './routes/_authenticated/errors/$error'
 import { Route as AuthenticatedParametrageAutresRouteRouteImport } from './routes/_authenticated/parametrage/autres/route'
+import { Route as AuthenticatedSuiviResultatsSuiviIndicateursIndexRouteImport } from './routes/_authenticated/suivi-resultats/suivi-indicateurs/index'
 import { Route as AuthenticatedRapportPtbaIndexRouteImport } from './routes/_authenticated/rapport/ptba/index'
 import { Route as AuthenticatedRapportEtatDesActivitesIndexRouteImport } from './routes/_authenticated/rapport/etat-des-activites/index'
 import { Route as AuthenticatedRapportDecaissementIndexRouteImport } from './routes/_authenticated/rapport/decaissement/index'
@@ -59,6 +60,7 @@ import { Route as AuthenticatedParametrageDictionnaireIndicateursIndexRouteImpor
 import { Route as AuthenticatedParametrageConventionsIndexRouteImport } from './routes/_authenticated/parametrage/conventions/index'
 import { Route as AuthenticatedParametrageAutresIndexRouteImport } from './routes/_authenticated/parametrage/autres/index'
 import { Route as AuthenticatedParametrageActeursIndexRouteImport } from './routes/_authenticated/parametrage/acteurs/index'
+import { Route as AuthenticatedSuiviResultatsSuiviIndicateursIdRouteImport } from './routes/_authenticated/suivi-resultats/suivi-indicateurs/$id'
 import { Route as AuthenticatedProjetProgrammeProjetsIdRouteImport } from './routes/_authenticated/projet-programme/projets/$id'
 import { Route as AuthenticatedProgrammationProjetsIdRouteImport } from './routes/_authenticated/programmation/projets/$id'
 import { Route as authSetPasswordUidTokenRouteImport } from './routes/(auth)/set-password/$uid/$token'
@@ -188,6 +190,12 @@ const AuthenticatedParametrageAutresRouteRoute =
   AuthenticatedParametrageAutresRouteRouteImport.update({
     id: '/parametrage/autres',
     path: '/parametrage/autres',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedSuiviResultatsSuiviIndicateursIndexRoute =
+  AuthenticatedSuiviResultatsSuiviIndicateursIndexRouteImport.update({
+    id: '/suivi-resultats/suivi-indicateurs/',
+    path: '/suivi-resultats/suivi-indicateurs/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedRapportPtbaIndexRoute =
@@ -352,6 +360,12 @@ const AuthenticatedParametrageActeursIndexRoute =
     path: '/parametrage/acteurs/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedSuiviResultatsSuiviIndicateursIdRoute =
+  AuthenticatedSuiviResultatsSuiviIndicateursIdRouteImport.update({
+    id: '/suivi-resultats/suivi-indicateurs/$id',
+    path: '/suivi-resultats/suivi-indicateurs/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedProjetProgrammeProjetsIdRoute =
   AuthenticatedProjetProgrammeProjetsIdRouteImport.update({
     id: '/projet-programme/projets/$id',
@@ -420,6 +434,7 @@ export interface FileRoutesByFullPath {
   '/set-password/$uid/$token': typeof authSetPasswordUidTokenRoute
   '/programmation/projets/$id': typeof AuthenticatedProgrammationProjetsIdRoute
   '/projet-programme/projets/$id': typeof AuthenticatedProjetProgrammeProjetsIdRoute
+  '/suivi-resultats/suivi-indicateurs/$id': typeof AuthenticatedSuiviResultatsSuiviIndicateursIdRoute
   '/parametrage/acteurs/': typeof AuthenticatedParametrageActeursIndexRoute
   '/parametrage/autres/': typeof AuthenticatedParametrageAutresIndexRoute
   '/parametrage/conventions/': typeof AuthenticatedParametrageConventionsIndexRoute
@@ -447,6 +462,7 @@ export interface FileRoutesByFullPath {
   '/rapport/decaissement/': typeof AuthenticatedRapportDecaissementIndexRoute
   '/rapport/etat-des-activites/': typeof AuthenticatedRapportEtatDesActivitesIndexRoute
   '/rapport/ptba/': typeof AuthenticatedRapportPtbaIndexRoute
+  '/suivi-resultats/suivi-indicateurs/': typeof AuthenticatedSuiviResultatsSuiviIndicateursIndexRoute
   '/parametrage/autres/fonction/': typeof AuthenticatedParametrageAutresFonctionIndexRoute
   '/parametrage/autres/system/': typeof AuthenticatedParametrageAutresSystemIndexRoute
   '/parametrage/autres/type-zone/': typeof AuthenticatedParametrageAutresTypeZoneIndexRoute
@@ -476,6 +492,7 @@ export interface FileRoutesByTo {
   '/set-password/$uid/$token': typeof authSetPasswordUidTokenRoute
   '/programmation/projets/$id': typeof AuthenticatedProgrammationProjetsIdRoute
   '/projet-programme/projets/$id': typeof AuthenticatedProjetProgrammeProjetsIdRoute
+  '/suivi-resultats/suivi-indicateurs/$id': typeof AuthenticatedSuiviResultatsSuiviIndicateursIdRoute
   '/parametrage/acteurs': typeof AuthenticatedParametrageActeursIndexRoute
   '/parametrage/autres': typeof AuthenticatedParametrageAutresIndexRoute
   '/parametrage/conventions': typeof AuthenticatedParametrageConventionsIndexRoute
@@ -503,6 +520,7 @@ export interface FileRoutesByTo {
   '/rapport/decaissement': typeof AuthenticatedRapportDecaissementIndexRoute
   '/rapport/etat-des-activites': typeof AuthenticatedRapportEtatDesActivitesIndexRoute
   '/rapport/ptba': typeof AuthenticatedRapportPtbaIndexRoute
+  '/suivi-resultats/suivi-indicateurs': typeof AuthenticatedSuiviResultatsSuiviIndicateursIndexRoute
   '/parametrage/autres/fonction': typeof AuthenticatedParametrageAutresFonctionIndexRoute
   '/parametrage/autres/system': typeof AuthenticatedParametrageAutresSystemIndexRoute
   '/parametrage/autres/type-zone': typeof AuthenticatedParametrageAutresTypeZoneIndexRoute
@@ -536,6 +554,7 @@ export interface FileRoutesById {
   '/(auth)/set-password/$uid/$token': typeof authSetPasswordUidTokenRoute
   '/_authenticated/programmation/projets/$id': typeof AuthenticatedProgrammationProjetsIdRoute
   '/_authenticated/projet-programme/projets/$id': typeof AuthenticatedProjetProgrammeProjetsIdRoute
+  '/_authenticated/suivi-resultats/suivi-indicateurs/$id': typeof AuthenticatedSuiviResultatsSuiviIndicateursIdRoute
   '/_authenticated/parametrage/acteurs/': typeof AuthenticatedParametrageActeursIndexRoute
   '/_authenticated/parametrage/autres/': typeof AuthenticatedParametrageAutresIndexRoute
   '/_authenticated/parametrage/conventions/': typeof AuthenticatedParametrageConventionsIndexRoute
@@ -563,6 +582,7 @@ export interface FileRoutesById {
   '/_authenticated/rapport/decaissement/': typeof AuthenticatedRapportDecaissementIndexRoute
   '/_authenticated/rapport/etat-des-activites/': typeof AuthenticatedRapportEtatDesActivitesIndexRoute
   '/_authenticated/rapport/ptba/': typeof AuthenticatedRapportPtbaIndexRoute
+  '/_authenticated/suivi-resultats/suivi-indicateurs/': typeof AuthenticatedSuiviResultatsSuiviIndicateursIndexRoute
   '/_authenticated/parametrage/autres/fonction/': typeof AuthenticatedParametrageAutresFonctionIndexRoute
   '/_authenticated/parametrage/autres/system/': typeof AuthenticatedParametrageAutresSystemIndexRoute
   '/_authenticated/parametrage/autres/type-zone/': typeof AuthenticatedParametrageAutresTypeZoneIndexRoute
@@ -596,6 +616,7 @@ export interface FileRouteTypes {
     | '/set-password/$uid/$token'
     | '/programmation/projets/$id'
     | '/projet-programme/projets/$id'
+    | '/suivi-resultats/suivi-indicateurs/$id'
     | '/parametrage/acteurs/'
     | '/parametrage/autres/'
     | '/parametrage/conventions/'
@@ -623,6 +644,7 @@ export interface FileRouteTypes {
     | '/rapport/decaissement/'
     | '/rapport/etat-des-activites/'
     | '/rapport/ptba/'
+    | '/suivi-resultats/suivi-indicateurs/'
     | '/parametrage/autres/fonction/'
     | '/parametrage/autres/system/'
     | '/parametrage/autres/type-zone/'
@@ -652,6 +674,7 @@ export interface FileRouteTypes {
     | '/set-password/$uid/$token'
     | '/programmation/projets/$id'
     | '/projet-programme/projets/$id'
+    | '/suivi-resultats/suivi-indicateurs/$id'
     | '/parametrage/acteurs'
     | '/parametrage/autres'
     | '/parametrage/conventions'
@@ -679,6 +702,7 @@ export interface FileRouteTypes {
     | '/rapport/decaissement'
     | '/rapport/etat-des-activites'
     | '/rapport/ptba'
+    | '/suivi-resultats/suivi-indicateurs'
     | '/parametrage/autres/fonction'
     | '/parametrage/autres/system'
     | '/parametrage/autres/type-zone'
@@ -711,6 +735,7 @@ export interface FileRouteTypes {
     | '/(auth)/set-password/$uid/$token'
     | '/_authenticated/programmation/projets/$id'
     | '/_authenticated/projet-programme/projets/$id'
+    | '/_authenticated/suivi-resultats/suivi-indicateurs/$id'
     | '/_authenticated/parametrage/acteurs/'
     | '/_authenticated/parametrage/autres/'
     | '/_authenticated/parametrage/conventions/'
@@ -738,6 +763,7 @@ export interface FileRouteTypes {
     | '/_authenticated/rapport/decaissement/'
     | '/_authenticated/rapport/etat-des-activites/'
     | '/_authenticated/rapport/ptba/'
+    | '/_authenticated/suivi-resultats/suivi-indicateurs/'
     | '/_authenticated/parametrage/autres/fonction/'
     | '/_authenticated/parametrage/autres/system/'
     | '/_authenticated/parametrage/autres/type-zone/'
@@ -920,6 +946,13 @@ declare module '@tanstack/react-router' {
       path: '/parametrage/autres'
       fullPath: '/parametrage/autres'
       preLoaderRoute: typeof AuthenticatedParametrageAutresRouteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/suivi-resultats/suivi-indicateurs/': {
+      id: '/_authenticated/suivi-resultats/suivi-indicateurs/'
+      path: '/suivi-resultats/suivi-indicateurs'
+      fullPath: '/suivi-resultats/suivi-indicateurs/'
+      preLoaderRoute: typeof AuthenticatedSuiviResultatsSuiviIndicateursIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/rapport/ptba/': {
@@ -1111,6 +1144,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedParametrageActeursIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/suivi-resultats/suivi-indicateurs/$id': {
+      id: '/_authenticated/suivi-resultats/suivi-indicateurs/$id'
+      path: '/suivi-resultats/suivi-indicateurs/$id'
+      fullPath: '/suivi-resultats/suivi-indicateurs/$id'
+      preLoaderRoute: typeof AuthenticatedSuiviResultatsSuiviIndicateursIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/projet-programme/projets/$id': {
       id: '/_authenticated/projet-programme/projets/$id'
       path: '/projet-programme/projets/$id'
@@ -1223,6 +1263,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedUsersIndexRoute: typeof AuthenticatedUsersIndexRoute
   AuthenticatedProgrammationProjetsIdRoute: typeof AuthenticatedProgrammationProjetsIdRoute
   AuthenticatedProjetProgrammeProjetsIdRoute: typeof AuthenticatedProjetProgrammeProjetsIdRoute
+  AuthenticatedSuiviResultatsSuiviIndicateursIdRoute: typeof AuthenticatedSuiviResultatsSuiviIndicateursIdRoute
   AuthenticatedParametrageActeursIndexRoute: typeof AuthenticatedParametrageActeursIndexRoute
   AuthenticatedParametrageConventionsIndexRoute: typeof AuthenticatedParametrageConventionsIndexRoute
   AuthenticatedParametrageDictionnaireIndicateursIndexRoute: typeof AuthenticatedParametrageDictionnaireIndicateursIndexRoute
@@ -1249,6 +1290,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedRapportDecaissementIndexRoute: typeof AuthenticatedRapportDecaissementIndexRoute
   AuthenticatedRapportEtatDesActivitesIndexRoute: typeof AuthenticatedRapportEtatDesActivitesIndexRoute
   AuthenticatedRapportPtbaIndexRoute: typeof AuthenticatedRapportPtbaIndexRoute
+  AuthenticatedSuiviResultatsSuiviIndicateursIndexRoute: typeof AuthenticatedSuiviResultatsSuiviIndicateursIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -1264,6 +1306,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedProgrammationProjetsIdRoute,
   AuthenticatedProjetProgrammeProjetsIdRoute:
     AuthenticatedProjetProgrammeProjetsIdRoute,
+  AuthenticatedSuiviResultatsSuiviIndicateursIdRoute:
+    AuthenticatedSuiviResultatsSuiviIndicateursIdRoute,
   AuthenticatedParametrageActeursIndexRoute:
     AuthenticatedParametrageActeursIndexRoute,
   AuthenticatedParametrageConventionsIndexRoute:
@@ -1314,6 +1358,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedRapportEtatDesActivitesIndexRoute:
     AuthenticatedRapportEtatDesActivitesIndexRoute,
   AuthenticatedRapportPtbaIndexRoute: AuthenticatedRapportPtbaIndexRoute,
+  AuthenticatedSuiviResultatsSuiviIndicateursIndexRoute:
+    AuthenticatedSuiviResultatsSuiviIndicateursIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

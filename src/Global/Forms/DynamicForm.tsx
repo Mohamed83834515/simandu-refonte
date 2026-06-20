@@ -1,4 +1,4 @@
-import { useEffect, useImperativeHandle, forwardRef } from 'react'
+import { useEffect, useImperativeHandle, forwardRef, useRef } from 'react'
 import type { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -90,9 +90,14 @@ export const DynamicForm = forwardRef<DynamicFormHandle, DynamicFormProps>(
       reset
     } = form
 
+    const defaultValuesKeyRef = useRef<string | null>(null)
+
     useEffect(() => {
-      reset(defaultValues);
-    }, [defaultValues]);
+      const nextKey = JSON.stringify(defaultValues)
+      if (defaultValuesKeyRef.current === nextKey) return
+      defaultValuesKeyRef.current = nextKey
+      reset(defaultValues)
+    }, [defaultValues, reset])
 
     useImperativeHandle(ref, () => ({
       setValue: (name: string, value: any) =>

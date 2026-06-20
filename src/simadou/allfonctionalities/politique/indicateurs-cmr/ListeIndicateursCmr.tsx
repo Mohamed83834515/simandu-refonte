@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useNavigate } from '@tanstack/react-router'
 import { toast } from 'sonner'
 import { Card } from '@/components/ui/card'
 import { DataTableToolbarOutlineButton } from '@/components/data-table/toolbar-outline-button'
@@ -42,7 +43,16 @@ import IndicateurCmrFormPanel from './IndicateurCmrFormPanel'
 
 type ModalState = 'indicateur' | 'indicateurView'
 
-export default function ListeIndicateursCmr() {
+type ListeIndicateursCmrProps = {
+  showAddButton?: boolean
+  showSuiviAction?: boolean
+}
+
+export default function ListeIndicateursCmr({
+  showAddButton = true,
+  showSuiviAction = false,
+}: ListeIndicateursCmrProps = {}) {
+  const routerNavigate = useNavigate()
   const activeProgramme = useActiveProgramme()
   const programmeId = useActiveProgrammeId()
   const codeProgramme = activeProgramme?.code_programme
@@ -131,15 +141,43 @@ export default function ListeIndicateursCmr() {
     if (!open) setIndicateurForCibles(null)
   }, [])
 
+  const handleSuivi = useCallback(
+    (row: IndicateurCmr) => {
+      routerNavigate({
+        to: '/suivi-resultats/suivi-indicateurs/$id',
+        params: { id: String(row.id_ref_ind_cmr) },
+      })
+    },
+    [routerNavigate]
+  )
+
+  const strategiqueCountByNiveau = useMemo(() => {
+    const counts: Record<number, number> = {}
+    for (const indicateur of indicateursStrategiques) {
+      const niveau = Number(indicateur.niveau_istr)
+      if (!Number.isFinite(niveau)) continue
+      counts[niveau] = (counts[niveau] ?? 0) + 1
+    }
+    return counts
+  }, [indicateursStrategiques])
+
   const columns = useMemo(
     () =>
       buildIndicateurCmrColumns({
-        onView: handleView,
-        onEdit: handleEdit,
-        onDeleteRequest: handleDeleteRequest,
-        onOpenCibles: handleOpenCibles,
+        onView: showSuiviAction ? undefined : handleView,
+        onEdit: showSuiviAction ? undefined : handleEdit,
+        onDeleteRequest: showSuiviAction ? undefined : handleDeleteRequest,
+        onOpenCibles: showSuiviAction ? undefined : handleOpenCibles,
+        onSuivi: showSuiviAction ? handleSuivi : undefined,
       }),
-    [handleView, handleEdit, handleDeleteRequest, handleOpenCibles]
+    [
+      showSuiviAction,
+      handleView,
+      handleEdit,
+      handleDeleteRequest,
+      handleOpenCibles,
+      handleSuivi,
+    ]
   )
 
   const handleConfirmDelete = (row: IndicateurCmr) => {
@@ -215,11 +253,7 @@ export default function ListeIndicateursCmr() {
               <NiveauTabTrigger
                 key={n.id_nsc}
                 value={String(n.code_number_nsc)}
-                count={
-                  indicateursStrategiques.filter(
-                    (i) => Number(i.niveau_istr) === Number(n.code_number_nsc)
-                  ).length
-                }
+                count={strategiqueCountByNiveau[Number(n.code_number_nsc)] ?? 0}
               >
                 {n.libelle_nsc}
               </NiveauTabTrigger>
@@ -251,9 +285,11 @@ export default function ListeIndicateursCmr() {
         defaultPageSize={10}
         showViewOptions={false}
         toolbarEndSlot={
-          <DataTableToolbarOutlineButton onClick={handleAddForm}>
-            Ajouter un nouvel indicateur
-          </DataTableToolbarOutlineButton>
+          showAddButton ? (
+            <DataTableToolbarOutlineButton onClick={handleAddForm}>
+              Ajouter un nouvel indicateur
+            </DataTableToolbarOutlineButton>
+          ) : undefined
         }
         emptyMessage='Aucun indicateur CMR.'
       />
@@ -277,10 +313,11 @@ export default function ListeIndicateursCmr() {
 
       <Dialog open={modal === 'indicateur'} onOpenChange={(o) => !o && closeAll()}>
         <DialogContent
-          className='gap-0 overflow-hidden p-0 sm:max-w-3xl'
+          className='flex max-h-[90vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-3xl'
           aria-describedby={undefined}
+          onOpenAutoFocus={(event) => event.preventDefault()}
         >
-          <DialogHeader className='border-b px-6 py-4'>
+          <DialogHeader className='shrink-0 border-b px-6 py-4'>
             <DialogTitle>
               {selectedIndicateur
                 ? "Modifier l'indicateur CMR"
@@ -290,17 +327,19 @@ export default function ListeIndicateursCmr() {
               Niveau stratégique : {currentNiveauLibelle}
             </DialogDescription>
           </DialogHeader>
-          <div className='px-6 py-4'>
-            <IndicateurCmrFormPanel
-              key={
-                selectedIndicateur?.id_ref_ind_cmr ?? `new-${currentNiveauCode}`
-              }
-              indicateur={selectedIndicateur}
-              niveauCodeNumber={currentNiveauCode}
-              indicateursStrategiques={indicateursStrategiques}
-              onClose={closeAll}
-              onSuccess={closeAll}
-            />
+          <div className='min-h-0 flex-1 overflow-y-auto px-6 py-4'>
+            {modal === 'indicateur' ? (
+              <IndicateurCmrFormPanel
+                key={
+                  selectedIndicateur?.id_ref_ind_cmr ?? `new-${currentNiveauCode}`
+                }
+                indicateur={selectedIndicateur}
+                niveauCodeNumber={currentNiveauCode}
+                indicateursStrategiques={indicateursStrategiques}
+                onClose={closeAll}
+                onSuccess={closeAll}
+              />
+            ) : null}
           </div>
         </DialogContent>
       </Dialog>

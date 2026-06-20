@@ -28,7 +28,7 @@ function toIndicateurCmrApiPayload(
 
 export const indicateurCmrService = {
   getAll: async (): Promise<IndicateurCmr[]> => {
-    const response = await apiClient.request<unknown>("/indicateur_cmr/");
+    const response = await apiClient.request<unknown>("/indicateurs-cmr/");
     return normalizeApiList<Record<string, unknown>>(response).map(
       mapIndicateurCmrFromApi,
     );
@@ -36,14 +36,14 @@ export const indicateurCmrService = {
 
   getById: async (id: number): Promise<IndicateurCmr> => {
     const response = await apiClient.request<Record<string, unknown>>(
-      `/indicateur_cmr/${id}/`,
+      `/indicateurs-cmr/${id}/`,
     );
     return mapIndicateurCmrFromApi(response);
   },
 
   getByResultat: async (resultatId: number): Promise<IndicateurCmr[]> => {
     const response = await apiClient.request<unknown>(
-      `/indicateur_cmr/?resultat_cmr=${resultatId}`,
+      `/indicateurs-cmr/?resultat_cmr=${resultatId}`,
     );
     return normalizeApiList<Record<string, unknown>>(response).map(
       mapIndicateurCmrFromApi,
@@ -52,7 +52,7 @@ export const indicateurCmrService = {
 
   getByResponsable: async (responsable: string): Promise<IndicateurCmr[]> => {
     const response = await apiClient.request<unknown>(
-      `/indicateur_cmr/?responsable_collecte_cmr=${encodeURIComponent(responsable)}`,
+      `/indicateurs-cmr/?responsable_collecte_cmr=${encodeURIComponent(responsable)}`,
     );
     return normalizeApiList<Record<string, unknown>>(response).map(
       mapIndicateurCmrFromApi,
@@ -61,7 +61,7 @@ export const indicateurCmrService = {
 
   create: async (data: IndicateurCmrFormData): Promise<IndicateurCmr> => {
     const response = await apiClient.request<Record<string, unknown>>(
-      "/indicateur_cmr/",
+      "/indicateurs-cmr/",
       {
         method: "POST",
         data: toIndicateurCmrApiPayload(data),
@@ -75,7 +75,7 @@ export const indicateurCmrService = {
     data: Partial<IndicateurCmrFormData>,
   ): Promise<IndicateurCmr> => {
     const response = await apiClient.request<Record<string, unknown>>(
-      `/indicateur_cmr/${id}/`,
+      `/indicateurs-cmr/${id}/`,
       {
         method: "PUT",
         data: toIndicateurCmrApiPayload(data),
@@ -85,14 +85,14 @@ export const indicateurCmrService = {
   },
 
   delete: async (id: number): Promise<void> => {
-    await apiClient.request<IndicateurCmr>(`/indicateur_cmr/${id}/`, {
+    await apiClient.request<IndicateurCmr>(`/indicateurs-cmr/${id}/`, {
       method: "DELETE",
     });
   },
 
   toggleStatus: async (id: number): Promise<IndicateurCmr> => {
     const response = await apiClient.request<Record<string, unknown>>(
-      `/indicateur_cmr/${id}/toggle_status/`,
+      `/indicateurs-cmr/${id}/toggle_status/`,
       {
         method: "PATCH",
       },

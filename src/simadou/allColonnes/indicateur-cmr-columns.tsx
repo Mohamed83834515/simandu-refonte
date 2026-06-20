@@ -1,4 +1,5 @@
 import { type ColumnDef } from '@tanstack/react-table'
+import { ClipboardList } from 'lucide-react'
 import { DataTableColumnHeader } from '@/components/data-table'
 import { LongText } from '@/components/others/long-text'
 import { Button } from '@/components/ui/button'
@@ -43,19 +44,57 @@ export function buildIndicateurCmrColumns<T extends IndicateurCmrTableRow>({
   onEdit,
   onDeleteRequest,
   onOpenCibles,
+  onSuivi,
   hideReferentielColumn = false,
 }: {
   onView?: (row: T) => void
-  onEdit: (row: T) => void
-  onDeleteRequest: (row: T) => void
+  onEdit?: (row: T) => void
+  onDeleteRequest?: (row: T) => void
   onOpenCibles?: (row: T) => void
+  onSuivi?: (row: T) => void
   hideReferentielColumn?: boolean
 }): ColumnDef<T>[] {
-  const actionsColumn = buildEditDeleteActionsColumn({
-    onView,
-    onEdit,
-    onDeleteRequest,
-  })
+  const actionsColumn =
+    onView || onEdit || onDeleteRequest
+      ? buildEditDeleteActionsColumn({
+          onView,
+          onEdit,
+          onDeleteRequest,
+        })
+      : null
+
+  const suiviColumn: ColumnDef<T> | null = onSuivi
+    ? {
+        id: 'suivi',
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            title='Suivi'
+            className='text-center'
+          />
+        ),
+        cell: ({ row }) => (
+          <div className='flex justify-center'>
+            <Button
+              type='button'
+              variant='outline'
+              size='sm'
+              className='gap-2 border-yellow-200 bg-yellow-50 text-yellow-700 transition-all duration-200 hover:bg-yellow-100 hover:text-yellow-800 dark:border-yellow-800 dark:bg-yellow-950/30 dark:text-yellow-400 dark:hover:bg-yellow-950/50'
+              onClick={() => onSuivi(row.original)}
+              aria-label='Ouvrir le suivi'
+              title="Suivi de l'indicateur"
+            >
+              <ClipboardList className='h-4 w-4' />
+              <span className='text-xs font-medium'>Suivre</span>
+            </Button>
+          </div>
+        ),
+        meta: { thClassName: 'text-center', className: 'text-center' },
+        size: 100,
+        enableSorting: false,
+        enableHiding: false,
+      }
+    : null
 
   return [
     {
@@ -195,6 +234,7 @@ export function buildIndicateurCmrColumns<T extends IndicateurCmrTableRow>({
         </LongText>
       ),
     },
-    actionsColumn,
+    ...(suiviColumn ? [suiviColumn] : []),
+    ...(actionsColumn ? [actionsColumn] : []),
   ]
 }
