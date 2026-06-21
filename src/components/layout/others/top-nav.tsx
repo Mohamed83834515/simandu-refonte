@@ -1169,7 +1169,7 @@ export function AppTopbar({ user }: UserProps) {
     setManualGroup((prev) => (prev?.title === item.title ? null : item))
   }
 
- 
+
 
   return (
     <>
@@ -1433,6 +1433,52 @@ export function AppTopbar({ user }: UserProps) {
             >
               {activeGroup.items.map((sub, idx) => {
                 const isActive = href === sub.url || href.split('?')[0] === sub.url
+
+                // 🔍 Vérifier si c'est un lien externe
+                const isExternal = sub.url?.startsWith('http://') ||
+                  sub.url?.startsWith('https://') ||
+                  sub.url?.startsWith('//')
+
+                // Si c'est un lien externe, utiliser une balise <a>
+                if (isExternal) {
+                  return (
+                    <a
+                      key={`${sub.title}-${idx}`}
+                      href={sub.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="_tb-sublink"
+                      style={{
+                        color: 'rgba(255,255,255,0.78)',
+                        backgroundColor: 'transparent',
+                        fontWeight: 400,
+                        textShadow: '0 1px 3px rgba(0,0,0,0.35)',
+                        animation: `_tb-fade 0.18s ${0.02 + idx * 0.03}s both`,
+                      }}
+                    >
+                      {sub.icon && <sub.icon className="size-3.5" aria-hidden />}
+                      <span>{t(sub.title)}</span>
+                      {sub.badge && <NavBadge value={sub.badge} />}
+                      {/* Optionnel : icône pour indiquer un lien externe */}
+                      <svg
+                        className="ml-1 size-3"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                        />
+                      </svg>
+                    </a>
+                  )
+                }
+
+                // Sinon, utiliser Link de React Router
                 return (
                   <Link
                     key={`${sub.title}-${idx}`}

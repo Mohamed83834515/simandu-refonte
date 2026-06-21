@@ -7,6 +7,7 @@ import ProjetPtbaPanel from './ptba/ProjetPtbaPanel'
 import ProjetSuiviPtbaPanel from './suivi-ptba/ProjetSuiviPtbaPanel'
 import ProjetCadreResultatsPanel from './resultsFramework/ProjetCadreResultatsPanel'
 import ProjetIndicateursCmrPanel from './cmrIndicators/ProjetIndicateursCmrPanel'
+// ✅ Correction : importer le bon fichier
 import ProjetDocumentsPanel from './documents/ProjetDocumentsPanel'
 import ProjetPointsBlocagePanel from './points-blocage/ProjetPointsBlocagePanel'
 import ProjetDetailPlaceholder from './ProjetDetailPlaceholder'

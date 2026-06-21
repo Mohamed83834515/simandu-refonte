@@ -192,6 +192,11 @@ export const sidebarData: SidebarData = {
               url: '/suivi-resultats/suivi-indicateurs',
               icon: LineChart,
             },
+            {
+              title: 'Cartographie',
+              url: 'https://guinee.sygcip.com/',
+              icon: MapPin,
+            },
           ],
         },
 

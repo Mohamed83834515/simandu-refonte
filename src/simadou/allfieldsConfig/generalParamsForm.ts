@@ -103,6 +103,33 @@ export const getFinanceFormConfig = (): FormConfig => ({
   ],
 })
 
+export const getSeuilFormConfig = (): FormConfig => ({
+  layout: 'grid',
+  columns: 2,
+  fields: [
+    {
+      name:        'ecartProjetCritique',
+      label:       'Écart projet critique (%)',
+      type:        'number',
+      placeholder: 'Ex: 30',
+      helperText:  'Nombre de pourcentage d\'écart pour qu\'un projet soit considéré comme critique',
+      gridCols:    1,
+      min:         0,
+      step:        1,
+    },
+    {
+      name:        'ecartProjetRetard',
+      label:       'Écart projet retard (%)',
+      type:        'number',
+      placeholder: 'Ex: 15',
+      helperText:  'Nombre de pourcentage d\'écart pour qu\'un projet soit considéré comme en retard',
+      gridCols:    1,
+      min:         0,
+      step:        1,
+    },
+  ],
+})
+
 export const getSecuriteFormConfig = (): FormConfig => ({
   layout: 'grid',
   columns: 2,

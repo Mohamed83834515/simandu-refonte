@@ -40,26 +40,28 @@ export default function SuiviIndicateurCmrSummary({
   const indicateurLabel = `${indicateur.code_ref_ind} — ${indicateur.intitule_ref_ind}`
 
   return (
-    <Card className='border-primary/15 bg-primary/5 py-0 dark:bg-primary/10'>
-      <CardContent className='px-4 py-3'>
-        <dl className='grid gap-2 sm:grid-cols-2 lg:grid-cols-3'>
-          <div className='space-y-0.5'>
-            <dt className='text-[11px] font-medium text-muted-foreground'>
+    <Card className='h-full border-primary/15 bg-primary/5 py-0 dark:bg-primary/10'>
+      <CardContent className='min-h-[9.5rem] px-3 py-3'>
+        <dl className='grid gap-x-3 gap-y-1.5 sm:grid-cols-2'>
+          <div className='space-y-0.5 sm:col-span-2'>
+            <dt className='text-[10px] font-medium uppercase tracking-wide text-muted-foreground'>
               Indicateur
             </dt>
-            <dd className='text-xs leading-snug'>{indicateurLabel}</dd>
+            <dd className='line-clamp-2 text-xs leading-snug'>{indicateurLabel}</dd>
           </div>
           <div className='space-y-0.5'>
-            <dt className='text-[11px] font-medium text-muted-foreground'>Type</dt>
-            <dd className='text-xs'>
+            <dt className='text-[10px] font-medium uppercase tracking-wide text-muted-foreground'>
+              Type
+            </dt>
+            <dd className='truncate text-xs'>
               {resolveReferentielField(indicateur, 'typologie')}
             </dd>
           </div>
           <div className='space-y-0.5'>
-            <dt className='text-[11px] font-medium text-muted-foreground'>
+            <dt className='text-[10px] font-medium uppercase tracking-wide text-muted-foreground'>
               Périodicité
             </dt>
-            <dd className='text-xs'>
+            <dd className='truncate text-xs'>
               {displayValue(
                 (indicateur as Record<string, unknown>).periodicite_cmr ??
                   (indicateur as Record<string, unknown>).periodicite
@@ -67,27 +69,19 @@ export default function SuiviIndicateurCmrSummary({
             </dd>
           </div>
           <div className='space-y-0.5'>
-            <dt className='text-[11px] font-medium text-muted-foreground'>
+            <dt className='text-[10px] font-medium uppercase tracking-wide text-muted-foreground'>
               Structure responsable
             </dt>
-            <dd className='text-xs'>
+            <dd className='truncate text-xs'>
               {displayValue(indicateur.responsable_collecte_cmr)}
             </dd>
           </div>
           <div className='space-y-0.5'>
-            <dt className='text-[11px] font-medium text-muted-foreground'>
+            <dt className='text-[10px] font-medium uppercase tracking-wide text-muted-foreground'>
               Échelle
             </dt>
-            <dd className='text-xs'>
+            <dd className='truncate text-xs'>
               {resolveReferentielField(indicateur, 'echelle')}
-            </dd>
-          </div>
-          <div className='space-y-0.5'>
-            <dt className='text-[11px] font-medium text-muted-foreground'>
-              Fonction d&apos;agrégation
-            </dt>
-            <dd className='text-xs'>
-              {displayValue(indicateur.fonction_agregat_cmr)}
             </dd>
           </div>
         </dl>

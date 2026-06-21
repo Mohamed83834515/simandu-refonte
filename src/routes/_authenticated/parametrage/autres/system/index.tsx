@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import { AppWindow, Mail, Coins, ShieldCheck, Bell, Link2 } from 'lucide-react'
+import { AppWindow, Mail, Coins, ShieldCheck, Bell, Link2, List } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { IdentiteSection }      from '@/simadou/allfonctionalities/parametrage/autres/system/IdentiteSection'
 import { ContactsSection }      from '@/simadou/allfonctionalities/parametrage/autres/system/ContactsSection'
@@ -21,6 +21,8 @@ import type { SecuriteInput }      from '@/simadou/allfonctionalities/parametrag
 import type { NotificationsInput } from '@/simadou/allfonctionalities/parametrage/autres/system/schemas/notifications.schema'
 import type { IntegrationsInput }  from '@/simadou/allfonctionalities/parametrage/autres/system/schemas/integrations.schema'
 import { useUpdateGeneralParams } from '@/simadou/allHooks/generalParams/mutations'
+import { SeuilInput } from '@/simadou/allfonctionalities/parametrage/autres/system/schemas/seuils.schemas'
+import { SeuilSection } from '@/simadou/allfonctionalities/parametrage/autres/system/SeuilSection'
 
 export const Route = createFileRoute(
   '/_authenticated/parametrage/autres/system/'
@@ -30,6 +32,7 @@ const TABS = [
   { id: 'identite',      label: 'Identité système', icon: AppWindow   },
   { id: 'contacts',      label: 'Contacts',          icon: Mail        },
   { id: 'finance',       label: 'Finance',            icon: Coins       },
+  { id: 'seuil',      label: 'Seuil de Performance',           icon: List },
   { id: 'securite',      label: 'Sécurité',           icon: ShieldCheck },
   { id: 'notifications', label: 'Notifications',      icon: Bell        },
   { id: 'integrations',  label: 'Intégrations',       icon: Link2       },
@@ -81,6 +84,11 @@ const handleSaveFinance = (data: FinanceInput) =>
     main_currency_rate:   data.exchangeRate != null
                             ? String(data.exchangeRate)
                             : undefined,
+  })
+const handleSaveSeuil = (data: SeuilInput) =>
+  patch({
+    ecart_projet_retard: data.ecartProjetRetard || undefined,
+    ecart_projet_critique:  data.ecartProjetCritique || undefined,
   })
 
 const handleSaveSecurite = (data: SecuriteInput) =>
@@ -175,6 +183,13 @@ const handleSaveIntegrations = (data: IntegrationsInput) =>
             params={config}
             isSaving={isPending}
             onSave={handleSaveFinance}
+          />
+        </TabsContent>
+        <TabsContent value="seuil">
+          <SeuilSection
+            params={config}
+            isSaving={isPending}
+            onSave={handleSaveSeuil}
           />
         </TabsContent>
         <TabsContent value="securite">

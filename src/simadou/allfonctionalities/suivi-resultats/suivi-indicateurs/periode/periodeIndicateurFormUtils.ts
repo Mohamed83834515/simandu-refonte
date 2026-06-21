@@ -15,6 +15,35 @@ export function resolvePeriodeIndicateurLabel(periode: PeriodeIndicateur): strin
   return `Période #${periode.id_periode}`
 }
 
+export function resolvePeriodeSuiviStats(periodes: PeriodeIndicateur[]) {
+  if (periodes.length === 0) {
+    return { count: 0, lastSuiviDate: null as string | null }
+  }
+
+  const lastSuiviDate = periodes.reduce<string | null>((latest, periode) => {
+    const candidate = periode.modifier_le || periode.date_enregistrement
+    if (!candidate?.trim()) return latest
+    if (!latest) return candidate
+    return candidate > latest ? candidate : latest
+  }, null)
+
+  return { count: periodes.length, lastSuiviDate }
+}
+
+export function formatPeriodeSuiviDate(value: string | null | undefined): string {
+  if (!value?.trim()) return '—'
+  const raw = value.trim()
+  if (/^\d{4}-\d{2}-\d{2}/.test(raw)) {
+    const [year, month, day] = raw.slice(0, 10).split('-')
+    return `${day}/${month}/${year}`
+  }
+  const parsed = new Date(raw)
+  if (!Number.isNaN(parsed.getTime())) {
+    return parsed.toLocaleDateString('fr-FR')
+  }
+  return raw
+}
+
 export function periodeIndicateurToFormValues(
   periode?: PeriodeIndicateur | null
 ): PeriodeIndicateurFormData {

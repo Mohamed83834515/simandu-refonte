@@ -1,8 +1,7 @@
-import { createFileRoute } from '@tanstack/react-router'
-import ProjetDetail from '@/simadou/allfonctionalities/projets/detail/ProjetDetail'
+import { createFileRoute, Outlet } from '@tanstack/react-router'
 
 export const Route = createFileRoute(
   '/_authenticated/projet-programme/projets/$id'
 )({
-  component: ProjetDetail,
+  component: () => <Outlet />,
 })

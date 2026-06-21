@@ -52,6 +52,8 @@ export interface GeneralParamsPatch {
   main_currency_rate?:         string
   is_maintenance?:             boolean
   inactivity_minute?:          number
+  ecart_projet_critique?:       number
+  ecart_projet_retard?:         number
   max_sessions?:               number
   max_login_attempts?:         number
   otp_validity_minute?:        number

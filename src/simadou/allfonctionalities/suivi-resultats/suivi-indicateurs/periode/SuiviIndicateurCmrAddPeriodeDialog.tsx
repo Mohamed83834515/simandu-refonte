@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -43,12 +43,6 @@ export default function SuiviIndicateurCmrAddPeriodeDialog({
     emptyPeriodeIndicateurFormValues()
   )
 
-  useEffect(() => {
-    if (open) {
-      setForm(emptyPeriodeIndicateurFormValues())
-    }
-  }, [open])
-
   const updateField = <K extends keyof PeriodeIndicateurFormData>(
     key: K,
     value: PeriodeIndicateurFormData[K]
@@ -90,7 +84,7 @@ export default function SuiviIndicateurCmrAddPeriodeDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className={cn(DIALOG_SIZES.form, 'gap-0 p-0')}
+        className={cn(DIALOG_SIZES.md, 'gap-0 p-0')}
         aria-describedby={undefined}
       >
         <DialogHeader className='border-b px-6 py-4 pr-12'>

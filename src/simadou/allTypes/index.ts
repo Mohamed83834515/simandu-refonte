@@ -13,6 +13,7 @@ export * from "./convention";
 export * from "./coutUnitairePtba";
 export * from "./dictionnaireIndicateur";
 export * from "./documentProjet";
+export * from "./dossierProjet";
 export * from "./missionSupervisionProjet";
 export * from "./recommandationMissionProjet";
 export * from "./fonction";

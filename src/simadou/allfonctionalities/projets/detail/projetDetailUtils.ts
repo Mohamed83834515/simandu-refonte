@@ -27,3 +27,17 @@ export function computeDureeConsommee(projet: Projet) {
   const percent = Math.min(100, Math.round((elapsedMonths / totalMonths) * 100))
   return { elapsedMonths, totalMonths, percent }
 }
+
+export function resolveProjetRouteId(projet: Projet): string {
+  return projet.code_projet || String(projet.id_projet)
+}
+
+export function buildDossierProjetPath(projet: Projet, dossierId: number): string {
+  return `/projet-programme/projets/${resolveProjetRouteId(projet)}/dossiers/${dossierId}`
+}
+
+export function openDossierProjetInNewTab(projet: Projet, dossierId: number) {
+  const path = buildDossierProjetPath(projet, dossierId)
+  const url = `${window.location.origin}${path}`
+  window.open(url, '_blank', 'noopener,noreferrer')
+}

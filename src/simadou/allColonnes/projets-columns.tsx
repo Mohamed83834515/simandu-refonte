@@ -66,27 +66,22 @@ export function buildProjetsColumns(
       enableHiding: false,
     },
     {
-      id: 'partenaires_execution',
+      id: 'signataires_projet',
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Partenaires d'exécution" />
       ),
       cell: ({ row }) => {
-        const partenaires = row.original.partenaires_execution_projet
+        const partenaires = row.original.signataires_projet
         if (!partenaires || partenaires.length === 0) {
           return <span className='text-muted-foreground'>—</span>
         }
         return (
-          <div className='flex flex-col gap-0.5'>
-            {partenaires.slice(0, 2).map((partenaire, idx) => (
+          <div className='flex flex-row gap-0.5'>
+            {partenaires.map((partenaire, idx) => (
               <span key={idx} className='text-sm text-muted-foreground'>
-                {partenaire.nom_acteur?.trim()}
+                {partenaire.code_acteur?.trim()} / 
               </span>
             ))}
-            {partenaires.length > 2 && (
-              <span className='text-xs text-muted-foreground'>
-                +{partenaires.length - 2} autre(s)
-              </span>
-            )}
           </div>
         )
       },

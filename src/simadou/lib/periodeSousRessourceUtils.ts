@@ -12,7 +12,11 @@ export function resolvePeriodeEnregistrementId(
     resource === 'documentations'
       ? [(row as DocumentationCmrEnregistrement).id_documentation, row.id]
       : resource === 'fonds-carte'
-        ? [(row as { id_fond_carte?: number }).id_fond_carte, row.id]
+        ? [
+            (row as { id_fond_carte?: number }).id_fond_carte,
+            (row as { id_fonds_carte?: number }).id_fonds_carte,
+            row.id,
+          ]
         : [(row as { id_tableau_synthese?: number }).id_tableau_synthese, row.id]
 
   for (const value of candidates) {

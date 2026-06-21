@@ -16,7 +16,8 @@ import { ProjectCreateData, projectCreateSchema } from '@/simadou/schemas/projet
 import { toast } from 'sonner'
 import { StepDynamicForm } from '@/Global/Forms/StepDynamicForm'
 import { useGetUgls } from '@/simadou/allHooks/admin/uglHooks'
-import { useTypeProjetStore } from '@/stores/type-projet-store'
+import { useGetProgrammes } from '@/simadou/allHooks/admin/programmeHooks'
+import { useGetTypeProjet } from '@/simadou/allHooks/admin/typeProjetHooks'
 
 interface OpenPropsProjet {
   currentRow?: any | null
@@ -32,12 +33,12 @@ export default function AddProjet({ open, onOpenChange, currentRow }: OpenPropsP
   const { data: acteurs = [] } = useGetActeurs()
   const { data: localites = [] } = useGetLocalites()
   const { data: ugls = [] } = useGetUgls()
-
-  const { selectedTypeProjetId } = useTypeProjetStore()
+  const { data: programmes = [] } = useGetProgrammes()
+  const { data: type_projets = [] } = useGetTypeProjet()
   // ── Config du formulaire (options injectées ici, pas dans le fichier config) ──
   const formConfig = useMemo(
-    () => getProjetFormConfig(acteurs, localites, ugls),
-    [acteurs, localites, ugls]
+    () => getProjetFormConfig(acteurs, localites, ugls, programmes, type_projets),
+    [acteurs, localites, ugls, programmes, type_projets]
   )
 
   // ── Mutations ──
@@ -57,6 +58,16 @@ export default function AddProjet({ open, onOpenChange, currentRow }: OpenPropsP
     if (item && typeof item === 'object') return item.id_ugl || item.nom_ugl || 0
     return 0
   }
+  const extracProgrammId = (item: any): number => {
+    if (typeof item === 'number') return item
+    if (item && typeof item === 'object') return item.id_programme || item.nom_programme || 0
+    return 0
+  }
+  const extracTypeId = (item: any): number => {
+    if (typeof item === 'number') return item
+    if (item && typeof item === 'object') return item.id_type_projet || item.nom_type_projet || 0
+    return 0
+  }
 
   const extractIds = (items: any[] | undefined | null): number[] => {
     if (!Array.isArray(items)) return []
@@ -71,8 +82,9 @@ export default function AddProjet({ open, onOpenChange, currentRow }: OpenPropsP
     date_signature_projet: currentRow?.date_signature_projet ?? '',
     date_demarrage_projet: currentRow?.date_demarrage_projet ?? '',
     duree_projet: currentRow?.duree_projet ?? 0,
-    type_projet: selectedTypeProjetId ?? 0,
+    type_projet: extracTypeId(currentRow?.type_projet ?? 0),
 
+    programme_projet: extracProgrammId(currentRow?.programme_projet ?? 0),
     structure_projet: extractUniteId(currentRow?.structure_projet ?? 0),
     signataires_projet: extractIds(currentRow?.signataires_projet),
     partenaires_execution_projet: extractIds(currentRow?.partenaires_execution_projet),

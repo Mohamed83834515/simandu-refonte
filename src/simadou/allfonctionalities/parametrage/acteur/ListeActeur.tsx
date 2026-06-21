@@ -84,7 +84,6 @@ export function ListeActeur() {
   return (
     <div className='space-y-2 px-2'>
       {/* En-tête */}
-    
       <div className='overflow-x-auto'>
         <Tabs
           orientation='vertical'
@@ -94,19 +93,30 @@ export function ListeActeur() {
           onValueChange={(val) => setSelectedCategorieId(Number(val))}
         >
           <TabsList className='inline-flex w-full min-w-max gap-1 bg-transparent p-0'>
-            {sortedCategories.map((categorie) => (
-              <TabsTrigger
-                key={categorie.id_categorie}
-                value={String(categorie.id_categorie)}
-              >
-                {categorie.nom_categorie.length > 15
-                  ? categorie.nom_categorie.substring(0, 12) + '…'
-                  : categorie.nom_categorie}
-                <span className='ml-2 rounded-full bg-muted px-1.5 py-0.5 text-xs text-black'>
-                  ({countByCategorie.get(categorie.id_categorie) || 0})
-                </span>
-              </TabsTrigger>
-            ))}
+            {sortedCategories && sortedCategories.length > 0 ? (
+              sortedCategories.map((categorie) => {
+                // Sécuriser chaque élément
+                if (!categorie || !categorie.id_categorie) return null
+
+                const nom = categorie.nom_categorie || 'Sans nom'
+                const displayNom = nom.length > 15 ? nom.substring(0, 12) + '…' : nom
+                const count = countByCategorie?.get(categorie.id_categorie) || 0
+
+                return (
+                  <TabsTrigger
+                    key={categorie.id_categorie}
+                    value={String(categorie.id_categorie)}
+                  >
+                    {displayNom}
+                    <span className='ml-2 rounded-full bg-muted px-1.5 py-0.5 text-xs text-black'>
+                      ({count})
+                    </span>
+                  </TabsTrigger>
+                )
+              })
+            ) : (
+              <span>Aucune catégorie d'acteur trouvée</span>
+            )}
           </TabsList>
         </Tabs>
       </div>

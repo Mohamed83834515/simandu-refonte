@@ -1,9 +1,5 @@
-import { useEffect, useState } from 'react'
-import { Loader2, Trash2 } from 'lucide-react'
+import { forwardRef, useEffect, useImperativeHandle, useState } from 'react'
 import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
-import { getApiErrorMessage } from '@/lib/api-error-message'
-import { formPrimaryButtonClassName } from '@/Global/Forms/form-footer-styles'
 import { useMe } from '@/simadou/allHooks/auth/authHooks'
 import {
   useDeletePeriodeIndicateur,
@@ -18,18 +14,34 @@ import {
   periodeIndicateurToFormValues,
 } from './periodeIndicateurFormUtils'
 import PeriodeIndicateurFormFields from './PeriodeIndicateurFormFields'
+import { getApiErrorMessage } from '@/lib/api-error-message'
+
+export type SuiviIndicateurCmrSourceResultatPanelHandle = {
+  submit: () => Promise<void>
+  delete: () => Promise<void>
+  isPending: boolean
+  isDeletePending: boolean
+  isUpdatePending: boolean
+}
 
 type SuiviIndicateurCmrSourceResultatPanelProps = {
   refIndicateur: number
   periode: PeriodeIndicateur
   onDeleted?: () => void
+  onActionsStateChange?: (state: {
+    isPending: boolean
+    isDeletePending: boolean
+    isUpdatePending: boolean
+  }) => void
 }
 
-export default function SuiviIndicateurCmrSourceResultatPanel({
-  refIndicateur,
-  periode,
-  onDeleted,
-}: SuiviIndicateurCmrSourceResultatPanelProps) {
+const SuiviIndicateurCmrSourceResultatPanel = forwardRef<
+  SuiviIndicateurCmrSourceResultatPanelHandle,
+  SuiviIndicateurCmrSourceResultatPanelProps
+>(function SuiviIndicateurCmrSourceResultatPanel(
+  { refIndicateur, periode, onDeleted, onActionsStateChange },
+  ref
+) {
   const { data: user } = useMe()
   const updateMutation = useUpdatePeriodeIndicateur(refIndicateur)
   const deleteMutation = useDeletePeriodeIndicateur(refIndicateur)
@@ -44,6 +56,19 @@ export default function SuiviIndicateurCmrSourceResultatPanel({
 
   const isPending = updateMutation.isPending || deleteMutation.isPending
   const personnelId = user?.n_personnel
+
+  useEffect(() => {
+    onActionsStateChange?.({
+      isPending,
+      isDeletePending: deleteMutation.isPending,
+      isUpdatePending: updateMutation.isPending,
+    })
+  }, [
+    isPending,
+    deleteMutation.isPending,
+    updateMutation.isPending,
+    onActionsStateChange,
+  ])
 
   const updateField = <K extends keyof PeriodeIndicateurFormData>(
     key: K,
@@ -95,42 +120,22 @@ export default function SuiviIndicateurCmrSourceResultatPanel({
     }
   }
 
+  useImperativeHandle(ref, () => ({
+    submit: handleSubmit,
+    delete: handleDelete,
+    isPending,
+    isDeletePending: deleteMutation.isPending,
+    isUpdatePending: updateMutation.isPending,
+  }))
+
   return (
-    <div className='space-y-5'>
-      <PeriodeIndicateurFormFields
-        form={form}
-        disabled={isPending}
-        onChange={updateField}
-      />
-
-      <div className='flex items-center justify-between border-t pt-4'>
-        <Button
-          type='button'
-          variant='outline'
-          className='gap-1.5 text-destructive hover:bg-destructive/10 hover:text-destructive'
-          onClick={handleDelete}
-          disabled={isPending}
-        >
-          {deleteMutation.isPending ? (
-            <Loader2 className='h-4 w-4 animate-spin' />
-          ) : (
-            <Trash2 className='h-4 w-4' />
-          )}
-          Supprimer
-        </Button>
-
-        <Button
-          type='button'
-          className={formPrimaryButtonClassName}
-          onClick={handleSubmit}
-          disabled={isPending}
-        >
-          {updateMutation.isPending && (
-            <Loader2 className='h-4 w-4 animate-spin' />
-          )}
-          Modifier
-        </Button>
-      </div>
-    </div>
+    <PeriodeIndicateurFormFields
+      form={form}
+      disabled={isPending}
+      variant='panel'
+      onChange={updateField}
+    />
   )
-}
+})
+
+export default SuiviIndicateurCmrSourceResultatPanel

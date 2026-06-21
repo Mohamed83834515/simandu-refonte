@@ -1,8 +1,9 @@
 import type { FormConfig, SelectOption } from '../../Global/types/formConfig'
-import { UGL } from '../allTypes'
+import { Programme, UGL } from '../allTypes'
 import type { Acteur } from '../allTypes/acteur'
 import type { CategorieActeur } from '../allTypes/categorieActeur'
 import type { Localite } from '../allTypes/localite'
+import { TypeProjet } from '../allTypes/typeProjet'
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -32,6 +33,14 @@ function uglOptions(ugls: UGL[]): SelectOption[] {
   return ugls
     .map((z) => ({ value: z.id_ugl, label: z.nom_ugl }))
 }
+function ProgrammeOptions(programmes: Programme[]): SelectOption[] {
+  return programmes
+    .map((z) => ({ value: z.id_programme, label: z.nom_programme }))
+}
+function TypeOptions(types: TypeProjet[]): SelectOption[] {
+  return types
+    .map((z) => ({ value: z.id_type_projet, label: z.nom_type_projet }))
+}
 
 // ── Config principale ──────────────────────────────────────────────────────────
 // Les options sont injectées ici directement depuis le composant AddProjet,
@@ -40,7 +49,9 @@ function uglOptions(ugls: UGL[]): SelectOption[] {
 export const getProjetFormConfig = (
   acteurs: Acteur[] = [],
   localites: Localite[] = [],
-  ugls: UGL[]
+  ugls: UGL[],
+  programmes:Programme[],
+  type_projets:TypeProjet[],
 ): FormConfig => ({
   // ── Étapes déclarées une seule fois ──
   steps: [
@@ -109,6 +120,26 @@ export const getProjetFormConfig = (
     // ════════════ ÉTAPE 2 — Acteurs & zones ════════════
 
     {
+      name: 'type_projet',
+      label: 'Type de projet',
+      type: 'select',
+      placeholder: 'Sélectionner un type',
+      required: true,
+      options: TypeOptions(type_projets),
+      gridCols: 2,
+      formStep: 2,
+    },
+    {
+      name: 'programme_projet',
+      label: 'Programme',
+      type: 'select',
+      placeholder: 'Sélectionner un programme',
+      required: true,
+      options: ProgrammeOptions(programmes),
+      gridCols: 2,
+      formStep: 2,
+    },
+    {
       name: 'signataires_projet',
       label: 'Partenaires financiers (PTF)',
       type: 'multiselect',
@@ -120,7 +151,7 @@ export const getProjetFormConfig = (
     },
     {
       name: 'structure_projet',
-      label: 'Unité de gestion',
+      label: 'Unité de coordination',
       type: 'select',
       placeholder: 'Sélectionner une unité de gestion',
       required: true,

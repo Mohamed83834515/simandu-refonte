@@ -6,6 +6,7 @@ export const projectCreateSchema = z.object({
   sigle_projet: z.string().min(1, "Sigle requis"),
   intitule_projet: z.string().min(1, "Intitulé requis"),
   type_projet: z.number().min(1, "Type requis"),
+  programme_projet: z.number().min(1, "Programme requis"),
   duree_projet: z.coerce.number().min(1, "Durée requise"),
   date_signature_projet: z.string().min(1, "Date de signature requise"),
   date_demarrage_projet: z.string().min(1, "Date de démarrage requise"),

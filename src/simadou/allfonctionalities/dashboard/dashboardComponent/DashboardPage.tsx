@@ -305,9 +305,9 @@ const DashboardPage: React.FC = () => {
             }
 
             // Récupérer les partenaires d'exécution
-            const partenairesExecution = p.partenaires_execution_projet || [];
+            const partenairesExecution = p.signataires_projet || [];
             const partenairesNoms = partenairesExecution
-                .map((partenaire: any) => partenaire.nom_acteur?.trim())
+                .map((partenaire: any) => partenaire.code_acteur?.trim())
                 .filter(Boolean);
 
             return {
@@ -322,7 +322,7 @@ const DashboardPage: React.FC = () => {
                 montant_decaisse: Number(p.montant_decaisse ?? 450000),
                 taux_decaissement: Number(p.taux_decaissement ?? 45),
                 taux_avancement_technique: avancement,
-                bailleur: partenairesNoms.join(', ') || "—", // Affichage des partenaires d'exécution
+                bailleur: partenairesNoms.join('/ ') || "—", // Affichage des partenaires d'exécution
                 statut,
             };
         });
@@ -649,7 +649,7 @@ const DashboardPage: React.FC = () => {
 
                 {/* Carte 2 : PAO Programme */}
                 <StatCard
-                    title={`PAO ${ptbaProgrammeStats.annee} des Projets/Programmes`}
+                    title={`PTBA ${ptbaProgrammeStats.annee} des Projets/Programmes`}
                     color="emerald"
                     rows={[
                         { label: "Montant Total Prévu", value: ptbaProgrammeStats.montantPrevu.toLocaleString('fr-FR'), suffix: "GNF" },

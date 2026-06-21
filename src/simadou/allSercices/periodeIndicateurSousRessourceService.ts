@@ -1,9 +1,13 @@
 import { apiClient } from '@/axios/api'
-import type {
-  PeriodeSousRessourceEnregistrement,
-  PeriodeSousRessourceType,
-  PeriodeSousRessourceWritePayload,
+import {
+  isSousRessourceWithDocuments,
+  type DocumentationCmrWritePayload,
+  type FondCarteWritePayload,
+  type PeriodeSousRessourceEnregistrement,
+  type PeriodeSousRessourceType,
+  type PeriodeSousRessourceWritePayload,
 } from '@/simadou/allTypes/periodeIndicateurSousRessource'
+import { buildSousRessourceDocumentsFormData } from '@/simadou/allfonctionalities/suivi-resultats/suivi-indicateurs/sous-ressource/periodeSousRessourceFormUtils'
 import { normalizeApiList } from './apiListUtils'
 
 const PERIODE_BASE_URL = '/periodes-indicateurs/'
@@ -20,6 +24,12 @@ const RESOURCE_URLS: Record<PeriodeSousRessourceType, string> = {
   'fonds-carte': '/fonds-carte/',
 }
 
+export type SousRessourceDocumentsInput = {
+  newFile?: File
+  existingDocument?: string
+  removeExisting?: boolean
+}
+
 function buildNestedListUrl(
   periodeId: number,
   resource: PeriodeSousRessourceType
@@ -32,6 +42,19 @@ function buildItemUrl(
   itemId: number
 ): string {
   return `${RESOURCE_URLS[resource]}${itemId}/`
+}
+
+function buildMultipartBody(
+  resource: 'documentations' | 'fonds-carte',
+  data: PeriodeSousRessourceWritePayload,
+  documents?: SousRessourceDocumentsInput
+): FormData {
+  const payload = data as DocumentationCmrWritePayload | FondCarteWritePayload
+  return buildSousRessourceDocumentsFormData(payload, resource, {
+    newFile: documents?.newFile,
+    existingDocument: documents?.existingDocument,
+    removeExisting: documents?.removeExisting,
+  })
 }
 
 export function createPeriodeSousRessourceService(
@@ -48,8 +71,20 @@ export function createPeriodeSousRessourceService(
     },
 
     create: async (
-      data: PeriodeSousRessourceWritePayload
+      data: PeriodeSousRessourceWritePayload,
+      documents?: SousRessourceDocumentsInput
     ): Promise<PeriodeSousRessourceEnregistrement> => {
+      if (isSousRessourceWithDocuments(resource)) {
+        return await apiClient.request<PeriodeSousRessourceEnregistrement>(
+          RESOURCE_URLS[resource],
+          {
+            method: 'POST',
+            data: buildMultipartBody(resource, data, documents),
+            headers: { 'Content-Type': 'multipart/form-data' },
+          }
+        )
+      }
+
       return await apiClient.request<PeriodeSousRessourceEnregistrement>(
         RESOURCE_URLS[resource],
         { method: 'POST', data }
@@ -58,8 +93,20 @@ export function createPeriodeSousRessourceService(
 
     update: async (
       itemId: number,
-      data: PeriodeSousRessourceWritePayload
+      data: PeriodeSousRessourceWritePayload,
+      documents?: SousRessourceDocumentsInput
     ): Promise<PeriodeSousRessourceEnregistrement> => {
+      if (isSousRessourceWithDocuments(resource)) {
+        return await apiClient.request<PeriodeSousRessourceEnregistrement>(
+          buildItemUrl(resource, itemId),
+          {
+            method: 'PUT',
+            data: buildMultipartBody(resource, data, documents),
+            headers: { 'Content-Type': 'multipart/form-data' },
+          }
+        )
+      }
+
       return await apiClient.request<PeriodeSousRessourceEnregistrement>(
         buildItemUrl(resource, itemId),
         { method: 'PUT', data }

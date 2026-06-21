@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { toast } from 'sonner'
 import { DynamicForm } from '@/Global/Forms/DynamicForm'
 import type { Projet } from '@/simadou/allTypes'
+import type { DossierProjet } from '@/simadou/allTypes/dossierProjet'
 import type { DocumentProjet } from '@/simadou/allTypes/documentProjet'
 import { getDocumentProjetFormConfig } from '@/simadou/allfieldsConfig/documentProjetForm'
 import {
@@ -13,8 +14,9 @@ import {
   type DocumentProjetFormData,
 } from '@/simadou/schemas/documentProjetSchemas'
 
-type DocumentProjetFormDialogProps = {
+type DocumentFormDialogProps = {
   projet: Projet
+  dossier: DossierProjet
   document?: DocumentProjet | null
   onClose: () => void
   onSuccess: () => void
@@ -26,14 +28,16 @@ function extractFile(value: unknown): File | undefined {
   return undefined
 }
 
-export default function DocumentProjetFormDialog({
+export default function DocumentFormDialog({
   projet,
+  dossier,
   document,
   onClose,
   onSuccess,
-}: DocumentProjetFormDialogProps) {
+}: DocumentFormDialogProps) {
   const isEditing = !!document?.id_document
   const idProjet = projet.id_projet
+  const idDossier = dossier.id_dossier
 
   const formConfig = useMemo(
     () => getDocumentProjetFormConfig(isEditing),
@@ -48,14 +52,15 @@ export default function DocumentProjetFormDialog({
     [document]
   )
 
-  const createMutation = useCreateDocumentProjet(idProjet)
-  const updateMutation = useUpdateDocumentProjet(idProjet)
+  const createMutation = useCreateDocumentProjet(idDossier)
+  const updateMutation = useUpdateDocumentProjet(idDossier)
 
   const onSubmit = (data: DocumentProjetFormData) => {
     const file = extractFile(data.document)
     const payload = {
       description_document: data.description_document?.trim() || undefined,
       projet: idProjet,
+      dossier: idDossier,
     }
 
     if (!isEditing && !file) {

@@ -67,7 +67,7 @@ export const projetDetailTabs: ProjetDetailTab[] = [
     key: 'documents',
     name: 'Documents',
     icon: FileText,
-    description: 'Documents rattachés au projet.',
+    description: 'Dossiers et documents rattachés au projet.',
   },
   {
     key: 'points_blocage',

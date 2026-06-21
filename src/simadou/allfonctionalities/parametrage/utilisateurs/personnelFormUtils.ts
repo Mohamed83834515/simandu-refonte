@@ -20,7 +20,6 @@ export function personnelToFormValues(
       niveau_perso: 1,
     }
   }
-
   return {
     nom_perso: personnel.nom_perso ?? '',
     prenom_perso: personnel.prenom_perso ?? '',

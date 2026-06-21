@@ -529,6 +529,12 @@ export const GENERAL_PARAMS_FINANCE = {
   exchangeRate: 0,
 }
 
+// =========GENERAL_PARAMS_SEUIL==================
+export const GENERAL_PARAMS_SEUIL = {
+  ecartProjetRetard: '',
+  ecartProjetCritique: '',
+}
+
 // =========GENERAL_PARAMS_SECURITE==================
 export const GENERAL_PARAMS_SECURITE = {
   maintenanceMode:            false,

@@ -43,7 +43,6 @@ export function getRecommandationMissionProjetFormConfig(
         gridCols: 2,
         formStep: 1,
       },
-
       {
         name: 'recommandation',
         label: 'Recommandation',

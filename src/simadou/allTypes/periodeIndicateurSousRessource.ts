@@ -17,9 +17,11 @@ export interface TableauSyntheseEnregistrement {
 
 export interface FondCarteEnregistrement {
   id_fond_carte?: number
+  id_fonds_carte?: number
   id?: number
   source_donnees?: string
   date_validation?: string
+  shape_file?: string | string[]
   observation?: string
   etat?: string
   periode?: number
@@ -33,7 +35,7 @@ export interface DocumentationCmrEnregistrement {
   source_donnees?: string
   titre?: string
   date_validation?: string
-  document?: string
+  document?: string | string[]
   observation?: string
   etat?: string
   periode?: number
@@ -52,11 +54,22 @@ export interface SimpleSousRessourceFormData {
   observation: string
 }
 
-export interface DocumentationCmrFormData {
+export interface SousRessourceDocumentsFormData {
+  documentFile: File | null
+  existingDocument: string
+  removeExistingDocument: boolean
+}
+
+export interface DocumentationCmrFormData extends SousRessourceDocumentsFormData {
   source_donnees: string
   titre: string
   date_validation: string
-  document: string
+  observation: string
+}
+
+export interface FondCarteFormData extends SousRessourceDocumentsFormData {
+  source_donnees: string
+  date_validation: string
   observation: string
 }
 
@@ -71,13 +84,21 @@ export interface SimpleSousRessourceWritePayload {
 }
 
 export type TableauSyntheseWritePayload = SimpleSousRessourceWritePayload
-export type FondCarteWritePayload = SimpleSousRessourceWritePayload
+
+export interface FondCarteWritePayload {
+  source_donnees: string
+  date_validation: string
+  observation: string
+  etat: string
+  periode: number
+  id_personnel: number
+  modifier_par: number
+}
 
 export interface DocumentationCmrWritePayload {
   source_donnees: string
   titre: string
   date_validation: string
-  document: string
   observation: string
   etat: string
   periode: number
@@ -97,4 +118,10 @@ export const PERIODE_SOUS_RESSOURCE_LABELS: Record<
   documentations: 'documentation',
   'fonds-carte': 'fonds de carte',
   'tableaux-synthese': 'tableau de synthèse',
+}
+
+export function isSousRessourceWithDocuments(
+  resource: PeriodeSousRessourceType
+): resource is 'documentations' | 'fonds-carte' {
+  return resource === 'documentations' || resource === 'fonds-carte'
 }

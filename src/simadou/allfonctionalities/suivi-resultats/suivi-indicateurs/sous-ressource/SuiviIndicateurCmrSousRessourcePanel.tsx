@@ -12,11 +12,11 @@ import {
   useGetPeriodeSousRessources,
 } from '@/simadou/allHooks/admin/periodeIndicateurSousRessourceHooks'
 import { buildPeriodeIndicateurSousRessourceColumns } from '@/simadou/allColonnes/periode-indicateur-sous-ressource-columns'
-import type {
-  PeriodeSousRessourceEnregistrement,
-  PeriodeSousRessourceType,
+import {
+  PERIODE_SOUS_RESSOURCE_LABELS,
+  type PeriodeSousRessourceEnregistrement,
+  type PeriodeSousRessourceType,
 } from '@/simadou/allTypes/periodeIndicateurSousRessource'
-import { PERIODE_SOUS_RESSOURCE_LABELS } from '@/simadou/allTypes/periodeIndicateurSousRessource'
 import {
   resolvePeriodeEnregistrementId,
   resolvePeriodeEnregistrementLabel,
@@ -103,15 +103,15 @@ export default function SuiviIndicateurCmrSousRessourcePanel({
 
   if (isLoading) {
     return (
-      <div className='flex justify-center py-12'>
-        <Loader2 className='h-8 w-8 animate-spin text-muted-foreground' />
+      <div className='flex justify-center py-6'>
+        <Loader2 className='h-6 w-6 animate-spin text-muted-foreground' />
       </div>
     )
   }
 
   if (isError) {
     return (
-      <p className='py-8 text-center text-sm text-muted-foreground'>
+      <p className='py-4 text-center text-sm text-muted-foreground'>
         Impossible de charger les {resourceLabel}s pour cette période.
       </p>
     )
@@ -138,23 +138,31 @@ export default function SuiviIndicateurCmrSousRessourcePanel({
             Ajouter
           </DataTableToolbarOutlineButton>
         }
-        defaultPageSize={10}
+        defaultPageSize={5}
+        compactPagination
         showViewOptions={false}
         emptyMessage={`Aucun(e) ${resourceLabel} pour cette période.`}
       />
 
-      <SuiviIndicateurCmrSousRessourceFormDialog
-        open={open === 'add' || open === 'edit'}
-        onOpenChange={(isOpen) => {
-          if (!isOpen) {
-            setOpen(null)
-            setCurrentRow(null)
+      {(open === 'add' || open === 'edit') && (
+        <SuiviIndicateurCmrSousRessourceFormDialog
+          key={
+            open === 'edit' && currentRow
+              ? `edit-${resolvePeriodeEnregistrementId(currentRow, resource)}`
+              : `add-${resource}`
           }
-        }}
-        resource={resource}
-        parentPeriodeId={parentPeriodeId}
-        currentRow={open === 'edit' ? currentRow : null}
-      />
+          open
+          onOpenChange={(isOpen) => {
+            if (!isOpen) {
+              setOpen(null)
+              setCurrentRow(null)
+            }
+          }}
+          resource={resource}
+          parentPeriodeId={parentPeriodeId}
+          currentRow={open === 'edit' ? currentRow : null}
+        />
+      )}
 
       {currentRow && (
         <GenericDeleteDialog<PeriodeSousRessourceEnregistrement>
