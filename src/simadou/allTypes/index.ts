@@ -34,6 +34,7 @@ export * from "./personnel";
 export * from "./planSite";
 export * from "./programme";
 export * from "./projet";
+export * from "./projetStats";
 export * from "./ptba";
 export * from "./structure";
 export * from "./suiviIndicateurActivite";

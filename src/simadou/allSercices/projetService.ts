@@ -35,5 +35,5 @@ export const projetService = {
     await apiClient.request<void>(`${BASE_URL}${id}/`, {
       method: "DELETE",
     });
-  }
+  },
 };

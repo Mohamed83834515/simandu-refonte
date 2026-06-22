@@ -4,6 +4,7 @@ import { useActiveProgrammeId } from '@/hooks/use-active-programme'
 import type { Projet } from '@/simadou/allTypes/projet'
 import { projetBelongsToProgramme } from '@/simadou/allTypes/projet'
 import { projetService } from '@/simadou/allSercices/projetService'
+import { projetStatsService } from '@/simadou/allSercices/projetStatsService'
 import { toast } from 'sonner'
 import { ProjectCreateData } from '@/simadou/schemas/projetSchema'
 
@@ -159,5 +160,22 @@ export function useDeleteProjet() {
     onError: () => {
       toast.error("Erreur lors de la suppression du projet ")
     },
+  })
+}
+
+export function useGetProjetAvancementAnnuelStats(
+  projetId: number | string | undefined,
+  projectYears: number[]
+) {
+  return useQuery({
+    queryKey: [
+      ...projetQueryKeys.all,
+      'stats-avancement-annuel',
+      projetId,
+      projectYears,
+    ] as const,
+    queryFn: () =>
+      projetStatsService.getAvancementAnnuel(projetId!, projectYears),
+    enabled: projetId != null && projectYears.length > 0,
   })
 }
