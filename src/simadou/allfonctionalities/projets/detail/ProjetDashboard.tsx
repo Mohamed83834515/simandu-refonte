@@ -2,12 +2,13 @@
 import { useMemo, useState } from 'react'
 import { useGetActivitesProjet } from '@/simadou/allHooks/admin/activiteProjetHooks'
 import {
+  useGetBudgetAnnuel,
   useGetProjetAvancementAnnuelStats,
 } from '@/simadou/allHooks/admin/projetHooks'
 import { useGetPtbasProjet } from '@/simadou/allHooks/admin/ptbaProjetHooks'
 import { formatNumber } from '@/simadou/allSercices/montantFormater'
-import { buildDecaissementAnnuelFromPtbas } from '@/simadou/lib/ptbaProjetStatsUtils'
 import { type Projet } from '@/simadou/allTypes'
+import { buildDecaissementAnnuelFromPtbas } from '@/simadou/lib/ptbaProjetStatsUtils'
 import {
   Activity,
   BarChart3,
@@ -302,13 +303,20 @@ function DecaissementComparatifCard({
             Aucune donnée disponible
           </div>
         ) : (
-          <ChartContainer config={decaissementChartConfig} className='h-[240px] w-full'>
+          <ChartContainer
+            config={decaissementChartConfig}
+            className='h-[240px] w-full'
+          >
             <BarChart
               accessibilityLayer
               data={data}
               margin={{ top: 28, right: 10, left: -10, bottom: 0 }}
             >
-              <CartesianGrid vertical={false} strokeDasharray='3 3' className='stroke-muted/40' />
+              <CartesianGrid
+                vertical={false}
+                strokeDasharray='3 3'
+                className='stroke-muted/40'
+              />
               <XAxis
                 dataKey='annee'
                 tickLine={false}
@@ -332,17 +340,25 @@ function DecaissementComparatifCard({
                 }
               />
               <ChartLegend content={<ChartLegendContent />} />
-              <Bar dataKey='cible' fill='var(--color-chart-6)' radius={[4, 4, 0, 0]}>
+              <Bar
+                dataKey='realise'
+                fill='var(--color-chart-1)'
+                radius={[4, 4, 0, 0]}
+              >
                 <LabelList
-                  dataKey='cible'
+                  dataKey='realise'
                   position='top'
                   className='fill-muted-foreground text-[9px] font-bold'
                   formatter={(v: any) => fmt(Number(v))}
                 />
               </Bar>
-              <Bar dataKey='realise' fill='var(--color-chart-1)' radius={[4, 4, 0, 0]}>
+              <Bar
+                dataKey='cible'
+                fill='var(--color-chart-2)'
+                radius={[4, 4, 0, 0]}
+              >
                 <LabelList
-                  dataKey='realise'
+                  dataKey='cible'
                   position='top'
                   className='fill-muted-foreground text-[9px] font-bold'
                   formatter={(v: any) => fmt(Number(v))}
@@ -359,22 +375,22 @@ function DecaissementComparatifCard({
 const avancementChartConfig = {
   cible: {
     label: 'Taux Cible (Prévu)',
-    color: '#6366f1',
+    color: 'var(--color-chart-2)',
   },
   realise: {
     label: 'Taux Réalisé (Physique)',
-    color: '#10b981',
+    color: 'var(--color-chart-1)',
   },
 } satisfies ChartConfig
 
 const decaissementChartConfig = {
-  cible: {
-    label: 'Prévu (GNF)',
-    color: '#94a3b8',
-  },
   realise: {
     label: 'Réalisé (GNF)',
-    color: '#10b981',
+    color: 'var(--color-chart-1)',
+  },
+  cible: {
+    label: 'Prévu (GNF)',
+    color: 'var(--color-chart-2)',
   },
 } satisfies ChartConfig
 
@@ -461,7 +477,7 @@ function ProjetAvancementAnnuelCard({
               </Bar>
               <Bar
                 dataKey='cible'
-                fill='var(--color-chart-6)'
+                fill='var(--color-chart-2)'
                 radius={[4, 4, 0, 0]}
               >
                 <LabelList
@@ -574,11 +590,14 @@ export default function ProjetDashboard({ projet }: ProjetDashboardProps) {
 
   const { data: avancementAnnuelData = [], isLoading: isLoadingAvancement } =
     useGetProjetAvancementAnnuelStats(projet?.id_projet, projectYears)
+  const { data: budgetsAnnuels = [] } = useGetBudgetAnnuel(projet.id_projet)
 
   const decaissementParAnnee = useMemo(
-    () => buildDecaissementAnnuelFromPtbas(ptbas),
-    [ptbas]
+    () => buildDecaissementAnnuelFromPtbas(ptbas, budgetsAnnuels),
+    [budgetsAnnuels, ptbas]
   )
+  console.log('avancementAnnuelData', avancementAnnuelData)
+  console.log('decaissementParAnnee', decaissementParAnnee)
 
   return (
     <div className='space-y-6 p-1'>

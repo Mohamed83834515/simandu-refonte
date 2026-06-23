@@ -1,5 +1,5 @@
-import type { PtbaProjet } from '@/simadou/allTypes/ptbaProjet'
 import type { ProjetDecaissementAnnuelPoint } from '@/simadou/allTypes/projetStats'
+import type { PtbaProjet } from '@/simadou/allTypes/ptbaProjet'
 
 /**
  * Agrège les montants PTBA projet par année.
@@ -7,7 +7,8 @@ import type { ProjetDecaissementAnnuelPoint } from '@/simadou/allTypes/projetSta
  * avec la date_validation la plus récente dans version_info.
  */
 export function buildDecaissementAnnuelFromPtbas(
-  ptbas: PtbaProjet[]
+  ptbas: PtbaProjet[],
+  budgetsAnnuels: { annee: number; budget_annuel: number }[]
 ): ProjetDecaissementAnnuelPoint[] {
   const grouped = new Map<number, PtbaProjet[]>()
 
@@ -23,11 +24,14 @@ export function buildDecaissementAnnuelFromPtbas(
   return Array.from(grouped.entries())
     .sort(([a], [b]) => a - b)
     .map(([annee, items]) => {
-      const latestValidation = items.reduce<string | undefined>((best, ptba) => {
-        const date = ptba.version_info?.date_validation
-        if (!date) return best
-        return best == null || date > best ? date : best
-      }, undefined)
+      const latestValidation = items.reduce<string | undefined>(
+        (best, ptba) => {
+          const date = ptba.version_info?.date_validation
+          if (!date) return best
+          return best == null || date > best ? date : best
+        },
+        undefined
+      )
 
       const filtered = latestValidation
         ? items.filter(
@@ -37,11 +41,12 @@ export function buildDecaissementAnnuelFromPtbas(
 
       return {
         annee,
-        cible: filtered.reduce((sum, ptba) => sum + (Number(ptba.cout_ptba) || 0), 0),
-        realise: filtered.reduce(
-          (sum, ptba) => sum + (Number(ptba.montant_decaisse_ptba) || 0),
+        cible: filtered.reduce(
+          (sum, ptba) => sum + (Number(ptba.cout_ptba) || 0),
           0
         ),
+        realise:
+          budgetsAnnuels.find((ba) => ba.annee == annee)?.budget_annuel || 0,
       }
     })
 }

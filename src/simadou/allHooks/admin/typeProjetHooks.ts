@@ -5,14 +5,22 @@ import { TypeProjetService } from '@/simadou/allSercices/typeProjetService'
 import { TypeProjetFormData } from '@/simadou/schemas/typeProjetSchema'
 
 export const typeProjetQueryKeys = {
-  all: ['categories-acteurs'] as const,
+  all: ['types-projets'] as const,
   list: () => [...typeProjetQueryKeys.all, 'list'] as const,
+  countProjectsPerType: () => [...typeProjetQueryKeys.all, 'countProjectsPerType'] as const,
 }
 
 export const useGetTypeProjet = () => {
   return useQuery({
     queryKey: typeProjetQueryKeys.list(),
     queryFn: () => TypeProjetService.getAll(),
+  })
+}
+
+export const useCountProjectsPerType = () => {
+  return useQuery({
+    queryKey: typeProjetQueryKeys.countProjectsPerType(),
+    queryFn: () => TypeProjetService.countProjectsPerType(),
   })
 }
 

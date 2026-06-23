@@ -1,6 +1,7 @@
 import { Acteur } from "./acteur";
 import { Localite } from "./localite";
 import { Programme } from "./programme";
+import { TypeProjet } from "./typeProjet";
 
 export interface Projet {
   id_projet: number;
@@ -17,7 +18,7 @@ export interface Projet {
   partenaires_execution_projet: Acteur[];
   zone_projet: Localite[];
   budget_projet?: number,
-  type_projet?: number,
+  type_projet?: number | TypeProjet,
 }
 
 export type ProjetFormData = Omit<Projet, "id_projet">;
