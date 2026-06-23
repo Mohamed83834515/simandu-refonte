@@ -7,12 +7,11 @@ import {
 } from '@tanstack/react-query'
 import { projetService } from '@/simadou/allSercices/projetService'
 import { projetStatsService } from '@/simadou/allSercices/projetStatsService'
-import type { Projet } from '@/simadou/allTypes/projet'
-import { projetBelongsToProgramme } from '@/simadou/allTypes/projet'
-import { projetService } from '@/simadou/allSercices/projetService'
-import { projetStatsService } from '@/simadou/allSercices/projetStatsService'
-import { toast } from 'sonner'
-import { ProjectCreateData } from '@/simadou/schemas/projetSchema'
+import {
+  type Projet,
+  projetBelongsToProgramme,
+} from '@/simadou/allTypes/projet'
+import { type ProjectCreateData } from '@/simadou/schemas/projetSchema'
 import { toast } from 'sonner'
 import { useActiveProgrammeId } from '@/hooks/use-active-programme'
 
@@ -96,7 +95,8 @@ export const projetQueryKeys = {
   byProgramme: (idProgramme: number | undefined) =>
     [...projetQueryKeys.all, idProgramme] as const,
   // ✅ Ajouter byId pour les détails
-  byId: (id: number | string) => [...projetQueryKeys.all, 'detail', id] as const,
+  byId: (id: number | string) =>
+    [...projetQueryKeys.all, 'detail', id] as const,
 }
 
 export function useGetProjets() {
@@ -113,7 +113,9 @@ export function useGetProjets() {
   })
 }
 
-export const useGetTauxGlobalActiviteProjet = (projetId: number | string | undefined) => {
+export const useGetTauxGlobalActiviteProjet = (
+  projetId: number | string | undefined
+) => {
   return useQuery({
     queryKey: ['taux-global-activite', projetId],
     queryFn: () => projetStatsService.getTauxGlobalAct(projetId!),
@@ -180,33 +182,43 @@ export function useToggleProjetCloture() {
   const idProgramme = useActiveProgrammeId()
 
   return useMutation({
-    mutationFn: ({ id, isCloture }: { id: string | number; isCloture: boolean }) =>
-      projetService.toggleCloture(id, isCloture),
+    mutationFn: ({
+      id,
+      isCloture,
+    }: {
+      id: string | number
+      isCloture: boolean
+    }) => projetService.toggleCloture(id, isCloture),
 
     onSuccess: (data) => {
       // ✅ Invalider toutes les clés de projets
       queryClient.invalidateQueries({ queryKey: projetQueryKeys.all })
       queryClient.invalidateQueries({ queryKey: ['projets'] })
-      
+
       // ✅ Invalider le cache par programme
       if (idProgramme != null) {
-        queryClient.invalidateQueries({ 
-          queryKey: projetQueryKeys.byProgramme(idProgramme) 
+        queryClient.invalidateQueries({
+          queryKey: projetQueryKeys.byProgramme(idProgramme),
         })
       }
-      
+
       // ✅ Invalider le cache du projet spécifique
       if (data.id_projet) {
-        queryClient.invalidateQueries({ 
-          queryKey: projetQueryKeys.byId(data.id_projet) 
+        queryClient.invalidateQueries({
+          queryKey: projetQueryKeys.byId(data.id_projet),
         })
-        queryClient.invalidateQueries({ 
-          queryKey: [...projetQueryKeys.all, 'detail', data.id_projet, idProgramme] 
+        queryClient.invalidateQueries({
+          queryKey: [
+            ...projetQueryKeys.all,
+            'detail',
+            data.id_projet,
+            idProgramme,
+          ],
         })
       }
-      
-      const message = data.is_cloture 
-        ? 'Projet clôturé avec succès ✅' 
+
+      const message = data.is_cloture
+        ? 'Projet clôturé avec succès ✅'
         : 'Projet déclôturé avec succès 🔓'
       toast.success(message)
     },
@@ -228,13 +240,13 @@ export function useUpdateProjet(id: number) {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: projetQueryKeys.all })
       if (idProgramme != null) {
-        queryClient.invalidateQueries({ 
-          queryKey: projetQueryKeys.byProgramme(idProgramme) 
+        queryClient.invalidateQueries({
+          queryKey: projetQueryKeys.byProgramme(idProgramme),
         })
       }
       if (data?.id_projet) {
-        queryClient.invalidateQueries({ 
-          queryKey: projetQueryKeys.byId(data.id_projet) 
+        queryClient.invalidateQueries({
+          queryKey: projetQueryKeys.byId(data.id_projet),
         })
       }
       toast.success('Projet modifié avec succès ✅')
@@ -255,8 +267,8 @@ export function useDeleteProjet() {
       toast.success('Projet supprimé avec succès 🗑️')
       queryClient.invalidateQueries({ queryKey: projetQueryKeys.all })
       if (idProgramme != null) {
-        queryClient.invalidateQueries({ 
-          queryKey: projetQueryKeys.byProgramme(idProgramme) 
+        queryClient.invalidateQueries({
+          queryKey: projetQueryKeys.byProgramme(idProgramme),
         })
       }
     },

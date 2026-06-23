@@ -3,6 +3,7 @@ import type {
   ProjetAvancementAnnuelPoint,
   TauxGlobalPrevuAn,
   ViewRealiseAnActivite,
+  ViewTauxAnActivite,
 } from '@/simadou/allTypes/projetStats'
 
 function filterByProjet<T extends { projet: number }>(
@@ -79,6 +80,14 @@ export const projetStatsService = {
     return Array.isArray(data) ? filterByProjet(data, projetId) : []
   },
 
+  async getTauxGlobalAct(
+    projetId: number | string
+  ): Promise<ViewTauxAnActivite[]> {
+    const data = await apiClient.request<ViewTauxAnActivite[]>(
+      '/stats/view-taux-an-activite/'
+    )
+    return Array.isArray(data) ? filterByProjet(data, projetId) : []
+  },
   async getAvancementAnnuel(
     projetId: number | string,
     projectYears: number[]
