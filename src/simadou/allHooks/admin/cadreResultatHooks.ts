@@ -59,10 +59,10 @@ export function useDeleteNiveauCadreResultat() {
   })
 }
 
-export function useGetCadresResultat() {
+export function useGetCadresResultat(codeProjet: string) {
   return useQuery({
     queryKey: cadreResultatQueryKeys.all,
-    queryFn: () => cadreResultatService.getAll(),
+    queryFn: () => cadreResultatService.getbyProjet(codeProjet),
   })
 }
 

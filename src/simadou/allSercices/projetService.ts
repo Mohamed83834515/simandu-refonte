@@ -40,7 +40,14 @@ export const projetService = {
   // Supprimer un projet
   async delete(id: number | string): Promise<void> {
     await apiClient.request<void>(`${BASE_URL}${id}/`, {
-      method: 'DELETE',
-    })
+      method: "DELETE",
+    });
   },
-}
+
+  async toggleCloture(id: string | number, isCloture: boolean): Promise<Projet> {
+    return await apiClient.request<Projet>(`${BASE_URL}${id}/`, {
+      method: "PATCH",
+      data: { is_cloture: isCloture },
+    });
+  },
+};

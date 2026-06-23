@@ -15,7 +15,6 @@ import {
   resolveActiviteProjetId,
 } from '@/simadou/allfieldsConfig/ptbaProjetForm'
 import type { ActiviteProjet, Projet } from '@/simadou/allTypes'
-import { resolveProgrammeProjetId } from '@/simadou/allTypes/projet'
 import type { PtbaProjet } from '@/simadou/allTypes/ptbaProjet'
 import { Localite } from '@/simadou/allTypes/localite'
 import type { Acteur } from '@/simadou/allTypes/acteur'
@@ -23,27 +22,14 @@ import {
   ptbaProjetSchema,
   type PtbaProjetFormData,
 } from '@/simadou/schemas/ptbaProjetSchemas'
-import { useGetActivitesProjet } from '@/simadou/allHooks/admin/activiteProjetHooks'
+import { useGetActivitesProjetLastNiveau } from '@/simadou/allHooks/admin/activiteProjetHooks'
 import {
-  useGetCadresAnalytique,
-  useGetNiveauxCadreAnalytique,
-} from '@/simadou/allHooks/admin/cadreAnalytiqueHooks'
-import {
-  buildCadreAnalytiqueSelectOptions,
-  filterNiveauxByProgramme,
-  getPtbaCadreAnalytiqueNiveauCode,
-  sortNiveauxCadreAnalytique,
-} from '@/simadou/lib/cadreAnalytiqueUtils'
-import {
-  resolveCadreAnalytiqueFormValue,
-  resolveCodeCrpFormValue,
   resolveResponsablePtbaFormValue,
   resolveUglPtbaFormValue,
   resolveVersionPtbaFormValue,
 } from '@/simadou/lib/ptbaFormUtils'
 import {
   useActiveProgrammeCode,
-  useActiveProgrammeId,
 } from '@/hooks/use-active-programme'
 import {
   useCreatePtbaProjet,
@@ -66,57 +52,29 @@ export default function AddPtbaProjet({
 }: AddPtbaProjetProps) {
   const codeProjet = projet.code_projet
   const isEdit = !!currentRow?.id_ptba
-  const activeProgrammeId = useActiveProgrammeId()
   const activeProgrammeCode = useActiveProgrammeCode()
-  const programmeId =
-    resolveProgrammeProjetId(projet.programme_projet) ?? activeProgrammeId
   const codeProgramme =
     typeof projet.programme_projet === 'object' &&
     projet.programme_projet?.code_programme
       ? projet.programme_projet.code_programme
       : activeProgrammeCode
   const {  selectedVersionId} = usePtbaVersionSelection(codeProgramme)
-  const reel_version = localStorage.getItem('selectedVersionId') ?? selectedVersionId
-  const { data: activites = [] } = useGetActivitesProjet(codeProjet)
-  const { data: cadresAnalytique = [] } = useGetCadresAnalytique(programmeId)
-  const { data: niveaux = [] } = useGetNiveauxCadreAnalytique()
+  const reel_version = localStorage.getItem('selectedVersionId') ?? selectedVersionId 
+  const { data: activites = [] } = useGetActivitesProjetLastNiveau(codeProjet)
 
-  const ptbaNiveauCode = useMemo(() => {
-    const sortedNiveaux = sortNiveauxCadreAnalytique(
-      filterNiveauxByProgramme(niveaux, codeProgramme, programmeId)
-    )
-    return getPtbaCadreAnalytiqueNiveauCode(sortedNiveaux)
-  }, [niveaux, codeProgramme, programmeId])
-
-  const selectedCadreId = useMemo(
-    () =>
-      resolveCadreAnalytiqueFormValue(
-        currentRow?.cadre_analytique,
-        cadresAnalytique
-      ),
-    [currentRow?.cadre_analytique, cadresAnalytique]
-  )
 
   const activiteOptions = useMemo((): SelectOption[] =>
-    activites.map((activite: ActiviteProjet) => ({
+    activites?.map((activite: ActiviteProjet) => ({
       value: activite.id_activite_projet,
       label: `${activite.code_activite_projet} — ${activite.intitule_activite_projet}`,
     })),
     [activites]
   )
 
-  const cadreAnalytiqueOptions = useMemo(
-    () =>
-      buildCadreAnalytiqueSelectOptions(cadresAnalytique, {
-        niveauCodeNumber: ptbaNiveauCode,
-        includeCadreIds: selectedCadreId ? [selectedCadreId] : [],
-      }),
-    [cadresAnalytique, ptbaNiveauCode, selectedCadreId]
-  )
 
   const formConfig = useMemo(
-    () => getPtbaProjetFormConfig(activiteOptions, cadreAnalytiqueOptions),
-    [activiteOptions, cadreAnalytiqueOptions]
+    () => getPtbaProjetFormConfig(activiteOptions),
+    [activiteOptions]
   )
 
   const defaultValues = useMemo((): PtbaProjetFormData => {
@@ -137,11 +95,6 @@ export default function AddPtbaProjet({
       intitule_activite_ptba: currentRow?.intitule_activite_ptba || '',
       chronogramme: currentRow?.chronogramme || '',
       observation: currentRow?.observation || '',
-      code_crp: resolveCodeCrpFormValue(currentRow?.code_crp),
-      cadre_analytique: resolveCadreAnalytiqueFormValue(
-        currentRow?.cadre_analytique,
-        cadresAnalytique
-      ),
       responsable_ptba: resolveResponsablePtbaFormValue(currentRow ?? undefined),
       ugl_ptba: resolveUglPtbaFormValue(currentRow ?? undefined),
       code_projet: codeProjet,
@@ -151,7 +104,7 @@ export default function AddPtbaProjet({
         resolveVersionPtbaFormValue(currentRow ?? undefined, reel_version) ??
         0,
     }
-  }, [currentRow, codeProjet, cadresAnalytique, reel_version])
+  }, [currentRow, codeProjet, reel_version])
 
   const createMutation = useCreatePtbaProjet(codeProjet)
   const updateMutation = useUpdatePtbaProjet(codeProjet)

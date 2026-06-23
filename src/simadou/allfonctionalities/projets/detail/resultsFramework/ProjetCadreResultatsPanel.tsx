@@ -90,7 +90,7 @@ function CadreResultatNiveauTable({
 export default function ProjetCadreResultatsPanel({ projet }: { projet: Projet }) {
   const codeProjet = projet.code_projet
   const { data: niveaux = [], isLoading: isLoadingNiveaux } = useGetNiveauxCadreResultat()
-  const { data: cadres = [], dataUpdatedAt } = useGetCadresResultat()
+  const { data: cadres = [], dataUpdatedAt } = useGetCadresResultat(projet.code_projet)
   const deleteMutation = useDeleteCadreResultat()
 
   const sortedNiveaux = useMemo(() => sortNiveauxCadreResultat(niveaux), [niveaux])

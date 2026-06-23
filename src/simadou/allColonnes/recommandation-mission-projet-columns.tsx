@@ -1,10 +1,9 @@
 import type { ColumnDef } from '@tanstack/react-table'
-import { Download, Trash2, UserPen } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import {  Trash2, UserPen } from 'lucide-react'
 import { DataTableColumnHeader } from '@/components/data-table/column-header'
 import { GenericRowActions } from '@/Global/Tableaux/GenericRowActions'
 import type { RecommandationMissionProjet } from '@/simadou/allTypes/recommandationMissionProjet'
-import { formatEtatLabel, formatTypeRecommandation } from '@/simadou/lib/missionRecommandationUtils'
+import {  formatTypeRecommandation } from '@/simadou/lib/missionRecommandationUtils'
 import { resolvePersonnelLabel } from '@/simadou/lib/resolveApiRelation'
 
 type RecommandationDialogType = 'edit' | 'delete'
@@ -27,28 +26,20 @@ export function buildRecommandationMissionProjetColumns({
 }: BuildRecommandationMissionProjetColumnsProps): ColumnDef<RecommandationMissionProjet>[] {
   return [
     {
-      id: 'volet_recommandation',
-      accessorKey: 'volet_recommandation',
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title='Volet' />
-      ),
-      cell: ({ row }) => row.original.volet_recommandation || '—',
-    },
-    {
-      id: 'rubrique',
-      accessorKey: 'rubrique',
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title='Rubrique' />
-      ),
-      cell: ({ row }) => row.original.rubrique || '—',
-    },
-    {
       id: 'numero',
       accessorKey: 'numero',
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title='N°' />
       ),
       cell: ({ row }) => row.original.numero || '—',
+    },
+    {
+      id: 'volet_recommandation',
+      accessorKey: 'volet_recommandation',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title='Volet' />
+      ),
+      cell: ({ row }) => row.original.volet_recommandation || '—',
     },
     {
       id: 'ref_no',
@@ -58,6 +49,20 @@ export function buildRecommandationMissionProjetColumns({
       ),
       cell: ({ row }) => row.original.ref_no || '—',
     },
+
+    {
+      id: 'recommandation',
+      accessorKey: 'recommandation',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title='Recommandation' />
+      ),
+      cell: ({ row }) => (
+        <div className='max-w-md whitespace-normal'>
+          {row.original.recommandation || '—'}
+        </div>
+      ),
+    },
+
     {
       id: 'date_buttoir',
       accessorKey: 'date_buttoir',
@@ -79,18 +84,6 @@ export function buildRecommandationMissionProjetColumns({
         formatTypeRecommandation(row.original.type_recommandation),
     },
     {
-      id: 'recommandation',
-      accessorKey: 'recommandation',
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title='Recommandation' />
-      ),
-      cell: ({ row }) => (
-        <div className='max-w-md whitespace-normal'>
-          {row.original.recommandation || '—'}
-        </div>
-      ),
-    },
-    {
       id: 'responsable',
       accessorKey: 'responsable',
       header: ({ column }) => (
@@ -99,35 +92,27 @@ export function buildRecommandationMissionProjetColumns({
       cell: ({ row }) =>
         resolvePersonnelLabel(row.original.responsable, personnelsById) || '—',
     },
-    {
-      id: 'etat',
-      accessorKey: 'etat',
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title='État' />
-      ),
-      cell: ({ row }) => formatEtatLabel(row.original.etat),
-    },
-    {
-      id: 'rapport',
-      accessorKey: 'rapport',
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title='Rapport' />
-      ),
-      cell: ({ row }) => {
-        const url = row.original.rapport
-        if (!url || typeof url !== 'string') {
-          return <span className='text-muted-foreground'>—</span>
-        }
-        return (
-          <Button variant='ghost' size='sm' className='gap-2' asChild>
-            <a href={url} target='_blank' rel='noreferrer'>
-              <Download className='h-4 w-4' />
-              Télécharger
-            </a>
-          </Button>
-        )
-      },
-    },
+    // {
+    //   id: 'rapport',
+    //   accessorKey: 'rapport',
+    //   header: ({ column }) => (
+    //     <DataTableColumnHeader column={column} title='Rapport' />
+    //   ),
+    //   cell: ({ row }) => {
+    //     const url = row.original.rapport
+    //     if (!url || typeof url !== 'string') {
+    //       return <span className='text-muted-foreground'>—</span>
+    //     }
+    //     return (
+    //       <Button variant='ghost' size='sm' className='gap-2' asChild>
+    //         <a href={url} target='_blank' rel='noreferrer'>
+    //           <Download className='h-4 w-4' />
+    //           Télécharger
+    //         </a>
+    //       </Button>
+    //     )
+    //   },
+    // },
     {
       id: 'actions',
       header: ({ column }) => (

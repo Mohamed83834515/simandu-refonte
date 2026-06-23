@@ -4,7 +4,7 @@ import { Loader2 } from 'lucide-react'
 import { GenericTable } from '@/Global/Generic/Generictable'
 import { useActiveProgramme } from '@/hooks/use-active-programme'
 import { buildProjetsColumns } from '@/simadou/allColonnes/projets-columns'
-import { useDeleteProjet, useGetProjets } from '@/simadou/allHooks/admin/projetHooks'
+import { useDeleteProjet, useGetProjets, useToggleProjetCloture } from '@/simadou/allHooks/admin/projetHooks'
 import { useGetTypeProjet } from '@/simadou/allHooks/admin/typeProjetHooks'
 import type { Projet } from '@/simadou/allTypes/projet'
 import useDialogState from '@/hooks/use-dialog-state'
@@ -15,6 +15,16 @@ import { useGeneralParamsQuery } from '@/simadou/allHooks/generalParams/queries'
 import { useTypeProjetStore } from '@/stores/type-projet-store'
 import { useNiveauTabsTheme } from './detail/NiveauTabs'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 
 const route = getRouteApi('/_authenticated/projet-programme/projets/')
 
@@ -24,13 +34,14 @@ export default function ListeProjets() {
   const activeProgramme = useActiveProgramme()
 
   const { tabsStyle } = useNiveauTabsTheme()
-  const [open, setOpen] = useDialogState<'add' | 'edit' | 'delete'>(null)
+  const [open, setOpen] = useDialogState<'add' | 'edit' | 'delete' | 'cloture'>(null)
   const [currentRow, setCurrentRow] = useState<Projet | null>(null)
 
   const { data: projets = [], isLoading } = useGetProjets()
   const { data: typeProjets = [], isLoading: isLoadingTypes } = useGetTypeProjet()
   const { selectedTypeProjetId, setSelectedTypeProjetId } = useTypeProjetStore()
   const deleteMutation = useDeleteProjet()
+  const { mutate: toggleCloture, isPending: isClotureLoading } = useToggleProjetCloture()
 
   const goToDetail = useCallback(
     (projet: Projet) => {
@@ -45,14 +56,10 @@ export default function ListeProjets() {
   const { data: config } = useGeneralParamsQuery()
   const currencyCode = config?.currencyCode
 
-  const columns = useMemo(
-    () => buildProjetsColumns(setOpen, setCurrentRow, goToDetail, currencyCode),
-    [setOpen, setCurrentRow, goToDetail, currencyCode]
-  )
-
   const sortedTypes = useMemo(() => {
+    if (!Array.isArray(typeProjets)) return []
     return [...typeProjets].sort((a, b) =>
-      a.nom_type_projet.localeCompare(b.nom_type_projet)
+      a.nom_type_projet?.localeCompare(b.nom_type_projet) || 0
     )
   }, [typeProjets])
 
@@ -68,7 +75,31 @@ export default function ListeProjets() {
     if (activeTypeId !== null && activeTypeId !== selectedTypeProjetId) {
       setSelectedTypeProjetId(activeTypeId)
     }
-  }, [activeTypeId])
+  }, [activeTypeId, selectedTypeProjetId, setSelectedTypeProjetId])
+
+  // ✅ Gestion de la clôture
+  const handleClotureConfirm = useCallback((projet: Projet) => {
+    setCurrentRow(projet)
+    setOpen('cloture')
+  }, [setOpen])
+
+  const handleClotureAction = useCallback(() => {
+    if (!currentRow) return
+    toggleCloture({
+      id: currentRow.id_projet,
+      isCloture: !currentRow.is_cloture,
+    }, {
+      onSuccess: () => {
+        setOpen(null)
+        setCurrentRow(null)
+      },
+    })
+  }, [currentRow, toggleCloture, setOpen])
+
+  const columns = useMemo(
+    () => buildProjetsColumns(setOpen, setCurrentRow, goToDetail, handleClotureConfirm, currencyCode),
+    [setOpen, setCurrentRow, goToDetail, handleClotureConfirm, currencyCode]
+  )
 
   const filteredProjets = useMemo(() => {
     if (!activeTypeId) return projets
@@ -111,8 +142,7 @@ export default function ListeProjets() {
 
   return (
     <div className='space-y-2 px-2'>
-
-      {/* ✅ value toujours une string non-nulle grâce à activeTypeId */}
+      {/* Tabs des types de projets */}
       <div className='overflow-x-auto'>
         <Tabs
           orientation='vertical'
@@ -121,10 +151,9 @@ export default function ListeProjets() {
           value={activeTypeId !== null ? String(activeTypeId) : undefined}
           onValueChange={(val) => setSelectedTypeProjetId(Number(val))}
         >
-          <TabsList className='flex flex-wrap gap-1 '>
+          <TabsList className='flex flex-wrap gap-1'>
             {sortedTypes.map((type) => (
               <TabsTrigger
-
                 className='relative'
                 key={type.id_type_projet}
                 value={String(type.id_type_projet)}
@@ -163,7 +192,43 @@ export default function ListeProjets() {
         />
       </div>
 
-      <GenericDialogs<Projet, 'add' | 'edit' | 'delete'>
+      {/* Dialogue de clôture */}
+      <AlertDialog 
+        open={open === 'cloture'} 
+        onOpenChange={(isOpen) => {
+          if (!isOpen) {
+            setOpen(null)
+            setCurrentRow(null)
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {currentRow?.is_cloture ? 'Déclôturer le projet' : 'Clôturer le projet'}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {currentRow?.is_cloture
+                ? `Êtes-vous sûr de vouloir déclôturer le projet "${currentRow?.intitule_projet}" ?`
+                : `Êtes-vous sûr de vouloir clôturer le projet "${currentRow?.intitule_projet}" ? Cette action peut être annulée.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isClotureLoading}>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleClotureAction}
+              disabled={isClotureLoading}
+              className={currentRow?.is_cloture ? 'bg-green-600 hover:bg-green-700' : 'bg-amber-600 hover:bg-amber-700'}
+            >
+              {isClotureLoading && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
+              {currentRow?.is_cloture ? 'Déclôturer' : 'Clôturer'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Dialogues génériques (edit, delete) */}
+      <GenericDialogs<Projet, 'add' | 'edit' | 'delete' | "cloture">
         open={open}
         setOpen={setOpen}
         currentRow={currentRow}

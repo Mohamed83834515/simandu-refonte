@@ -87,24 +87,20 @@ export const recommandationMissionProjetSchema = z.object({
 export const typeMissionRecommandationOptions = [
   {
     value: "a_echeance",
-    label: "Comité de pilotage"
+    label: "A echeance"
   },
   {
-    value: "1",
-    label: "Supervision"
+    value: "continu",
+    label: "Continu"
   },
   {
-    value: "2",
-    label: "Appui ponctuel"
+    value: "immediat",
+    label: "Immediat"
   },
   {
-    value: "3",
-    label: "Suivi ministriel"
-  },
-  {
-    value: "4",
-    label: "Audit"
-  },
+    value: "immediate_continu",
+    label: "Immediat continu"
+  }
 ]
 
 export type RecommandationMissionProjetFormData = z.infer<

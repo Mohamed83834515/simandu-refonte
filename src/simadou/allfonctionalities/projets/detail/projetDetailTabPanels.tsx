@@ -3,6 +3,7 @@ import type { Projet } from '@/simadou/allTypes'
 import type { ProjetDetailTab, ProjetDetailTabKey } from './projetDetailTabs'
 import ProjetDashboard from './ProjetDashboard'
 import ProjetActivitesPanel from './activities/ProjetActivitesPanel'
+import ProjetFinancementPanel from './financement/ProjetFinancementPanel'
 import ProjetPtbaPanel from './ptba/ProjetPtbaPanel'
 import ProjetSuiviPtbaPanel from './suivi-ptba/ProjetSuiviPtbaPanel'
 import ProjetCadreResultatsPanel from './resultsFramework/ProjetCadreResultatsPanel'
@@ -18,6 +19,7 @@ type TabPanelRenderer = (projet: Projet) => ReactNode
 const TAB_PANEL_RENDERERS: Record<ProjetDetailTabKey, TabPanelRenderer> = {
   dashboard: (projet) => <ProjetDashboard projet={projet} />,
   activities: (projet) => <ProjetActivitesPanel projet={projet} />,
+  financement: (projet) => <ProjetFinancementPanel projet={projet} />,
   ptba: (projet) => <ProjetPtbaPanel projet={projet} />,
   suivi_ptba: (projet) => <ProjetSuiviPtbaPanel projet={projet} />,
   results_framework: (projet) => <ProjetCadreResultatsPanel projet={projet} />,

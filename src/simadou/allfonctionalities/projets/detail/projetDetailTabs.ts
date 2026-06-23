@@ -1,6 +1,7 @@
 import {
   Briefcase,
   ClipboardList,
+  Coins,
   Eye,
   FileText,
   Layout,
@@ -12,6 +13,7 @@ import {
 export type ProjetDetailTabKey =
   | 'dashboard'
   | 'activities'
+  | 'financement'
   | 'ptba'
   | 'suivi_ptba'
   | 'results_framework'
@@ -38,6 +40,12 @@ export const projetDetailTabs: ProjetDetailTab[] = [
     name: 'Plan Analitique',
     icon: Briefcase,
     description: 'Liste et suivi des activités rattachées au projet.',
+  },
+  {
+    key: 'financement',
+    name: 'Financement',
+    icon: Coins,
+    description: 'Financements du projet (prêt, don, contrepartie).',
   },
   {
     key: 'ptba',

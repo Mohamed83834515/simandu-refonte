@@ -44,7 +44,7 @@ export default function IndicateurCadreResultatFormDialog({
   const hideNiveauField = fixedNiveauIop != null
   const createMutation = useCreateIndicateurCadreResultat(codeProjet)
   const updateMutation = useUpdateIndicateurCadreResultat()
-  const { data: cadres = [], isLoading: isLoadingCadres } = useGetCadresResultat()
+  const { data: cadres = [], isLoading: isLoadingCadres } = useGetCadresResultat(codeProjet)
   const { data: niveaux = [], isLoading: isLoadingNiveaux } =
     useGetNiveauxCadreResultat()
   const { data: acteurs = [], isLoading: isLoadingActeurs } = useGetActeurs()

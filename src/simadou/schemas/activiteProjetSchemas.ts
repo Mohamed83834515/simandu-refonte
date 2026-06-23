@@ -78,11 +78,11 @@ export const activiteProjetCreateSchema = activiteProjetSchema;
 
 export function getActiviteProjetFormSchema({
   fixedCodeLength,
-  niveau,
+  niveauNombre,
   parentNiveauLabel,
 }: {
   fixedCodeLength: number;
-  niveau: number;
+  niveauNombre: number;
   parentNiveauLabel: string;
 }) {
   return activiteProjetSchema.extend({
@@ -90,10 +90,10 @@ export function getActiviteProjetFormSchema({
       .string()
       .length(
         fixedCodeLength,
-        `Le code doit contenir exactement ${fixedCodeLength} caractère(s) selon la configuration du niveau ${niveau}`,
+        `Le code doit contenir exactement ${fixedCodeLength} caractère(s) selon la configuration du niveau ${niveauNombre}`,
       ),
     parent_activite_projet:
-      niveau > 1
+      niveauNombre > 1
         ? z
             .number()
             .int("L'ID du parent doit être un entier")

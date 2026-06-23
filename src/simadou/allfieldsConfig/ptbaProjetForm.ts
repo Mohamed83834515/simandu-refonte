@@ -1,6 +1,5 @@
 import type { FormConfig, SelectOption } from '../../Global/types/formConfig'
 import { getActeurs } from '../allHooks/admin/acteurHooks'
-import { getCadreStrategiques } from '../allHooks/admin/cadreStrategiqueHooks'
 import { getLocalites } from '../allHooks/admin/localiteHooks'
 import { getPersonnels } from '../allHooks/admin/personnelHooks'
 import { getTypeActivites } from '../allHooks/admin/typeActivitesHooks'
@@ -24,14 +23,8 @@ const chronogrammeOptions = [
 const localites = await getLocalites()
 const acteurs = await getActeurs()
 const personnels = await getPersonnels()
-const cadre_strategiques = await getCadreStrategiques()
 const ugls = await getUgls()
 const typeActivitesData = await getTypeActivites();
-
-const cadreStrategiqueOptions = cadre_strategiques.map((cadre) => ({
-  value: cadre.id_cs,
-  label: `${cadre.code_cs} - ${cadre.intutile_cs}`,
-}));
 
 
 const localiteOptions = localites
@@ -71,7 +64,6 @@ const typeActivitesOptions = typeActivitesData?.map((item: any) => (
 
 export function getPtbaProjetFormConfig(
   activiteProjetOptions: SelectOption[],
-  cadreAnalytiqueOptions: SelectOption[] = []
 ): FormConfig {
   return {
     steps: [
@@ -79,25 +71,7 @@ export function getPtbaProjetFormConfig(
       { step: 2, title: 'Coordonnées' },
     ],
     fields: [
-      {
-        name: 'code_actvite_projet',
-        label: 'Activité projet',
-        type: 'select',
-        placeholder: 'Sélectionner une activité du projet',
-        required: true,
-        options: activiteProjetOptions,
-        gridCols: 2,
-        formStep: 1,
-      },
-      {
-        name: 'code_activite_ptba',
-        label: 'Code activité PTBA',
-        type: 'text',
-        placeholder: 'Ex: ACT001, PTBA01…',
-        required: true,
-        gridCols: 2,
-        formStep: 1,
-      },
+
       // select - Type activité
       {
         name: "type_activite",
@@ -110,6 +84,26 @@ export function getPtbaProjetFormConfig(
         formStep: 1,
       },
       {
+        name: 'code_activite_ptba',
+        label: 'Code activité PTBA',
+        type: 'text',
+        placeholder: 'Ex: ACT001, PTBA01…',
+        required: true,
+        gridCols: 2,
+        formStep: 1,
+      },
+
+      {
+        name: 'code_actvite_projet',
+        label: 'Plan Analytique',
+        type: 'select',
+        placeholder: 'Sélectionner une activité du projet',
+        required: true,
+        options: activiteProjetOptions,
+        gridCols: 1,
+        formStep: 1,
+      },
+      {
         name: 'intitule_activite_ptba',
         label: 'Intitulé activité PTBA',
         type: 'textarea',
@@ -117,25 +111,6 @@ export function getPtbaProjetFormConfig(
         required: true,
         maxLength: 200,
         gridCols: 1,
-        formStep: 1,
-      },
-      {
-        name: 'cadre_analytique',
-        label: 'Cadre analytique',
-        type: 'select',
-        placeholder: 'Sélectionner un cadre analytique (optionnel)',
-        required: true,
-        options: cadreAnalytiqueOptions,
-        gridCols: 2,
-        formStep: 1,
-      },
-      {
-        name: 'cout_ptba',
-        label: 'Cout Ptba',
-        type: 'number',
-        placeholder: "le cout de l'activite du ptba ",
-        required: true,
-        gridCols: 2,
         formStep: 1,
       },
       {
@@ -158,13 +133,13 @@ export function getPtbaProjetFormConfig(
         gridCols: 2,
         formStep: 2,
       },
+
       {
-        name: 'code_crp',
-        label: 'Cadre stratégique',
-        type: 'select',
-        placeholder: 'Sélectionner un cadre stratégique (optionnel)',
-        required: false,
-        options: cadreStrategiqueOptions,
+        name: 'cout_ptba',
+        label: 'Cout Ptba',
+        type: 'number',
+        placeholder: "le cout de l'activite du ptba ",
+        required: true,
         gridCols: 2,
         formStep: 2,
       },

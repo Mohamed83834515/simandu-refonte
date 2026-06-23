@@ -4,18 +4,13 @@ export const getCadreResultatFormConfigForDialog = ({
   niveauOptions,
   parentOptions,
   acteurOptions,
-  projetOptions,
   isLoadingActeurs,
-  isLoadingProjets,
   showParent,
-  showProjet = true,
 }: {
   niveauOptions: SelectOption[];
   parentOptions: SelectOption[];
   acteurOptions: SelectOption[];
-  projetOptions: SelectOption[];
   isLoadingActeurs?: boolean;
-  isLoadingProjets?: boolean;
   showParent: boolean;
   showProjet?: boolean;
 }): FormConfig => ({
@@ -88,20 +83,6 @@ export const getCadreResultatFormConfigForDialog = ({
       options: acteurOptions,
       isLoading: isLoadingActeurs,
       gridCols: 2,
-    },
-    ...(showProjet
-      ? [
-          {
-            name: "projet_cr",
-            label: "Projet",
-            type: "select" as const,
-            placeholder: "Sélectionnez un projet",
-            required: false,
-            options: projetOptions,
-            isLoading: isLoadingProjets,
-            gridCols: 2 as const,
-          },
-        ]
-      : []),
+    }
   ],
 });

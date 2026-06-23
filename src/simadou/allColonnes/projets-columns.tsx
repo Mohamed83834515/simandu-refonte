@@ -1,16 +1,17 @@
 import { type ColumnDef } from '@tanstack/react-table'
-import { Eye, Trash2, UserPen } from 'lucide-react'
+import { Eye, Trash2, UserPen, Lock, Unlock } from 'lucide-react'
 import { DataTableColumnHeader } from '@/components/data-table'
 import { LongText } from '@/components/others/long-text'
 import type { Projet } from '@/simadou/allTypes/projet'
 import { GenericRowActions } from '@/Global/Tableaux/GenericRowActions'
 
-type ProjetDialogType = 'add' | 'edit' | 'delete';
+type ProjetDialogType = 'add' | 'edit' | 'delete'
 
 export function buildProjetsColumns(
   setOpen: (dialog: ProjetDialogType | null) => void,
   setCurrentRow: React.Dispatch<React.SetStateAction<Projet | null>>,
   onDetail: (projet: Projet) => void,
+  handleClotureConfirm: (projet: Projet) => void,
   currencyCode?: string
 ): ColumnDef<Projet>[] {
   return [
@@ -94,7 +95,6 @@ export function buildProjetsColumns(
         <DataTableColumnHeader column={column} title={`Budget(${currencyCode})`} />
       ),
       cell: ({ row }) => {
-        // Simulation de coûts basée sur l'intitulé ou l'ID de la ligne
         const budget = row.original.budget_projet
 
         if (!budget || budget === 0) {
@@ -117,68 +117,78 @@ export function buildProjetsColumns(
       enableHiding: false,
     },
     {
+      id: 'status',
+      accessorKey: 'is_cloture',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title='Statut' />
+      ),
+      cell: ({ row }) => {
+        const isCloture = row.original.is_cloture
+        return (
+          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+            isCloture 
+              ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' 
+              : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+          }`}>
+            {isCloture ? 'Clôturé' : 'Actif'}
+          </span>
+        )
+      },
+      enableSorting: true,
+      enableHiding: false,
+    },
+    {
       id: 'actions',
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title='Actions' />
       ),
-      cell: ({ row }) => (
-        <GenericRowActions
-          row={row}
-          actions={[
-            {
-              label: 'Detail',
-              icon: <Eye size={16} />,
-              onClick: () => {
-                onDetail(row.original)
-              }
-            },
-            {
-              label: 'Modifier',
-              icon: <UserPen size={16} />,
-              onClick: () => {
-                setCurrentRow(row.original)
-                setOpen('edit')
-                console.log('isditing', row.original)
+      cell: ({ row }) => {
+        const projet = row.original
+        const isCloture = projet.is_cloture
+
+        return (
+          <GenericRowActions
+            row={row}
+            actions={[
+              {
+                label: 'Détail',
+                icon: <Eye size={16} />,
+                onClick: () => {
+                  onDetail(row.original)
+                }
               },
-            },
-            {
-              label: 'Supprimer',
-              icon: <Trash2 size={16} />,
-              onClick: () => {
-                setCurrentRow(row.original)
-                setOpen('delete')
+              {
+                label: isCloture ? 'Déclôturer' : 'Clôturer',
+                icon: isCloture ? <Unlock size={16} /> : <Lock size={16} />,
+                onClick: () => {
+                  setCurrentRow(row.original)
+                  handleClotureConfirm(row.original)
+                },
+                className: isCloture ? 'text-green-600!' : 'text-amber-600!',
+                separator: true,
               },
-              className: 'text-red-500!',
-              separator: true,
-            },
-          ]
-          }
-        />
-      ),
+              {
+                label: 'Modifier',
+                icon: <UserPen size={16} />,
+                onClick: () => {
+                  setCurrentRow(row.original)
+                  setOpen('edit')
+                },
+              },
+              {
+                label: 'Supprimer',
+                icon: <Trash2 size={16} />,
+                onClick: () => {
+                  setCurrentRow(row.original)
+                  setOpen('delete')
+                },
+                className: 'text-red-500!',
+                separator: true,
+              },
+            ]}
+          />
+        )
+      },
     },
-    // {
-    //   id: 'actions',
-    //   header: () => (
-    //     <span className='text-xs font-medium text-muted-foreground'>Actions</span>
-    //   ),
-    //   cell: ({ row }) => (
-    //     <Button
-    //       type='button'
-    //       variant='outline'
-    //       size='sm'
-    //       className='h-8 gap-1.5 border-primary/20 bg-primary/10 text-xs font-semibold text-primary hover:bg-primary hover:text-primary-foreground'
-    //       onClick={(e) => {
-    //         e.stopPropagation()
-    //         onDetail(row.original)
-    //       }}
-    //     >
-    //       <Eye className='h-3.5 w-3.5' />
-    //       Détails
-    //     </Button>
-    //   ),
-    //   meta: { thClassName: 'text-center pe-4', className: 'text-center pe-4' },
-    //   enableSorting: false,
-    //   enableHiding: false,
-    // },
   ]
 }

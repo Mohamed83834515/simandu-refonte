@@ -1,3 +1,13 @@
+// ─── Hook à ajouter dans projetHooks.ts ─────────────────────────────────────
+//
+// export const useGetTauxGlobalActiviteProjet = (projetId: number | string | undefined) => {
+//   return useQuery({
+//     queryKey: ['taux-global-activite', projetId],
+//     queryFn: () => projetService.getTauxGlobalAct(projetId!),
+//     enabled: !!projetId,
+//   })
+// }
+
 // ProjetDashboard.tsx
 import { useMemo, useState } from 'react'
 import { useGetActivitesProjet } from '@/simadou/allHooks/admin/activiteProjetHooks'
@@ -88,7 +98,11 @@ function getTauxColor(taux: number) {
   }
 }
 
-// ─── Sub-components ──────────────────────────────────────────────────────────
+// ─── Card 1 : Taux exécution global ──────────────────────────────────────────
+
+// ─── Card 1 : Exécution physique globale ────────────────────────────────────
+
+// ─── Card 1 : Exécution physique globale ────────────────────────────────────
 
 function KpiCard({
   label,
@@ -154,8 +168,8 @@ function BudgetDetailCard({
       <CardHeader className='border-b pb-3'>
         <div className='flex items-center justify-between'>
           <div className='flex items-center gap-2'>
-            <div className='rounded-lg bg-primary/10 p-1.5'>
-              <Wallet className='h-4 w-4 text-primary' />
+            <div className='rounded-full bg-blue-100 p-1 dark:bg-blue-900/30'>
+              <TrendingUp className='h-3.5 w-3.5 text-blue-600 dark:text-blue-400' />
             </div>
             <div>
               <CardTitle className='text-sm font-semibold'>
@@ -279,9 +293,11 @@ function DecaissementComparatifCard({
   return (
     <Card className='border-0 shadow-sm'>
       <CardHeader className='border-b pb-3'>
+    <Card className='border-0 shadow-sm'>
+      <CardHeader className='border-b pb-3'>
         <div className='flex items-center gap-2'>
-          <div className='rounded-lg bg-primary/10 p-1.5'>
-            <BarChart3 className='h-4 w-4 text-primary' />
+          <div className='rounded-lg bg-blue-500/10 p-1.5'>
+            <DollarSign className='h-4 w-4 text-blue-500' />
           </div>
           <div>
             <CardTitle className='text-sm font-semibold'>
@@ -404,6 +420,8 @@ function ProjetAvancementAnnuelCard({
   return (
     <Card className='border-0 shadow-sm'>
       <CardHeader className='border-b pb-3'>
+    <Card className='border-0 shadow-sm'>
+      <CardHeader className='border-b pb-3'>
         <div className='flex items-center gap-2'>
           <div className='rounded-lg bg-primary/10 p-1.5'>
             <BarChart3 className='h-4 w-4 text-primary' />
@@ -501,6 +519,8 @@ export default function ProjetDashboard({ projet }: ProjetDashboardProps) {
   const projectYears = useMemo(() => {
     if (!projet?.date_demarrage_projet || !projet?.duree_projet)
       return [new Date().getFullYear()]
+    if (!projet?.date_demarrage_projet || !projet?.duree_projet)
+      return [new Date().getFullYear()]
     const start = new Date(projet.date_demarrage_projet)
     const startYear = start.getFullYear()
     const endDate = new Date(start)
@@ -511,6 +531,8 @@ export default function ProjetDashboard({ projet }: ProjetDashboardProps) {
     return years
   }, [projet])
 
+  const defaultYear =
+    projectYears[projectYears.length - 1] || new Date().getFullYear()
   const defaultYear =
     projectYears[projectYears.length - 1] || new Date().getFullYear()
   const [selectedYear, setSelectedYear] = useState(defaultYear)
@@ -543,6 +565,12 @@ export default function ProjetDashboard({ projet }: ProjetDashboardProps) {
         0
       ) / ptbasFiltres.length
     )
+    return Math.round(
+      ptbasFiltres.reduce(
+        (s, p) => s + (Number(p.taux_execution_ptba) || 0),
+        0
+      ) / ptbasFiltres.length
+    )
   }, [ptbasFiltres])
 
   const activitesRealisees = useMemo(
@@ -552,6 +580,12 @@ export default function ProjetDashboard({ projet }: ProjetDashboardProps) {
 
   const tauxDecaissementMoyen = useMemo(() => {
     if (!ptbasFiltres.length) return 0
+    return Math.round(
+      ptbasFiltres.reduce(
+        (s, p) => s + (Number(p.taux_decaissement_ptba) || 0),
+        0
+      ) / ptbasFiltres.length
+    )
     return Math.round(
       ptbasFiltres.reduce(
         (s, p) => s + (Number(p.taux_decaissement_ptba) || 0),
@@ -695,19 +729,24 @@ export default function ProjetDashboard({ projet }: ProjetDashboardProps) {
         />
       </div>
 
-      {/* ── Ligne 2 : Exécution + Graphe ── */}
+      {/* ── Graphiques comparatifs (données globales, pas liées à selectedYear) ── */}
       <div className='grid gap-4 lg:grid-cols-2'>
+        <ProjetAvancementAnnuelCard
+          data={avancementAnnuelData}
+          isLoading={isLoadingAvancement}
         <ProjetAvancementAnnuelCard
           data={avancementAnnuelData}
           isLoading={isLoadingAvancement}
         />
         <DecaissementComparatifCard
+        <DecaissementComparatifCard
           data={decaissementParAnnee}
+          isLoading={isLoadingPtbas}
           isLoading={isLoadingPtbas}
         />
       </div>
 
-      {/* ── Ligne 3 : Budget détail pleine largeur ── */}
+      {/* ── Budget détail ── */}
       <BudgetDetailCard
         montantDecaisseTotal={montantDecaisseTotal}
         budget_total={budget_total}
@@ -722,3 +761,4 @@ export default function ProjetDashboard({ projet }: ProjetDashboardProps) {
     </div>
   )
 }
+

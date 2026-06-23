@@ -11,14 +11,7 @@ import {
   resolveProjetCr,
 } from '@/simadou/lib/cadreResultatUtils'
 import { resolveRelationId } from '@/simadou/lib/resolveApiRelation'
-
-function formatCoutAxe(value: number | undefined): string {
-  return new Intl.NumberFormat('fr-FR', {
-    style: 'currency',
-    currency: 'XOF',
-    maximumFractionDigits: 0,
-  }).format(value ?? 0)
-}
+import { formatNumber } from '../allSercices/montantFormater'
 
 function resolveParentCadre(
   row: CadreResultat,
@@ -94,11 +87,11 @@ export function buildCadreResultatColumns({
       id: 'cout_axe',
       accessorKey: 'cout_axe',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title='Coût axe' />
+        <DataTableColumnHeader className='text-rigth' column={column} title='Coût axe (GNF)' />
       ),
       cell: ({ row }) => (
         <span className='whitespace-nowrap tabular-nums text-sm'>
-          {formatCoutAxe(row.original.cout_axe)}
+          {formatNumber(row.original.cout_axe)}
         </span>
       ),
       enableHiding: false,

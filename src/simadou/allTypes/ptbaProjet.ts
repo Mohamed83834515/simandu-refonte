@@ -9,6 +9,6 @@ export interface PtbaProjet extends Ptba {
   code_actvite_projet?: number | ActiviteProjet | null
   code_projet?: string | Projet | null
   cout_ptba?: number;
-  version_info?: VersionPtba
+  version_info?: VersionPtba 
   montant_decaisse_ptba?:number
 }

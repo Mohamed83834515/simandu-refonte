@@ -1,30 +1,30 @@
 import { useMemo } from 'react'
 import { toast } from 'sonner'
 import { DynamicForm } from '@/Global/Forms/DynamicForm'
-import { getIndicateurTacheFormConfigForDialog } from '@/simadou/allfieldsConfig/indicateurTacheForm'
 import {
   indicateurTacheSchema,
   type IndicateurTacheFormData,
 } from '@/simadou/schemas/indicateurTacheSchemas'
-import type { Ptba } from '@/simadou/allTypes'
+import type {  PtbaProjet } from '@/simadou/allTypes'
 import { IndicateurTache } from '@/simadou/allTypes/indicateurTache'
-import { useGetIndicateursCmr } from '@/simadou/allHooks/admin/indicateurCmrHooks'
 import {
   useCreateIndicateurTacheProjet,
   useUpdateIndicateurTacheProjet,
 } from '@/simadou/allHooks/admin/indicateurTacheProjetHooks'
 import { useGetUnitesIndicateur } from '@/simadou/allHooks/admin/uniteIndicateurHooks'
 import {
-  buildIndicateurCmrSelectOptions,
+  buildIndicateurPerforamnceSelectOptions,
   buildIndicateurTachePayload,
   buildUniteIndicateurSelectOptions,
   resolveIndicateurCmrFormValue,
   resolveUniteIndicateurFormValue,
 } from '@/simadou/lib/indicateurTacheUtils'
+import { useGetIndicateurPerformanceByActiviteProjet } from '@/simadou/allHooks/admin/indicateurPerformanceProjetHooks'
+import { getIndicateurTacheProjetFormConfigForDialog } from '@/simadou/allfieldsConfig/indicateurTacheFormProjet'
 
 interface IndicateurTacheFormProps {
   indicateur?: IndicateurTache
-  activite: Ptba
+  activite: PtbaProjet
   onClose: () => void
   onSuccess: () => void
 }
@@ -36,22 +36,34 @@ export default function IndicateurTacheProjetForm({
   onSuccess,
 }: IndicateurTacheFormProps) {
   const isEditing = !!indicateur
-  const { data: indicateursCmr = [], isLoading: isLoadingIndicateurCmrs } =
-    useGetIndicateursCmr()
+  // Fonction utilitaire pour extraire le code_projet
+  const getCodeProjet = (codeProjet: string | { code_projet: string } | any): string => {
+    if (!codeProjet) return ''
+    if (typeof codeProjet === 'string') return codeProjet
+    if (typeof codeProjet === 'object' && codeProjet?.code_projet) {
+      return codeProjet.code_projet
+    }
+    return ''
+  }
+
+  // Utilisation
+  const codeProjet = getCodeProjet(activite.code_projet)
+  const { data: indicateurPerformanceProjet } = useGetIndicateurPerformanceByActiviteProjet(
+    codeProjet
+  )
   const { data: unites = [], isLoading: isLoadingUnites } = useGetUnitesIndicateur()
 
   const formConfig = useMemo(
     () =>
-      getIndicateurTacheFormConfigForDialog({
-        indicateurCmrOptions: buildIndicateurCmrSelectOptions(indicateursCmr),
+      getIndicateurTacheProjetFormConfigForDialog({
+        indicateurPerformanceOptions: buildIndicateurPerforamnceSelectOptions(indicateurPerformanceProjet || []),
         uniteIndicateurOptions: buildUniteIndicateurSelectOptions(unites),
-        isLoadingIndicateurCmrs,
         isLoadingUnites,
       }),
-    [indicateursCmr, unites, isLoadingIndicateurCmrs, isLoadingUnites]
+    [indicateurPerformanceProjet, unites, isLoadingUnites]
   )
   const idActivite = activite.id_ptba
-
+  console.log("activite", activite)
   const defaultValues = useMemo(
     (): IndicateurTacheFormData => ({
       intitule_indicateur_tache: indicateur?.intitule_indicateur_tache || '',

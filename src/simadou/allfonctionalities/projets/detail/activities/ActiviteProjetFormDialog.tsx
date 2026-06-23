@@ -12,8 +12,7 @@ import {
   useUpdateActiviteProjet,
 } from '@/simadou/allHooks/admin/activiteProjetHooks'
 import { useGetActivitesProgramme } from '@/simadou/allHooks/admin/activiteProgrammeHooks'
-import { useGetAllProjets, useGetProjet } from '@/simadou/allHooks/admin/projetHooks'
-import { getRouteApi } from '@tanstack/react-router'
+import { useGetAllProjets } from '@/simadou/allHooks/admin/projetHooks'
 
 function resolveCodeActiviteProgramme(
   value: ActiviteProjet['code_activite_programme']
@@ -29,6 +28,7 @@ function resolveCodeActiviteProgramme(
 export default function ActiviteProjetFormDialog({
   projet,
   niveau,
+  niveauNombre,
   niveaux,
   activite,
   parentOptions,
@@ -37,13 +37,18 @@ export default function ActiviteProjetFormDialog({
 }: {
   projet: Projet
   niveau: number
+  niveauNombre: number
   niveaux: NiveauActiviteProjet[]
   activite?: ActiviteProjet | null
   parentOptions: Array<{ value: number; label: string }>
   onClose: () => void
   onSuccess: () => void
 }) {
-  const codeProjet = projet.code_projet
+  console.log('niveau', niveau)
+  console.log('niveaux', niveaux)
+  // ✅ Extraire le code_projet (peut être string ou objet)
+ const codeProjet = projet.code_projet
+
   const isEditing = !!activite
   const createMutation = useCreateActiviteProjet(codeProjet)
   const updateMutation = useUpdateActiviteProjet(codeProjet)
@@ -51,9 +56,10 @@ export default function ActiviteProjetFormDialog({
     useGetActivitesProgramme()
   const { data: projets = [], isLoading: isLoadingProjets } = useGetAllProjets()
 
+  // ✅ Trouver le niveau correspondant
   const niveauConfig = useMemo(
     () =>
-      niveaux.find((n) => Number(n.nombre_niveau_activite_projet) === niveau),
+      niveaux.find((n) => Number(n.id_niveau_activite_projet) === niveau),
     [niveaux, niveau]
   )
 
@@ -62,18 +68,12 @@ export default function ActiviteProjetFormDialog({
     [niveauConfig]
   )
 
-
-      const route = getRouteApi('/_authenticated/projet-programme/projets/$id')
-  
-      const { id } = route.useParams()
-      const { data: currentProjet } = useGetProjet(id)
-
   const parentNiveauLabel = useMemo(() => {
     const parentNiveau = niveaux.find(
-      (n) => Number(n.nombre_niveau_activite_projet) === niveau - 1
+      (n) => Number(n.nombre_niveau_activite_projet) === niveauNombre - 1
     )
     return parentNiveau?.libelle_niveau_activite_projet ?? 'Activité parent'
-  }, [niveaux, niveau])
+  }, [niveaux, niveauNombre])
 
   const activiteProgrammeOptions = useMemo(
     () =>
@@ -98,7 +98,7 @@ export default function ActiviteProjetFormDialog({
       getActiviteProjetFormConfigForDialog({
         fixedCodeLength,
         parentNiveauLabel,
-        showParent: niveau > 1,
+        showParent: niveauNombre > 1,
         parentOptions,
         activiteProgrammeOptions,
         projetOptions,
@@ -108,7 +108,7 @@ export default function ActiviteProjetFormDialog({
     [
       fixedCodeLength,
       parentNiveauLabel,
-      niveau,
+      niveauNombre,
       parentOptions,
       activiteProgrammeOptions,
       projetOptions,
@@ -121,11 +121,18 @@ export default function ActiviteProjetFormDialog({
     () =>
       getActiviteProjetFormSchema({
         fixedCodeLength,
-        niveau,
+        niveauNombre,
         parentNiveauLabel,
       }),
-    [fixedCodeLength, niveau, parentNiveauLabel]
+    [fixedCodeLength, niveauNombre, parentNiveauLabel]
   )
+
+  // ✅ Extraire la valeur du code_projet de l'activité si c'est un objet
+  const getActiviteCodeProjet = useMemo(() => {
+    const code = activite?.code_projet
+    if (!code) return ''
+    return typeof code === 'string' ? code : code?.code_projet || ''
+  }, [activite?.code_projet])
 
   const defaultValues = useMemo(
     (): ActiviteProjetFormData => ({
@@ -142,9 +149,10 @@ export default function ActiviteProjetFormDialog({
       code_activite_programme: resolveCodeActiviteProgramme(
         activite?.code_activite_programme
       ),
-      code_projet: currentProjet?.code_projet,
+      // ✅ Utiliser le code_projet extrait
+      code_projet: getActiviteCodeProjet || codeProjet,
     }),
-    [activite, niveau]
+    [activite, niveau, getActiviteCodeProjet, codeProjet]
   )
 
   const onSubmit = (data: ActiviteProjetFormData) => {
@@ -160,6 +168,10 @@ export default function ActiviteProjetFormDialog({
       niveau_activite_projet: niveau,
       parent_activite_projet: data.parent_activite_projet || null,
       code_activite_programme: data.code_activite_programme || null,
+      // ✅ S'assurer que code_projet est une string
+      code_projet: typeof data.code_projet === 'string' 
+        ? data.code_projet 
+        : data.code_projet|| codeProjet,
     }
 
     if (isEditing && activite) {

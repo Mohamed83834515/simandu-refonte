@@ -7,6 +7,7 @@ import type {
 import type { UniteIndicateur } from '@/simadou/allTypes/uniteIndicateur'
 import type { IndicateurTacheFormData } from '@/simadou/schemas/indicateurTacheSchemas'
 import { resolveRelationId } from '@/simadou/lib/resolveApiRelation'
+import { IndicateurPerformanceProjet } from '../allTypes'
 
 function normalizeTrimestre(value: unknown): string {
   if (value == null) return ''
@@ -59,6 +60,17 @@ export function buildIndicateurCmrSelectOptions(
     return {
       value: cmr.id_ref_ind_cmr,
       label,
+    }
+  })
+}
+export function buildIndicateurPerforamnceSelectOptions(
+  cmrs: IndicateurPerformanceProjet[]
+): SelectOption[] {
+  return cmrs.map((cmr) => {
+
+    return {
+      value: cmr.id_indicateur_performance,
+      label:cmr.intitule_indicateur_tache,
     }
   })
 }

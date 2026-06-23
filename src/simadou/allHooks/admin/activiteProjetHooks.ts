@@ -114,6 +114,23 @@ export function useGetActivitesProjet(codeProjet: string | undefined) {
     enabled: !!codeProjet,
   })
 }
+export function useGetActivitesProjetLastNiveau(codeProjet: string | undefined) {
+  return useQuery({
+    queryKey: activiteProjetQueryKeys.byProjet(codeProjet),
+    queryFn: async () => {
+      if (!codeProjet) return []
+      try {
+        const scoped = await activiteProjetService.getLAstNiveauByProjet(codeProjet)
+        if (scoped.length > 0) return scoped
+      } catch {
+        // fallback client-side
+      }
+      const all = await activiteProjetService.getAll()
+      return all.filter((a) => matchesCodeProjet(a.code_projet, codeProjet))
+    },
+    enabled: !!codeProjet,
+  })
+}
 
 export function useGetAllActivitesProjet() {
   return useQuery({
