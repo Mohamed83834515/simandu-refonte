@@ -199,25 +199,25 @@ export default function ProjetConventionPanel({
         tabs={
           suiviConvention
             ? [
-                {
-                  value: 'decaissement',
-                  label: 'Suivi décaissement',
-                  content: (
-                    <SuiviDecaissementConventionManager
-                      convention={suiviConvention}
-                    />
-                  ),
-                },
-                {
-                  value: 'observation',
-                  label: 'Observation globale',
-                  content: (
-                    <SuiviAvancementConventionManager
-                      convention={suiviConvention}
-                    />
-                  ),
-                },
-              ]
+              {
+                value: 'decaissement',
+                label: 'Suivi décaissement',
+                content: (
+                  <SuiviDecaissementConventionManager
+                    convention={suiviConvention}
+                  />
+                ),
+              },
+              {
+                value: 'observation',
+                label: 'Observation globale',
+                content: (
+                  <SuiviAvancementConventionManager
+                    convention={suiviConvention}
+                  />
+                ),
+              },
+            ]
             : []
         }
       />
