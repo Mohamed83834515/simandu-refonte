@@ -106,11 +106,11 @@ export default function NiveauConfigClcpManager({ idContrat }: Props) {
       return
     }
 
-    const codeNumbers = rowsToSave.map((r) => Number(r.codeNumber))
-    if (new Set(codeNumbers).size !== codeNumbers.length) {
-      toast.error('Chaque niveau doit avoir un code numérique unique')
-      return
-    }
+    // const codeNumbers = rowsToSave.map((r) => Number(r.codeNumber))
+    // if (new Set(codeNumbers).size !== codeNumbers.length) {
+    //   toast.error('Chaque niveau doit avoir un code numérique unique')
+    //   return
+    // }
 
     try {
       let order = 0

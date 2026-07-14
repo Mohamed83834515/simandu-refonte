@@ -4,13 +4,15 @@ import { GenericTable } from '@/Global/Generic/Generictable'
 import type { CadreLogiqueClcp } from '@/simadou/allTypes/cadreLogiqueClcp'
 import type { IndicateurContrat } from '@/simadou/allTypes/indicateurContrat'
 import type { NiveauConfigClcp } from '@/simadou/allTypes/niveauConfigClcp'
+import type { SuiviContrat } from '@/simadou/allTypes/suiviContrat'
+import { resolveRelationId } from '@/simadou/lib/resolveApiRelation'
+import { useRapportExportRegistration } from '@/simadou/allfonctionalities/rapport/useRapportExportRegistration'
 import {
   getNiveauClcpLabel,
   resolveNiveauClcId,
   sortNiveauxConfigClcp,
 } from '@/simadou/lib/cadreLogiqueClcpUtils'
 import { resolveClcpId } from '@/simadou/lib/indicateurContratUtils'
-import { useRapportExportRegistration } from '@/simadou/allfonctionalities/rapport/useRapportExportRegistration'
 import { FileSignature, Loader2 } from 'lucide-react'
 import { useEmbeddedTableState } from '@/hooks/use-embedded-table-state'
 import { Badge } from '@/components/ui/badge'
@@ -27,6 +29,9 @@ interface Props {
   cadres: CadreLogiqueClcp[]
   indicateurs: IndicateurContrat[]
   isLoading: boolean
+  /** Suivis des indicateurs : ajoute la colonne « Valeur réalisée » (T1–T4). */
+  suivis?: SuiviContrat[]
+  showValeurRealisee?: boolean
 }
 
 type ReportRow = {
@@ -39,6 +44,19 @@ type ReportRow = {
 
 function formatCadreLabel(cadre: CadreLogiqueClcp): string {
   return `${cadre.code_clc} : ${cadre.intitule_clc}`
+}
+
+/** Index (0–3) du trimestre d'un suivi, quel que soit le format (« T1 », « 1 »…). */
+function parseTrimestreIndex(value: unknown): number | null {
+  const match = String(value ?? '').match(/([1-4])/)
+  return match ? Number(match[1]) - 1 : null
+}
+
+/** Date de référence d'un suivi, pour ne garder que le plus récent. */
+function suiviTimestamp(suivi: SuiviContrat): number {
+  const date = suivi.modifier_le ?? suivi.date_enregistrement
+  const time = date ? new Date(date).getTime() : 0
+  return Number.isFinite(time) ? time : 0
 }
 
 /** Nom de fichier lisible à partir de l'URL du moyen de vérification. */
@@ -57,25 +75,61 @@ export function ContratPerformanceReportTable({
   cadres,
   indicateurs,
   isLoading,
+  suivis,
+  showValeurRealisee = false,
 }: Props) {
   const { navigate } = useEmbeddedTableState()
 
-  // En-têtes groupés (rendus sur deux lignes par la GenericTable) : la
-  // « Chaine des Résultats » couvre niveau + cadre, la « Valeur Cible »
-  // couvre les quatre trimestres — comme dans le rapport Word.
+  // Valeur réalisée par indicateur et par trimestre (suivi le plus récent).
+  const realiseesByIndicateur = useMemo(() => {
+    const map = new Map<number, (SuiviContrat | undefined)[]>()
+
+    for (const suivi of suivis ?? []) {
+      const id = resolveRelationId(
+        suivi.indicateur_contrat,
+        'id_indicateur_contrat'
+      )
+      const trimestre = parseTrimestreIndex(suivi.trimestre)
+      if (id == null || trimestre == null) continue
+
+      const parTrimestre =
+        map.get(id) ?? [undefined, undefined, undefined, undefined]
+      const existant = parTrimestre[trimestre]
+
+      if (!existant || suiviTimestamp(suivi) >= suiviTimestamp(existant)) {
+        parTrimestre[trimestre] = suivi
+      }
+      map.set(id, parTrimestre)
+    }
+
+    return map
+  }, [suivis])
+
+  const valeurRealisee = (
+    ind: IndicateurContrat | undefined,
+    trimestre: number
+  ): string => {
+    if (!ind) return ''
+    const suivi = realiseesByIndicateur.get(ind.id_indicateur_contrat)?.[
+      trimestre
+    ]
+    return suivi?.valeur_realisee != null ? String(suivi.valeur_realisee) : ''
+  }
+
   const columns: ColumnDef<ReportRow>[] = [
     {
       id: 'chaine_resultats',
       header: 'Chaine des Résultats',
+      meta: { mergeSubHeaders: true },
       columns: [
         {
           id: 'niveau',
-          header: 'Niveau',
+          header: '',
           accessorFn: (row) => row.niveauLabel,
         },
         {
           id: 'cadre',
-          header: 'Code : Intitulé',
+          header: '',
           accessorFn: (row) => formatCadreLabel(row.cadre),
         },
       ],
@@ -119,6 +173,36 @@ export function ContratPerformanceReportTable({
         },
       ],
     },
+    ...(showValeurRealisee
+      ? [
+          {
+            id: 'valeur_realisee',
+            header: 'Valeur réalisée',
+            columns: [
+              {
+                id: 'r1',
+                header: 'T1',
+                accessorFn: (row) => valeurRealisee(row.ind, 0),
+              },
+              {
+                id: 'r2',
+                header: 'T2',
+                accessorFn: (row) => valeurRealisee(row.ind, 1),
+              },
+              {
+                id: 'r3',
+                header: 'T3',
+                accessorFn: (row) => valeurRealisee(row.ind, 2),
+              },
+              {
+                id: 'r4',
+                header: 'T4',
+                accessorFn: (row) => valeurRealisee(row.ind, 3),
+              },
+            ],
+          } satisfies ColumnDef<ReportRow>,
+        ]
+      : []),
     {
       id: 'moyen_verification',
       header: 'Moyen de Vérification',
@@ -128,14 +212,23 @@ export function ContratPerformanceReportTable({
 
   // Colonnes à plat pour l'export (les groupes sont portés par headerGroups).
   const exportColumns: RapportExportColumn[] = [
-    { id: 'niveau', header: 'Niveau' },
-    { id: 'cadre', header: 'Code : Intitulé' },
+    { id: 'niveau', header: '' },
+    // Le code du cadre (avant « : ») est rendu en gras dans les exports.
+    { id: 'cadre', header: '', boldPrefixSeparator: ' : ' },
     { id: 'indicateur', header: 'Indicateurs' },
     { id: 'reference', header: 'Valeur de référence' },
     { id: 't1', header: 'T1' },
     { id: 't2', header: 'T2' },
     { id: 't3', header: 'T3' },
     { id: 't4', header: 'T4' },
+    ...(showValeurRealisee
+      ? [
+          { id: 'r1', header: 'T1' },
+          { id: 'r2', header: 'T2' },
+          { id: 'r3', header: 'T3' },
+          { id: 'r4', header: 'T4' },
+        ]
+      : []),
     { id: 'moyen_verification', header: 'Moyen de Vérification' },
   ]
 
@@ -169,7 +262,9 @@ export function ContratPerformanceReportTable({
       const niveauLabel = getNiveauClcpLabel(niveau)
 
       const cadresDuNiveau = cadres
-        .filter((c) => resolveNiveauClcId(c.niveau_clc) === niveau.id_niveau_ncl)
+        .filter(
+          (c) => resolveNiveauClcId(c.niveau_clc) === niveau.id_niveau_ncl
+        )
         .sort((a, b) =>
           a.code_clc.localeCompare(b.code_clc, 'fr', { numeric: true })
         )
@@ -204,7 +299,8 @@ export function ContratPerformanceReportTable({
       const cadreFirstIndex = new Map<string, number>()
 
       rows.forEach((r, i) => {
-        if (!niveauFirstIndex.has(r.niveauKey)) niveauFirstIndex.set(r.niveauKey, i)
+        if (!niveauFirstIndex.has(r.niveauKey))
+          niveauFirstIndex.set(r.niveauKey, i)
         niveauSpans.set(r.niveauKey, (niveauSpans.get(r.niveauKey) ?? 0) + 1)
 
         if (!cadreFirstIndex.has(r.groupKey)) cadreFirstIndex.set(r.groupKey, i)
@@ -226,21 +322,30 @@ export function ContratPerformanceReportTable({
           r.niveauLabel,
           formatCadreLabel(r.cadre),
           r.ind?.intitule_indicateur ?? '',
-          r.ind?.valeur_reference != null
-            ? String(r.ind.valeur_reference)
-            : '',
+          r.ind?.valeur_reference != null ? String(r.ind.valeur_reference) : '',
           r.ind?.cible_t1 ?? '',
           r.ind?.cible_t2 ?? '',
           r.ind?.cible_t3 ?? '',
           r.ind?.cible_t4 ?? '',
+          ...(showValeurRealisee
+            ? [
+                valeurRealisee(r.ind, 0),
+                valeurRealisee(r.ind, 1),
+                valeurRealisee(r.ind, 2),
+                valeurRealisee(r.ind, 3),
+              ]
+            : []),
           moyenVerificationLabel(r.ind?.moyen_verification),
         ])
 
-        // Les colonnes niveau et cadre sont fusionnées verticalement
-        // par cadre logique dans les exports.
+        // Fusion verticale indépendante par colonne : le niveau est affiché
+        // une seule fois par niveau, le cadre une seule fois par cadre.
         rowMetas.push({
           type: 'data',
-          groupKey: r.groupKey,
+          mergeKeys: {
+            0: `niveau-${r.niveauKey}`,
+            1: `cadre-${r.groupKey}`,
+          },
         })
       })
 
@@ -252,8 +357,21 @@ export function ContratPerformanceReportTable({
 
         // En-têtes fusionnés au-dessus des colonnes, comme le rapport Word.
         headerGroups: [
-          { header: 'Chaine des Résultats', columnIds: ['niveau', 'cadre'] },
+          {
+            header: 'Chaine des Résultats',
+            columnIds: ['niveau', 'cadre'],
+            // Sous-colonnes sans nom : l'en-tête couvre les deux lignes.
+            mergeSubHeaders: true,
+          },
           { header: 'Valeur Cible', columnIds: ['t1', 't2', 't3', 't4'] },
+          ...(showValeurRealisee
+            ? [
+                {
+                  header: 'Valeur réalisée',
+                  columnIds: ['r1', 'r2', 'r3', 'r4'],
+                },
+              ]
+            : []),
         ],
 
         // Préambule : pages en portrait avant le tableau en paysage.
@@ -316,7 +434,8 @@ export function ContratPerformanceReportTable({
                       className={cellClassName(1)}
                       rowSpan={cadreSpans.get(row.groupKey)}
                     >
-                      {formatCadreLabel(row.cadre)}
+                      <span className='font-bold'>{row.cadre.code_clc}</span>
+                      {` : ${row.cadre.intitule_clc}`}
                     </TableCell>
                   )}
 
@@ -341,7 +460,19 @@ export function ContratPerformanceReportTable({
                     {row.ind?.cible_t4 ?? ''}
                   </TableCell>
 
-                  <TableCell className={cellClassName(8)}>
+                  {showValeurRealisee &&
+                    [0, 1, 2, 3].map((trimestre) => (
+                      <TableCell
+                        key={`realisee-${trimestre}`}
+                        className={cellClassName(8 + trimestre)}
+                      >
+                        {valeurRealisee(row.ind, trimestre)}
+                      </TableCell>
+                    ))}
+
+                  <TableCell
+                    className={cellClassName(showValeurRealisee ? 12 : 8)}
+                  >
                     {typeof moyen === 'string' && moyen ? (
                       <a
                         href={moyen}

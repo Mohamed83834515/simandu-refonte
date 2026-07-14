@@ -36,7 +36,9 @@ import {
   detectAlignment,
   downloadBlob,
   filterExportRows,
+  resolveCellMerges,
   resolveHeaderGroupRanges,
+  splitCellBoldPrefix,
   type ResolvedHeaderGroupRange,
 } from './rapportExportUtils'
 
@@ -247,26 +249,52 @@ function buildHeaderRows(
         .slice(range.start, range.end + 1)
         .reduce((sum, w) => sum + (w ?? 1800), 0)
 
-      // Colonne mère fusionnée sur plusieurs filles → texte centré.
+      // Colonne mère fusionnée sur plusieurs filles → texte centré ; avec
+      // mergeSubHeaders elle couvre aussi les deux lignes d'en-tête.
       topCells.push(
         headerCell(range.header, spanWidth, {
           columnSpan: range.end - range.start + 1,
           align: 'center',
+          verticalMerge: range.mergeSubHeaders
+            ? VerticalMergeType.RESTART
+            : undefined,
         })
       )
     }
   })
 
-  const bottomCells = columns.map((column, index) => {
+  const bottomCells: TableCell[] = []
+  columns.forEach((column, index) => {
     const range = rangeByColumn.get(index)
 
     if (!range) {
-      return headerCell('', columnWidths[index] ?? 1800, {
-        verticalMerge: VerticalMergeType.CONTINUE,
-      })
+      bottomCells.push(
+        headerCell('', columnWidths[index] ?? 1800, {
+          verticalMerge: VerticalMergeType.CONTINUE,
+        })
+      )
+      return
     }
 
-    return headerCell(column.header, columnWidths[index] ?? 1800)
+    // Groupe fusionné verticalement : une seule cellule de continuation
+    // couvrant toute la largeur du groupe, sous-colonnes non affichées.
+    if (range.mergeSubHeaders) {
+      if (index === range.start) {
+        const spanWidth = columnWidths
+          .slice(range.start, range.end + 1)
+          .reduce((sum, w) => sum + (w ?? 1800), 0)
+
+        bottomCells.push(
+          headerCell('', spanWidth, {
+            columnSpan: range.end - range.start + 1,
+            verticalMerge: VerticalMergeType.CONTINUE,
+          })
+        )
+      }
+      return
+    }
+
+    bottomCells.push(headerCell(column.header, columnWidths[index] ?? 1800))
   })
 
   return [
@@ -289,7 +317,46 @@ function ganttCell(width: number, active: boolean, shaded: boolean) {
   })
 }
 
-function bodyCell(text: string, width: number, shaded: boolean) {
+/**
+ * Paragraphe d'une cellule de données : quand la colonne définit
+ * boldPrefixSeparator, le code (avant le séparateur) est en gras.
+ */
+function bodyCellParagraph(text: string, column?: { boldPrefixSeparator?: string }) {
+  const split = column?.boldPrefixSeparator
+    ? splitCellBoldPrefix(text, column.boldPrefixSeparator)
+    : null
+
+  if (!split) {
+    return cellParagraph(text, { size: FONT_BODY })
+  }
+
+  return new Paragraph({
+    alignment: toDocxAlignment(detectAlignment(text)),
+    spacing: { before: 40, after: 40, line: 260 },
+    children: [
+      new TextRun({
+        text: split.prefix,
+        bold: true,
+        color: theme.text,
+        size: FONT_BODY,
+        font: 'Calibri',
+      }),
+      new TextRun({
+        text: `${column!.boldPrefixSeparator}${split.rest}`,
+        color: theme.text,
+        size: FONT_BODY,
+        font: 'Calibri',
+      }),
+    ],
+  })
+}
+
+function bodyCell(
+  text: string,
+  width: number,
+  shaded: boolean,
+  column?: { boldPrefixSeparator?: string }
+) {
   return new TableCell({
     width: { size: width, type: WidthType.DXA },
     shading: {
@@ -300,11 +367,7 @@ function bodyCell(text: string, width: number, shaded: boolean) {
     borders: dataCellBorders(false),
     margins: { top: 80, bottom: 80, left: 100, right: 100 },
     verticalAlign: VerticalAlignTable.CENTER,
-    children: [
-      cellParagraph(text, {
-        size: FONT_BODY,
-      }),
-    ],
+    children: [bodyCellParagraph(text, column)],
   })
 }
 
@@ -326,6 +389,9 @@ function buildDataTable(
 
     groupSpans.set(meta.groupKey, (groupSpans.get(meta.groupKey) ?? 0) + 1)
   })
+
+  // Fusions verticales par colonne (mergeKeys)
+  const cellMerges = resolveCellMerges(rowMetas)
 
   return new Table({
     width: { size: WORD_LANDSCAPE_CONTENT_WIDTH, type: WidthType.DXA },
@@ -389,6 +455,59 @@ function buildDataTable(
           })
         }
 
+        // DATA ROW (fusions verticales par colonne via mergeKeys)
+
+        if (meta?.type === 'data' && meta.mergeKeys) {
+          return new TableRow({
+            cantSplit: true,
+            children: row.map((value, colIndex) => {
+              const width = columnWidths[colIndex] ?? 1800
+              const cellId = `${rowIndex}:${colIndex}`
+
+              // Cellule couverte par une fusion démarrée plus haut.
+              if (cellMerges.covered.has(cellId)) {
+                return new TableCell({
+                  width: { size: width, type: WidthType.DXA },
+                  verticalMerge: VerticalMergeType.CONTINUE,
+                  shading: {
+                    fill: shaded ? theme.greenMuted : theme.white,
+                    type: ShadingType.CLEAR,
+                    color: 'auto',
+                  },
+                  borders: dataCellBorders(false),
+                  children: [new Paragraph('')],
+                })
+              }
+
+              // Première cellule d'un groupe fusionné.
+              if ((cellMerges.spans.get(cellId) ?? 1) > 1) {
+                return new TableCell({
+                  width: { size: width, type: WidthType.DXA },
+                  verticalMerge: VerticalMergeType.RESTART,
+                  shading: {
+                    fill: shaded ? theme.greenMuted : theme.white,
+                    type: ShadingType.CLEAR,
+                    color: 'auto',
+                  },
+                  borders: dataCellBorders(false),
+                  verticalAlign: VerticalAlignTable.CENTER,
+                  children: [bodyCellParagraph(value, columns[colIndex])],
+                })
+              }
+
+              if (colIndex >= ganttStartIndex) {
+                return ganttCell(
+                  width,
+                  isGanttActive(rowIndex, colIndex),
+                  shaded
+                )
+              }
+
+              return bodyCell(value, width, shaded, columns[colIndex])
+            }),
+          })
+        }
+
         // DATA ROW (PTBA GROUPING)
 
         if (meta?.type === 'data' && meta.groupKey != null) {
@@ -415,7 +534,7 @@ function buildDataTable(
                     },
                     borders: dataCellBorders(false),
                     verticalAlign: VerticalAlignTable.CENTER,
-                    children: [cellParagraph(value)],
+                    children: [bodyCellParagraph(value, columns[colIndex])],
                   })
                 }
 
@@ -427,7 +546,7 @@ function buildDataTable(
                   )
                 }
 
-                return bodyCell(value, width, shaded)
+                return bodyCell(value, width, shaded, columns[colIndex])
               }),
             })
           }
@@ -459,7 +578,7 @@ function buildDataTable(
                 )
               }
 
-              return bodyCell(value, width, shaded)
+              return bodyCell(value, width, shaded, columns[colIndex])
             }),
           })
         }
@@ -475,7 +594,7 @@ function buildDataTable(
               return ganttCell(width, isGanttActive(rowIndex, colIndex), shaded)
             }
 
-            return bodyCell(value, width, shaded)
+            return bodyCell(value, width, shaded, columns[colIndex])
           }),
         })
       }),

@@ -4,6 +4,12 @@ export type RapportExportColumn = {
   id: string
   header: string
   width?: number
+  /**
+   * Découpe la valeur autour de la première occurrence du séparateur :
+   * la partie avant (le code) est rendue en gras, le reste en normal.
+   * Ex. « O1 : Intitulé » avec ' : ' → « O1 » en gras.
+   */
+  boldPrefixSeparator?: string
 }
 
 /**
@@ -29,6 +35,12 @@ export type RapportExportHeaderGroup = {
   header: string
   /** Ids des colonnes couvertes — elles doivent être contiguës. */
   columnIds: string[]
+  /**
+   * Fusionne aussi verticalement l'en-tête du groupe sur les deux lignes
+   * d'en-tête : les noms des sous-colonnes ne sont pas affichés (comme si
+   * le rowSpan du groupe valait 2).
+   */
+  mergeSubHeaders?: boolean
 }
 
 /**
@@ -81,5 +93,12 @@ export type RapportExportRowMeta = {
   type: 'section' | 'data'
   niveau?: number // profondeur pour l'indentation
   label?: string
+  /** Fusion legacy : colonnes 0 et 1 fusionnées ensemble par groupe. */
   groupKey?: string
+  /**
+   * Fusion verticale indépendante par colonne : index de colonne → clé de
+   * groupe. Les lignes consécutives partageant la même clé pour une colonne
+   * sont fusionnées (chaque colonne a son propre découpage).
+   */
+  mergeKeys?: Record<number, string>
 }

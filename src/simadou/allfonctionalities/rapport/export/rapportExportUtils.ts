@@ -63,7 +63,19 @@ export function filterExportRows(
   return {
     columns: visibleColumns,
     rows: rows.map((row) => indices.map((index) => row[index] ?? '')),
-    rowMetas,
+    // Les fusions par colonne (mergeKeys) sont réindexées sur les colonnes
+    // visibles.
+    rowMetas: rowMetas?.map((meta) => {
+      if (!meta.mergeKeys) return meta
+
+      const mergeKeys: Record<number, string> = {}
+      indices.forEach((sourceIndex, targetIndex) => {
+        const key = meta.mergeKeys![sourceIndex]
+        if (key != null) mergeKeys[targetIndex] = key
+      })
+
+      return { ...meta, mergeKeys }
+    }),
   }
 }
 
@@ -74,6 +86,8 @@ export type ResolvedHeaderGroupRange = {
   start: number
   /** Index de la dernière colonne couverte (inclus). */
   end: number
+  /** Fusion verticale : les en-têtes des sous-colonnes ne sont pas affichés. */
+  mergeSubHeaders: boolean
 }
 
 /**
@@ -101,10 +115,78 @@ export function resolveHeaderGroupRanges(
     const end = Math.max(...indices)
     if (end - start + 1 !== indices.length) continue
 
-    ranges.push({ header: group.header, start, end })
+    ranges.push({
+      header: group.header,
+      start,
+      end,
+      mergeSubHeaders: Boolean(group.mergeSubHeaders),
+    })
   }
 
   return ranges.sort((a, b) => a.start - b.start)
+}
+
+/** Fusions verticales par colonne, résolues depuis rowMetas.mergeKeys. */
+export type ResolvedCellMerges = {
+  /** rowSpan de la première cellule de chaque groupe, clé `row:col`. */
+  spans: Map<string, number>
+  /** Cellules couvertes par une fusion (à ne pas émettre/écrire). */
+  covered: Set<string>
+}
+
+/**
+ * Résout les fusions verticales par colonne : pour chaque colonne listée
+ * dans mergeKeys, les lignes de données consécutives partageant la même
+ * clé forment un groupe fusionné.
+ */
+export function resolveCellMerges(
+  rowMetas?: RapportExportRowMeta[]
+): ResolvedCellMerges {
+  const spans = new Map<string, number>()
+  const covered = new Set<string>()
+
+  if (!rowMetas) return { spans, covered }
+
+  rowMetas.forEach((meta, rowIndex) => {
+    if (meta.type !== 'data' || !meta.mergeKeys) return
+
+    Object.entries(meta.mergeKeys).forEach(([colStr, key]) => {
+      const col = Number(colStr)
+      const cellId = `${rowIndex}:${col}`
+      if (covered.has(cellId)) return
+
+      let span = 1
+      for (let next = rowIndex + 1; next < rowMetas.length; next += 1) {
+        const nextMeta = rowMetas[next]
+        if (nextMeta?.type !== 'data' || nextMeta.mergeKeys?.[col] !== key) {
+          break
+        }
+        covered.add(`${next}:${col}`)
+        span += 1
+      }
+
+      spans.set(cellId, span)
+    })
+  })
+
+  return { spans, covered }
+}
+
+/**
+ * Découpe une valeur de cellule autour du séparateur pour un rendu
+ * « code en gras + reste en normal ». Retourne null si le séparateur est
+ * absent ou en tête de valeur.
+ */
+export function splitCellBoldPrefix(
+  value: string,
+  separator: string
+): { prefix: string; rest: string } | null {
+  const index = value.indexOf(separator)
+  if (index <= 0) return null
+  return {
+    prefix: value.slice(0, index),
+    rest: value.slice(index + separator.length),
+  }
 }
 
 export function downloadBlob(blob: Blob, filename: string) {

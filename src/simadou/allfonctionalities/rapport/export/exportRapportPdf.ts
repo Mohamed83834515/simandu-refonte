@@ -17,7 +17,9 @@ import {
   detectAlignment,
   downloadBlob,
   filterExportRows,
+  resolveCellMerges,
   resolveHeaderGroupRanges,
+  splitCellBoldPrefix,
   type ResolvedHeaderGroupRange,
 } from './rapportExportUtils'
 
@@ -70,9 +72,13 @@ function buildPdfHead(
       top.push({
         content: range.header,
         colSpan: range.end - range.start + 1,
+        // Fusion verticale : les sous-colonnes ne sont pas affichées.
+        rowSpan: range.mergeSubHeaders ? 2 : 1,
       })
     }
-    bottom.push({ content: column.header })
+    if (!range.mergeSubHeaders) {
+      bottom.push({ content: column.header })
+    }
   })
 
   return [top, bottom]
@@ -221,6 +227,22 @@ export async function exportRapportPdf(payload: RapportExportPayload) {
     groupSpans.set(meta.groupKey, (groupSpans.get(meta.groupKey) ?? 0) + 1)
   })
 
+  // Fusions verticales par colonne (mergeKeys)
+  const cellMerges = resolveCellMerges(rowMetas)
+
+  // Colonnes « code en gras » (boldPrefixSeparator) et cellules concernées.
+  const boldPrefixByColumn = new Map<number, string>()
+  columns.forEach((column, index) => {
+    if (column.boldPrefixSeparator) {
+      boldPrefixByColumn.set(index, column.boldPrefixSeparator)
+    }
+  })
+
+  const boldPrefixCells = new Map<
+    string,
+    { lines: string[]; boldCount: number }
+  >()
+
   // TABLE
   autoTable(doc, {
     startY: tableTop,
@@ -320,6 +342,23 @@ export async function exportRapportPdf(payload: RapportExportPayload) {
       const value = data.cell.text?.[0]
       data.cell.styles.halign = detectAlignment(value)
 
+      // FUSIONS VERTICALES PAR COLONNE (mergeKeys)
+      if (meta.type === 'data' && meta.mergeKeys) {
+        const cellId = `${rowIndex}:${data.column.index}`
+
+        if (cellMerges.covered.has(cellId)) {
+          // Cellule couverte par une fusion : vidée, sans bordure interne.
+          data.cell.text = ['']
+          data.cell.styles.lineWidth = 0
+        } else {
+          const span = cellMerges.spans.get(cellId) ?? 1
+          if (span > 1) {
+            data.cell.rowSpan = span
+            data.cell.styles.valign = 'middle'
+          }
+        }
+      }
+
       // GROUP PTBA
       // CODE + ACTIVITE MERGE
       if (
@@ -347,6 +386,82 @@ export async function exportRapportPdf(payload: RapportExportPayload) {
           data.cell.styles.lineWidth = 0
         }
       }
+
+      // CODE EN GRAS : la colonne définit boldPrefixSeparator → le code
+      // (première ligne) sera dessiné en gras, le reste en normal.
+      const separator = boldPrefixByColumn.get(data.column.index)
+      if (separator && meta.type === 'data') {
+        const raw = data.cell.text.join(' ')
+        const split = splitCellBoldPrefix(raw, separator)
+
+        if (split) {
+          const maxWidth = dataColWidth - 4 // padding 2 mm de chaque côté
+          doc.setFontSize(7)
+
+          doc.setFont('helvetica', 'bold')
+          const boldLines: string[] = doc.splitTextToSize(
+            `${split.prefix}${separator.trimEnd()}`,
+            maxWidth
+          )
+
+          doc.setFont('helvetica', 'normal')
+          const normalLines: string[] = doc.splitTextToSize(
+            split.rest,
+            maxWidth
+          )
+
+          const lines = [...boldLines, ...normalLines]
+
+          // Les lignes calculées servent au calcul de hauteur d'autoTable ;
+          // le dessin lui-même est fait manuellement dans didDrawCell.
+          data.cell.text = lines
+          boldPrefixCells.set(`${rowIndex}:${data.column.index}`, {
+            lines,
+            boldCount: boldLines.length,
+          })
+        }
+      }
+    },
+
+    // Le texte des cellules « code en gras » est dessiné dans didDrawCell.
+    willDrawCell: (data) => {
+      if (data.section !== 'body') return
+      if (boldPrefixCells.has(`${data.row.index}:${data.column.index}`)) {
+        data.cell.text = []
+      }
+    },
+
+    didDrawCell: (data) => {
+      if (data.section !== 'body') return
+
+      const entry = boldPrefixCells.get(
+        `${data.row.index}:${data.column.index}`
+      )
+      if (!entry) return
+
+      const fontSize = 7
+      const lineHeight =
+        (fontSize * doc.getLineHeightFactor()) / doc.internal.scaleFactor
+      const totalHeight = entry.lines.length * lineHeight
+
+      const x = data.cell.x + 2
+      // Aligné verticalement au centre, comme les autres cellules.
+      let y =
+        data.cell.y +
+        Math.max((data.cell.height - totalHeight) / 2, 1) +
+        lineHeight * 0.8
+
+      doc.setFontSize(fontSize)
+      doc.setTextColor(...hexRgb(theme.text))
+
+      entry.lines.forEach((line, index) => {
+        doc.setFont(
+          'helvetica',
+          index < entry.boldCount ? 'bold' : 'normal'
+        )
+        doc.text(line, x, y)
+        y += lineHeight
+      })
     },
   })
 

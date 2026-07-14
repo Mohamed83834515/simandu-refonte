@@ -253,34 +253,52 @@ export function GenericTable<TData>({
           style={{ tableLayout: 'auto' }}
         >
           <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
+            {table.getHeaderGroups().map((headerGroup, groupIndex, headerGroups) => (
               <TableRow
                 key={headerGroup.id}
                 className='border-b border-border/60 bg-muted/60 hover:bg-muted/60'
               >
-                {headerGroup.headers.map((header) => (
-                  <TableHead
-                    key={header.id}
-                    colSpan={header.colSpan}
-                    className={cn(
-                      // py-1.5 → header compact, pas d'espace inutile
-                      'px-4 py-1.5 text-xs font-semibold tracking-wider uppercase',
-                      'align-middle break-words whitespace-normal text-muted-foreground',
-                      'border-r border-border/30 last:border-r-0',
-                      // Colonne mère fusionnée sur plusieurs filles → centrée
-                      header.colSpan > 1 && 'text-center',
-                      header.column.columnDef.meta?.className,
-                      header.column.columnDef.meta?.thClassName
-                    )}
-                  >
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                  </TableHead>
-                ))}
+                {headerGroup.headers.map((header) => {
+                  // Sous-colonnes d'une colonne mère fusionnée verticalement
+                  // (meta.mergeSubHeaders) : couvertes par le rowSpan du
+                  // parent, elles ne sont pas rendues.
+                  if (header.column.parent?.columnDef.meta?.mergeSubHeaders) {
+                    return null
+                  }
+
+                  const mergeSubHeaders = Boolean(
+                    header.column.columnDef.meta?.mergeSubHeaders
+                  )
+
+                  return (
+                    <TableHead
+                      key={header.id}
+                      colSpan={header.colSpan}
+                      rowSpan={
+                        mergeSubHeaders
+                          ? headerGroups.length - groupIndex
+                          : undefined
+                      }
+                      className={cn(
+                        // py-1.5 → header compact, pas d'espace inutile
+                        'px-4 py-1.5 text-xs font-semibold tracking-wider uppercase',
+                        'align-middle break-words whitespace-normal text-muted-foreground',
+                        'border-r border-border/30 last:border-r-0',
+                        // Colonne mère fusionnée sur plusieurs filles → centrée
+                        header.colSpan > 1 && 'text-center',
+                        header.column.columnDef.meta?.className,
+                        header.column.columnDef.meta?.thClassName
+                      )}
+                    >
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                    </TableHead>
+                  )
+                })}
               </TableRow>
             ))}
           </TableHeader>

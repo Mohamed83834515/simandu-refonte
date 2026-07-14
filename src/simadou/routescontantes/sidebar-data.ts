@@ -230,6 +230,11 @@ export const sidebarData: SidebarData = {
               url: '/rapport/contrat-performance',
               icon: FileSignature,
             },
+            {
+              title: 'Suivi des contrats',
+              url: '/rapport/suivi-contrat-performance',
+              icon: Eye,
+            },
           ],
         },
       ],
