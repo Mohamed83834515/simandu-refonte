@@ -39,7 +39,6 @@ import { Route as AuthenticatedRapportPtbaIndexRouteImport } from './routes/_aut
 import { Route as AuthenticatedRapportIndicateursIndexRouteImport } from './routes/_authenticated/rapport/indicateurs/index'
 import { Route as AuthenticatedRapportEtatDesActivitesIndexRouteImport } from './routes/_authenticated/rapport/etat-des-activites/index'
 import { Route as AuthenticatedRapportDecaissementIndexRouteImport } from './routes/_authenticated/rapport/decaissement/index'
-import { Route as AuthenticatedRapportContratPerformanceIndexRouteImport } from './routes/_authenticated/rapport/contrat-performance/index'
 import { Route as AuthenticatedProjetProgrammeUnitesDeGestionIndexRouteImport } from './routes/_authenticated/projet-programme/unites-de-gestion/index'
 import { Route as AuthenticatedProjetProgrammeProjetsIndexRouteImport } from './routes/_authenticated/projet-programme/projets/index'
 import { Route as AuthenticatedProgrammePagesTestIndexRouteImport } from './routes/_authenticated/programme/pagesTest/index'
@@ -244,12 +243,6 @@ const AuthenticatedRapportDecaissementIndexRoute =
   AuthenticatedRapportDecaissementIndexRouteImport.update({
     id: '/rapport/decaissement/',
     path: '/rapport/decaissement/',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedRapportContratPerformanceIndexRoute =
-  AuthenticatedRapportContratPerformanceIndexRouteImport.update({
-    id: '/rapport/contrat-performance/',
-    path: '/rapport/contrat-performance/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedProjetProgrammeUnitesDeGestionIndexRoute =
@@ -560,7 +553,6 @@ export interface FileRoutesByFullPath {
   '/programme/pagesTest/': typeof AuthenticatedProgrammePagesTestIndexRoute
   '/projet-programme/projets/': typeof AuthenticatedProjetProgrammeProjetsIndexRoute
   '/projet-programme/unites-de-gestion/': typeof AuthenticatedProjetProgrammeUnitesDeGestionIndexRoute
-  '/rapport/contrat-performance/': typeof AuthenticatedRapportContratPerformanceIndexRoute
   '/rapport/decaissement/': typeof AuthenticatedRapportDecaissementIndexRoute
   '/rapport/etat-des-activites/': typeof AuthenticatedRapportEtatDesActivitesIndexRoute
   '/rapport/indicateurs/': typeof AuthenticatedRapportIndicateursIndexRoute
@@ -628,7 +620,6 @@ export interface FileRoutesByTo {
   '/programme/pagesTest': typeof AuthenticatedProgrammePagesTestIndexRoute
   '/projet-programme/projets': typeof AuthenticatedProjetProgrammeProjetsIndexRoute
   '/projet-programme/unites-de-gestion': typeof AuthenticatedProjetProgrammeUnitesDeGestionIndexRoute
-  '/rapport/contrat-performance': typeof AuthenticatedRapportContratPerformanceIndexRoute
   '/rapport/decaissement': typeof AuthenticatedRapportDecaissementIndexRoute
   '/rapport/etat-des-activites': typeof AuthenticatedRapportEtatDesActivitesIndexRoute
   '/rapport/indicateurs': typeof AuthenticatedRapportIndicateursIndexRoute
@@ -702,7 +693,6 @@ export interface FileRoutesById {
   '/_authenticated/programme/pagesTest/': typeof AuthenticatedProgrammePagesTestIndexRoute
   '/_authenticated/projet-programme/projets/': typeof AuthenticatedProjetProgrammeProjetsIndexRoute
   '/_authenticated/projet-programme/unites-de-gestion/': typeof AuthenticatedProjetProgrammeUnitesDeGestionIndexRoute
-  '/_authenticated/rapport/contrat-performance/': typeof AuthenticatedRapportContratPerformanceIndexRoute
   '/_authenticated/rapport/decaissement/': typeof AuthenticatedRapportDecaissementIndexRoute
   '/_authenticated/rapport/etat-des-activites/': typeof AuthenticatedRapportEtatDesActivitesIndexRoute
   '/_authenticated/rapport/indicateurs/': typeof AuthenticatedRapportIndicateursIndexRoute
@@ -776,7 +766,6 @@ export interface FileRouteTypes {
     | '/programme/pagesTest/'
     | '/projet-programme/projets/'
     | '/projet-programme/unites-de-gestion/'
-    | '/rapport/contrat-performance/'
     | '/rapport/decaissement/'
     | '/rapport/etat-des-activites/'
     | '/rapport/indicateurs/'
@@ -844,7 +833,6 @@ export interface FileRouteTypes {
     | '/programme/pagesTest'
     | '/projet-programme/projets'
     | '/projet-programme/unites-de-gestion'
-    | '/rapport/contrat-performance'
     | '/rapport/decaissement'
     | '/rapport/etat-des-activites'
     | '/rapport/indicateurs'
@@ -917,7 +905,6 @@ export interface FileRouteTypes {
     | '/_authenticated/programme/pagesTest/'
     | '/_authenticated/projet-programme/projets/'
     | '/_authenticated/projet-programme/unites-de-gestion/'
-    | '/_authenticated/rapport/contrat-performance/'
     | '/_authenticated/rapport/decaissement/'
     | '/_authenticated/rapport/etat-des-activites/'
     | '/_authenticated/rapport/indicateurs/'
@@ -1160,13 +1147,6 @@ declare module '@tanstack/react-router' {
       path: '/rapport/decaissement'
       fullPath: '/rapport/decaissement/'
       preLoaderRoute: typeof AuthenticatedRapportDecaissementIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/rapport/contrat-performance/': {
-      id: '/_authenticated/rapport/contrat-performance/'
-      path: '/rapport/contrat-performance'
-      fullPath: '/rapport/contrat-performance/'
-      preLoaderRoute: typeof AuthenticatedRapportContratPerformanceIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/projet-programme/unites-de-gestion/': {
@@ -1581,7 +1561,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedProgrammePagesTestIndexRoute: typeof AuthenticatedProgrammePagesTestIndexRoute
   AuthenticatedProjetProgrammeProjetsIndexRoute: typeof AuthenticatedProjetProgrammeProjetsIndexRoute
   AuthenticatedProjetProgrammeUnitesDeGestionIndexRoute: typeof AuthenticatedProjetProgrammeUnitesDeGestionIndexRoute
-  AuthenticatedRapportContratPerformanceIndexRoute: typeof AuthenticatedRapportContratPerformanceIndexRoute
   AuthenticatedRapportDecaissementIndexRoute: typeof AuthenticatedRapportDecaissementIndexRoute
   AuthenticatedRapportEtatDesActivitesIndexRoute: typeof AuthenticatedRapportEtatDesActivitesIndexRoute
   AuthenticatedRapportIndicateursIndexRoute: typeof AuthenticatedRapportIndicateursIndexRoute
@@ -1656,8 +1635,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedProjetProgrammeProjetsIndexRoute,
   AuthenticatedProjetProgrammeUnitesDeGestionIndexRoute:
     AuthenticatedProjetProgrammeUnitesDeGestionIndexRoute,
-  AuthenticatedRapportContratPerformanceIndexRoute:
-    AuthenticatedRapportContratPerformanceIndexRoute,
   AuthenticatedRapportDecaissementIndexRoute:
     AuthenticatedRapportDecaissementIndexRoute,
   AuthenticatedRapportEtatDesActivitesIndexRoute:
