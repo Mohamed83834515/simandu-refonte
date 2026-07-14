@@ -6,6 +6,7 @@ import ContratResultsFrameworkPanel from './panels/ContratResultsFrameworkPanel'
 import ContratIndicatorsPanel from './panels/ContratIndicatorsPanel'
 import ContratFollowupPanel from './panels/ContratFollowupPanel'
 import ContratReportPanel from './panels/ContratReportPanel'
+import ContratSuiviReportPanel from './panels/ContratSuiviReportPanel'
 
 const TAB_PANEL_RENDERERS: Record<ContratDetailTabKey, (contrat: ContratPerformance) => ReactNode> = {
   overview: (contrat) => <ContratOverviewPanel contrat={contrat} />,
@@ -13,6 +14,7 @@ const TAB_PANEL_RENDERERS: Record<ContratDetailTabKey, (contrat: ContratPerforma
   indicators: (contrat) => <ContratIndicatorsPanel contrat={contrat} />,
   followup: (contrat) => <ContratFollowupPanel contrat={contrat} />,
   report: (contrat) => <ContratReportPanel contrat={contrat} />,
+  report_suivi: (contrat) => <ContratSuiviReportPanel contrat={contrat} />,
 }
 
 export default function ContratDetailPanel({ tab, contrat }: { tab: ContratDetailTab; contrat: ContratPerformance }) {

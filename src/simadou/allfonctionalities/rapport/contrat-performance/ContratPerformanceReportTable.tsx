@@ -22,7 +22,6 @@ import {
   type RapportExportColumn,
   type RapportExportRowMeta,
 } from '../export/rapportExportTypes'
-import { PREAMBULE_CONTRAT_PERFORMANCE } from './preambuleContratPerformance'
 
 interface Props {
   niveaux: NiveauConfigClcp[]
@@ -373,9 +372,6 @@ export function ContratPerformanceReportTable({
               ]
             : []),
         ],
-
-        // Préambule : pages en portrait avant le tableau en paysage.
-        preamble: PREAMBULE_CONTRAT_PERFORMANCE,
       }
     },
   })

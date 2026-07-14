@@ -1,5 +1,6 @@
 import {
   ClipboardList,
+  Eye,
   FileBarChart,
   LayoutDashboard,
   Target,
@@ -12,6 +13,7 @@ export type ContratDetailTabKey =
   | 'indicators'
   | 'followup'
   | 'report'
+  | 'report_suivi'
 
 export type ContratDetailTab = {
   key: ContratDetailTabKey
@@ -44,6 +46,13 @@ export const contratDetailTabs: ContratDetailTab[] = [
     name: 'Rapport',
     icon: FileBarChart,
     description: 'Cadre logique du contrat, exportable en Word, Excel et PDF.',
+  },
+  {
+    key: 'report_suivi',
+    name: 'Rapport de suivi',
+    icon: Eye,
+    description:
+      'Cadre logique avec les valeurs réalisées par trimestre, exportable en Word, Excel et PDF.',
   },
 //   {
 //     key: 'followup',
