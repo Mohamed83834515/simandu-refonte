@@ -45,13 +45,13 @@ export function sortNiveauxConfigClcp(
 }
 
 export function resolveNiveauClcId(
-  value: CadreLogiqueClcp['niveau_clc']
+  value: CadreLogiqueClcp['niveau_clc'] | null | undefined
 ): number | null {
   return resolveRelationId(value, 'id_niveau_ncl')
 }
 
 export function resolveParentClcId(
-  value: CadreLogiqueClcp['parent_clc']
+  value: CadreLogiqueClcp['parent_clc'] | undefined
 ): number | null {
   return resolveRelationId(value, 'id_clc')
 }

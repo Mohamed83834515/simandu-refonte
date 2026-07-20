@@ -1,3 +1,4 @@
+import { Programme } from "./programme"
 import { UGL } from "./ugl"
 import { VersionPtba } from "./versionPtba"
 
@@ -10,14 +11,14 @@ export interface ContratPerformance {
   date_debut: string
   date_fin: string
   statut: string
-  note_globale: string | number | null
+  note_globale: number | null
   appreciation: string
   observation_globale: string
   etat: string
   version_ptba?: number | null | VersionPtba
   structure?: number | null | UGL
-  id_personnel?: number | null 
-  programme?: number | null
+  id_personnel?: number | null
+  programme?: number | Programme | null
 }
 
 export type ContratPerformancePayload = Omit<

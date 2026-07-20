@@ -27,6 +27,7 @@ import {
 import { RAPPORT_EXPORT_THEME as theme } from './rapportExportTheme'
 import type {
   RapportExportPayload,
+  RapportExportPreambleBlock,
   RapportExportRowMeta,
 } from './rapportExportTypes'
 import {
@@ -35,6 +36,10 @@ import {
   detectAlignment,
   downloadBlob,
   filterExportRows,
+  resolveCellMerges,
+  resolveHeaderGroupRanges,
+  splitCellBoldPrefix,
+  type ResolvedHeaderGroupRange,
 } from './rapportExportUtils'
 
 const PAGE_MARGIN = 720
@@ -42,6 +47,9 @@ const FONT_TITLE = 32
 const FONT_SUBTITLE = 20
 const FONT_HEADER = 22
 const FONT_BODY = 20
+
+/** Largeur utile A4 portrait en DXA, marges 1" de chaque côté. */
+const WORD_PORTRAIT_CONTENT_WIDTH = 11906 - PAGE_MARGIN * 4
 
 function noBorder() {
   return {
@@ -109,10 +117,14 @@ function bannerCell(
   })
 }
 
-function buildBannerTable(title: string, subtitle: string) {
+function buildBannerTable(
+  title: string,
+  subtitle: string,
+  width = WORD_LANDSCAPE_CONTENT_WIDTH
+) {
   return new Table({
-    width: { size: WORD_LANDSCAPE_CONTENT_WIDTH, type: WidthType.DXA },
-    columnWidths: [WORD_LANDSCAPE_CONTENT_WIDTH],
+    width: { size: width, type: WidthType.DXA },
+    columnWidths: [width],
     layout: TableLayoutType.FIXED,
     alignment: AlignmentType.CENTER,
     rows: [
@@ -161,9 +173,19 @@ function buildBannerTable(title: string, subtitle: string) {
   })
 }
 
-function headerCell(text: string, width: number) {
+function headerCell(
+  text: string,
+  width: number,
+  options: {
+    columnSpan?: number
+    verticalMerge?: (typeof VerticalMergeType)[keyof typeof VerticalMergeType]
+    align?: 'left' | 'center' | 'right'
+  } = {}
+) {
   return new TableCell({
     width: { size: width, type: WidthType.DXA },
+    columnSpan: options.columnSpan,
+    verticalMerge: options.verticalMerge,
     shading: { fill: theme.green, type: ShadingType.CLEAR, color: 'auto' },
     borders: dataCellBorders(true),
     margins: { top: 100, bottom: 100, left: 100, right: 100 },
@@ -173,9 +195,112 @@ function headerCell(text: string, width: number) {
         bold: true,
         color: theme.white,
         size: FONT_HEADER,
+        align: options.align,
       }),
     ],
   })
+}
+
+/**
+ * Ligne(s) d'en-tête du tableau : une seule ligne sans groupes, deux lignes
+ * quand des en-têtes fusionnés sont définis (groupe fusionné horizontalement,
+ * colonnes hors groupe fusionnées verticalement).
+ */
+function buildHeaderRows(
+  columns: { header: string }[],
+  columnWidths: number[],
+  groupRanges: ResolvedHeaderGroupRange[]
+): TableRow[] {
+  if (groupRanges.length === 0) {
+    return [
+      new TableRow({
+        tableHeader: true,
+        cantSplit: true,
+        children: columns.map((c, i) =>
+          headerCell(c.header, columnWidths[i] ?? 1800)
+        ),
+      }),
+    ]
+  }
+
+  const rangeByColumn = new Map<number, ResolvedHeaderGroupRange>()
+  groupRanges.forEach((range) => {
+    for (let i = range.start; i <= range.end; i += 1) {
+      rangeByColumn.set(i, range)
+    }
+  })
+
+  const topCells: TableCell[] = []
+  columns.forEach((column, index) => {
+    const range = rangeByColumn.get(index)
+
+    if (!range) {
+      topCells.push(
+        headerCell(column.header, columnWidths[index] ?? 1800, {
+          verticalMerge: VerticalMergeType.RESTART,
+        })
+      )
+      return
+    }
+
+    // Les cellules couvertes par le columnSpan ne sont pas émises.
+    if (index === range.start) {
+      const spanWidth = columnWidths
+        .slice(range.start, range.end + 1)
+        .reduce((sum, w) => sum + (w ?? 1800), 0)
+
+      // Colonne mère fusionnée sur plusieurs filles → texte centré ; avec
+      // mergeSubHeaders elle couvre aussi les deux lignes d'en-tête.
+      topCells.push(
+        headerCell(range.header, spanWidth, {
+          columnSpan: range.end - range.start + 1,
+          align: 'center',
+          verticalMerge: range.mergeSubHeaders
+            ? VerticalMergeType.RESTART
+            : undefined,
+        })
+      )
+    }
+  })
+
+  const bottomCells: TableCell[] = []
+  columns.forEach((column, index) => {
+    const range = rangeByColumn.get(index)
+
+    if (!range) {
+      bottomCells.push(
+        headerCell('', columnWidths[index] ?? 1800, {
+          verticalMerge: VerticalMergeType.CONTINUE,
+        })
+      )
+      return
+    }
+
+    // Groupe fusionné verticalement : une seule cellule de continuation
+    // couvrant toute la largeur du groupe, sous-colonnes non affichées.
+    if (range.mergeSubHeaders) {
+      if (index === range.start) {
+        const spanWidth = columnWidths
+          .slice(range.start, range.end + 1)
+          .reduce((sum, w) => sum + (w ?? 1800), 0)
+
+        bottomCells.push(
+          headerCell('', spanWidth, {
+            columnSpan: range.end - range.start + 1,
+            verticalMerge: VerticalMergeType.CONTINUE,
+          })
+        )
+      }
+      return
+    }
+
+    bottomCells.push(headerCell(column.header, columnWidths[index] ?? 1800))
+  })
+
+  return [
+    new TableRow({ tableHeader: true, cantSplit: true, children: topCells }),
+    new TableRow({ tableHeader: true, cantSplit: true, children: bottomCells }),
+  ]
 }
 
 /** Cellule mensuelle du Gantt : vide, la couleur porte l'information. */
@@ -192,7 +317,46 @@ function ganttCell(width: number, active: boolean, shaded: boolean) {
   })
 }
 
-function bodyCell(text: string, width: number, shaded: boolean) {
+/**
+ * Paragraphe d'une cellule de données : quand la colonne définit
+ * boldPrefixSeparator, le code (avant le séparateur) est en gras.
+ */
+function bodyCellParagraph(text: string, column?: { boldPrefixSeparator?: string }) {
+  const split = column?.boldPrefixSeparator
+    ? splitCellBoldPrefix(text, column.boldPrefixSeparator)
+    : null
+
+  if (!split) {
+    return cellParagraph(text, { size: FONT_BODY })
+  }
+
+  return new Paragraph({
+    alignment: toDocxAlignment(detectAlignment(text)),
+    spacing: { before: 40, after: 40, line: 260 },
+    children: [
+      new TextRun({
+        text: split.prefix,
+        bold: true,
+        color: theme.text,
+        size: FONT_BODY,
+        font: 'Calibri',
+      }),
+      new TextRun({
+        text: `${column!.boldPrefixSeparator}${split.rest}`,
+        color: theme.text,
+        size: FONT_BODY,
+        font: 'Calibri',
+      }),
+    ],
+  })
+}
+
+function bodyCell(
+  text: string,
+  width: number,
+  shaded: boolean,
+  column?: { boldPrefixSeparator?: string }
+) {
   return new TableCell({
     width: { size: width, type: WidthType.DXA },
     shading: {
@@ -203,18 +367,15 @@ function bodyCell(text: string, width: number, shaded: boolean) {
     borders: dataCellBorders(false),
     margins: { top: 80, bottom: 80, left: 100, right: 100 },
     verticalAlign: VerticalAlignTable.CENTER,
-    children: [
-      cellParagraph(text, {
-        size: FONT_BODY,
-      }),
-    ],
+    children: [bodyCellParagraph(text, column)],
   })
 }
 
 function buildDataTable(
   merged: MergedGanttTable,
   columnWidths: number[],
-  rowMetas?: RapportExportRowMeta[]
+  rowMetas?: RapportExportRowMeta[],
+  headerGroupRanges: ResolvedHeaderGroupRange[] = []
 ) {
   const { columns, rows, ganttStartIndex, isGanttActive } = merged
   // GROUPING PTBA (comme PDF)
@@ -229,6 +390,9 @@ function buildDataTable(
     groupSpans.set(meta.groupKey, (groupSpans.get(meta.groupKey) ?? 0) + 1)
   })
 
+  // Fusions verticales par colonne (mergeKeys)
+  const cellMerges = resolveCellMerges(rowMetas)
+
   return new Table({
     width: { size: WORD_LANDSCAPE_CONTENT_WIDTH, type: WidthType.DXA },
     columnWidths,
@@ -236,14 +400,8 @@ function buildDataTable(
     alignment: AlignmentType.CENTER,
 
     rows: [
-      // HEADER
-      new TableRow({
-        tableHeader: true,
-        cantSplit: true,
-        children: columns.map((c, i) =>
-          headerCell(c.header, columnWidths[i] ?? 1800)
-        ),
-      }),
+      // HEADER (1 ligne, ou 2 lignes avec en-têtes fusionnés)
+      ...buildHeaderRows(columns, columnWidths, headerGroupRanges),
 
       // BODY
       ...rows.map((row, rowIndex) => {
@@ -297,6 +455,59 @@ function buildDataTable(
           })
         }
 
+        // DATA ROW (fusions verticales par colonne via mergeKeys)
+
+        if (meta?.type === 'data' && meta.mergeKeys) {
+          return new TableRow({
+            cantSplit: true,
+            children: row.map((value, colIndex) => {
+              const width = columnWidths[colIndex] ?? 1800
+              const cellId = `${rowIndex}:${colIndex}`
+
+              // Cellule couverte par une fusion démarrée plus haut.
+              if (cellMerges.covered.has(cellId)) {
+                return new TableCell({
+                  width: { size: width, type: WidthType.DXA },
+                  verticalMerge: VerticalMergeType.CONTINUE,
+                  shading: {
+                    fill: shaded ? theme.greenMuted : theme.white,
+                    type: ShadingType.CLEAR,
+                    color: 'auto',
+                  },
+                  borders: dataCellBorders(false),
+                  children: [new Paragraph('')],
+                })
+              }
+
+              // Première cellule d'un groupe fusionné.
+              if ((cellMerges.spans.get(cellId) ?? 1) > 1) {
+                return new TableCell({
+                  width: { size: width, type: WidthType.DXA },
+                  verticalMerge: VerticalMergeType.RESTART,
+                  shading: {
+                    fill: shaded ? theme.greenMuted : theme.white,
+                    type: ShadingType.CLEAR,
+                    color: 'auto',
+                  },
+                  borders: dataCellBorders(false),
+                  verticalAlign: VerticalAlignTable.CENTER,
+                  children: [bodyCellParagraph(value, columns[colIndex])],
+                })
+              }
+
+              if (colIndex >= ganttStartIndex) {
+                return ganttCell(
+                  width,
+                  isGanttActive(rowIndex, colIndex),
+                  shaded
+                )
+              }
+
+              return bodyCell(value, width, shaded, columns[colIndex])
+            }),
+          })
+        }
+
         // DATA ROW (PTBA GROUPING)
 
         if (meta?.type === 'data' && meta.groupKey != null) {
@@ -323,7 +534,7 @@ function buildDataTable(
                     },
                     borders: dataCellBorders(false),
                     verticalAlign: VerticalAlignTable.CENTER,
-                    children: [cellParagraph(value)],
+                    children: [bodyCellParagraph(value, columns[colIndex])],
                   })
                 }
 
@@ -335,7 +546,7 @@ function buildDataTable(
                   )
                 }
 
-                return bodyCell(value, width, shaded)
+                return bodyCell(value, width, shaded, columns[colIndex])
               }),
             })
           }
@@ -367,7 +578,7 @@ function buildDataTable(
                 )
               }
 
-              return bodyCell(value, width, shaded)
+              return bodyCell(value, width, shaded, columns[colIndex])
             }),
           })
         }
@@ -383,11 +594,75 @@ function buildDataTable(
               return ganttCell(width, isGanttActive(rowIndex, colIndex), shaded)
             }
 
-            return bodyCell(value, width, shaded)
+            return bodyCell(value, width, shaded, columns[colIndex])
           }),
         })
       }),
     ],
+  })
+}
+
+/** Paragraphes du préambule (section portrait avant le tableau). */
+function buildPreambleParagraphs(
+  blocks: RapportExportPreambleBlock[]
+): Paragraph[] {
+  return blocks.map((block) => {
+    switch (block.type) {
+      case 'title':
+        return new Paragraph({
+          alignment: AlignmentType.CENTER,
+          spacing: { before: 200, after: 320 },
+          children: [
+            new TextRun({
+              text: block.text,
+              bold: true,
+              size: FONT_TITLE - 4,
+              font: 'Calibri',
+              color: theme.text,
+            }),
+          ],
+        })
+      case 'heading':
+        return new Paragraph({
+          spacing: { before: 280, after: 140 },
+          children: [
+            new TextRun({
+              text: block.text,
+              bold: true,
+              size: FONT_HEADER,
+              font: 'Calibri',
+              color: theme.text,
+            }),
+          ],
+        })
+      case 'list':
+        return new Paragraph({
+          alignment: AlignmentType.JUSTIFIED,
+          indent: { left: 480 },
+          spacing: { after: 80, line: 300 },
+          children: [
+            new TextRun({
+              text: block.text,
+              size: FONT_BODY,
+              font: 'Calibri',
+              color: theme.text,
+            }),
+          ],
+        })
+      default:
+        return new Paragraph({
+          alignment: AlignmentType.JUSTIFIED,
+          spacing: { after: 140, line: 300 },
+          children: [
+            new TextRun({
+              text: block.text,
+              size: FONT_BODY,
+              font: 'Calibri',
+              color: theme.text,
+            }),
+          ],
+        })
+    }
   })
 }
 
@@ -412,6 +687,10 @@ export async function exportRapportWord(payload: RapportExportPayload) {
     payload.gantt
   )
   const rowMetas = filtered.rowMetas
+  const headerGroupRanges = resolveHeaderGroupRanges(
+    filtered.columns,
+    payload.headerGroups
+  )
 
   // Colonnes du Gantt étroites (plafonnées à la moitié de la page), le
   // reste de la largeur est réparti entre les colonnes de données.
@@ -435,6 +714,8 @@ export async function exportRapportWord(payload: RapportExportPayload) {
     ...Array.from({ length: merged.ganttColumnCount }, () => ganttColWidth),
   ]
 
+  const hasPreamble = Boolean(payload.preamble?.length)
+
   const doc = new Document({
     styles: {
       default: {
@@ -448,6 +729,38 @@ export async function exportRapportWord(payload: RapportExportPayload) {
       },
     },
     sections: [
+      // Préambule : bannière d'en-tête puis texte, pages en portrait.
+      ...(hasPreamble
+        ? [
+            {
+              properties: {
+                page: {
+                  size: {
+                    orientation: PageOrientation.PORTRAIT,
+                  },
+                  margin: {
+                    top: PAGE_MARGIN * 2,
+                    right: PAGE_MARGIN * 2,
+                    bottom: PAGE_MARGIN * 2,
+                    left: PAGE_MARGIN * 2,
+                  },
+                },
+              },
+              children: [
+                buildBannerTable(
+                  meta.title,
+                  meta.subtitle,
+                  WORD_PORTRAIT_CONTENT_WIDTH
+                ),
+                new Paragraph({
+                  spacing: { after: 240 },
+                  children: [],
+                }),
+                ...buildPreambleParagraphs(payload.preamble!),
+              ],
+            },
+          ]
+        : []),
       {
         properties: {
           page: {
@@ -463,12 +776,17 @@ export async function exportRapportWord(payload: RapportExportPayload) {
           },
         },
         children: [
-          buildBannerTable(meta.title, meta.subtitle),
-          new Paragraph({
-            spacing: { after: 160 },
-            children: [],
-          }),
-          buildDataTable(merged, columnWidths, rowMetas),
+          // La bannière est déjà en tête de la section préambule.
+          ...(hasPreamble
+            ? []
+            : [
+                buildBannerTable(meta.title, meta.subtitle),
+                new Paragraph({
+                  spacing: { after: 160 },
+                  children: [],
+                }),
+              ]),
+          buildDataTable(merged, columnWidths, rowMetas, headerGroupRanges),
         ],
       },
     ],

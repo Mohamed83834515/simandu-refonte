@@ -66,6 +66,8 @@ export function getContratDashboardMockData(
 ): ContratDashboardMockData {
   const seed = contrat.id_contrat ?? 1
   const availableYears = getContractYears(contrat)
+  const lastYear = availableYears[availableYears.length - 1] ?? 2026
+  const firstYear = availableYears[0] ?? 2024
 
   const yearStats = Object.fromEntries(
     availableYears.map((year, index) => [
@@ -121,7 +123,7 @@ export function getContratDashboardMockData(
         unit: '%',
         pct: 78,
         type: 'Quantitatif',
-        anneeCible: availableYears.at(-1) ?? 2026,
+        anneeCible: lastYear,
       },
       {
         id: 2,
@@ -132,7 +134,7 @@ export function getContratDashboardMockData(
         unit: 'cadres',
         pct: 79,
         type: 'Quantitatif',
-        anneeCible: availableYears.at(-1) ?? 2026,
+        anneeCible: lastYear,
       },
       {
         id: 3,
@@ -143,7 +145,7 @@ export function getContratDashboardMockData(
         unit: '%',
         pct: 92,
         type: 'Qualitatif',
-        anneeCible: availableYears.at(-1) ?? 2026,
+        anneeCible: lastYear,
       },
       {
         id: 4,
@@ -154,7 +156,7 @@ export function getContratDashboardMockData(
         unit: 'jours',
         pct: 67,
         type: 'Quantitatif',
-        anneeCible: availableYears[0] ?? 2024,
+        anneeCible: firstYear,
       },
       {
         id: 5,
@@ -165,7 +167,7 @@ export function getContratDashboardMockData(
         unit: '%',
         pct: 84,
         type: 'Quantitatif',
-        anneeCible: availableYears.at(-1) ?? 2026,
+        anneeCible: lastYear,
       },
       {
         id: 6,
@@ -176,7 +178,7 @@ export function getContratDashboardMockData(
         unit: '/5',
         pct: 93,
         type: 'Qualitatif',
-        anneeCible: availableYears.at(-1) ?? 2026,
+        anneeCible: lastYear,
       },
     ],
   }

@@ -6,7 +6,6 @@ export const getIndicateurContratFormConfig = ({
   isLoadingClcp = false,
   isLoadingUnites = false,
   hideClcpField = false,
-  isEdit = false,
 }: {
   clcpOptions: SelectOption[]
   uniteOptions: SelectOption[]
@@ -66,28 +65,24 @@ export const getIndicateurContratFormConfig = ({
       name: 'cible_t1',
       label: 'Cible T1',
       type: 'text',
-      required: true,
       gridCols: 2,
     },
     {
       name: 'cible_t2',
       label: 'Cible T2',
       type: 'text',
-      required: true,
       gridCols: 2,
     },
     {
       name: 'cible_t3',
       label: 'Cible T3',
       type: 'text',
-      required: true,
       gridCols: 2,
     },
     {
       name: 'cible_t4',
       label: 'Cible T4',
       type: 'text',
-      required: true,
       gridCols: 2,
     },
     {
@@ -97,7 +92,6 @@ export const getIndicateurContratFormConfig = ({
       accept: 'application/pdf,image/*,.doc,.docx',
       maxSize: 10,
       helperText: 'PDF, images ou documents (max 10 Mo)',
-      required: !isEdit,
       gridCols: 1,
     },
   ],

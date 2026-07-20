@@ -6,13 +6,19 @@ import {
   estimateSubtitleRowHeight,
 } from './rapportExportLayout'
 import { hexArgb, RAPPORT_EXPORT_THEME as theme } from './rapportExportTheme'
-import type { RapportExportPayload } from './rapportExportTypes'
+import type {
+  RapportExportPayload,
+  RapportExportPreambleBlock,
+} from './rapportExportTypes'
 import {
   buildExportFilename,
   buildRapportDocumentMeta,
   detectAlignment,
   downloadBlob,
   filterExportRows,
+  resolveCellMerges,
+  resolveHeaderGroupRanges,
+  splitCellBoldPrefix,
 } from './rapportExportUtils'
 
 function applyHeaderStyle(cell: ExcelJS.Cell) {
@@ -53,6 +59,38 @@ function applyBodyStyle(cell: ExcelJS.Cell, shaded: boolean, value: unknown) {
   }
 }
 
+/**
+ * Écrit la valeur d'une cellule de données : texte riche (code en gras +
+ * reste en normal) quand la colonne définit boldPrefixSeparator.
+ */
+function setBodyCellValue(
+  cell: ExcelJS.Cell,
+  value: string,
+  column?: { boldPrefixSeparator?: string }
+) {
+  const split = column?.boldPrefixSeparator
+    ? splitCellBoldPrefix(value, column.boldPrefixSeparator)
+    : null
+
+  if (!split) {
+    cell.value = value
+    return
+  }
+
+  cell.value = {
+    richText: [
+      {
+        font: { bold: true, size: 10, color: { argb: hexArgb(theme.text) } },
+        text: split.prefix,
+      },
+      {
+        font: { size: 10, color: { argb: hexArgb(theme.text) } },
+        text: `${column!.boldPrefixSeparator}${split.rest}`,
+      },
+    ],
+  }
+}
+
 /** Cellule Gantt active : remplissage plein, la couleur porte l'information. */
 function applyGanttActiveStyle(cell: ExcelJS.Cell) {
   cell.fill = {
@@ -64,6 +102,37 @@ function applyGanttActiveStyle(cell: ExcelJS.Cell) {
 
 /** Largeur (en caractères) des colonnes mensuelles du Gantt. */
 const GANTT_EXCEL_COLUMN_WIDTH = 8
+
+/** Feuille « Préambule » (orientation portrait), placée avant le tableau. */
+function addPreambleSheet(
+  workbook: ExcelJS.Workbook,
+  blocks: RapportExportPreambleBlock[]
+) {
+  const sheet = workbook.addWorksheet('Préambule', {
+    pageSetup: { orientation: 'portrait', paperSize: 9 },
+  })
+
+  sheet.getColumn(1).width = 110
+
+  blocks.forEach((block, index) => {
+    const cell = sheet.getCell(index + 1, 1)
+    cell.value = block.type === 'list' ? `    ${block.text}` : block.text
+    cell.alignment = {
+      wrapText: true,
+      vertical: 'top',
+      horizontal: block.type === 'title' ? 'center' : 'left',
+    }
+    cell.font = {
+      size: block.type === 'title' ? 14 : 11,
+      bold: block.type === 'title' || block.type === 'heading',
+      color: { argb: hexArgb(theme.text) },
+    }
+
+    const charsPerLine = 100
+    const lines = Math.max(1, Math.ceil(block.text.length / charsPerLine))
+    sheet.getRow(index + 1).height = Math.max(18, lines * 15)
+  })
+}
 
 export async function exportRapportExcel(payload: RapportExportPayload) {
   const meta = buildRapportDocumentMeta(payload.pageTitle)
@@ -82,12 +151,25 @@ export async function exportRapportExcel(payload: RapportExportPayload) {
   )
   const rowMetas = filtered.rowMetas
 
+  const headerGroupRanges = resolveHeaderGroupRanges(
+    filtered.columns,
+    payload.headerGroups
+  )
+  // 2 lignes d'en-tête quand des en-têtes fusionnés sont définis.
+  const headerRowCount = headerGroupRanges.length > 0 ? 2 : 1
+  const dataStartRow = 5 + headerRowCount
+
   const workbook = new ExcelJS.Workbook()
   workbook.creator = 'Simandu'
   workbook.created = new Date()
 
+  if (payload.preamble?.length) {
+    addPreambleSheet(workbook, payload.preamble)
+  }
+
   const sheet = workbook.addWorksheet('Rapport', {
-    views: [{ state: 'frozen', ySplit: 5 }],
+    views: [{ state: 'frozen', ySplit: dataStartRow - 1 }],
+    pageSetup: { orientation: 'landscape', paperSize: 9 },
   })
 
   const colCount = Math.max(columns.length, 1)
@@ -154,13 +236,68 @@ export async function exportRapportExcel(payload: RapportExportPayload) {
     sheet.getColumn(index + 1).width = width
   })
 
-  const headerRow = sheet.getRow(5)
-  columns.forEach((column, index) => {
-    const cell = headerRow.getCell(index + 1)
-    cell.value = column.header
-    applyHeaderStyle(cell)
-  })
-  headerRow.height = 28
+  if (headerRowCount === 1) {
+    const headerRow = sheet.getRow(5)
+    columns.forEach((column, index) => {
+      const cell = headerRow.getCell(index + 1)
+      cell.value = column.header
+      applyHeaderStyle(cell)
+    })
+    headerRow.height = 28
+  } else {
+    // Deux lignes : groupes fusionnés horizontalement (ligne 5), colonnes
+    // hors groupe fusionnées verticalement (lignes 5–6).
+    const topRow = sheet.getRow(5)
+    const subRow = sheet.getRow(6)
+
+    const rangeByColumn = new Map<number, (typeof headerGroupRanges)[number]>()
+    headerGroupRanges.forEach((range) => {
+      for (let i = range.start; i <= range.end; i += 1) {
+        rangeByColumn.set(i, range)
+      }
+    })
+
+    columns.forEach((column, index) => {
+      const col = index + 1
+      const range = rangeByColumn.get(index)
+
+      if (!range) {
+        sheet.mergeCells(5, col, 6, col)
+        const cell = topRow.getCell(col)
+        cell.value = column.header
+        applyHeaderStyle(cell)
+        applyHeaderStyle(subRow.getCell(col))
+        return
+      }
+
+      if (index === range.start) {
+        // Fusion horizontale du groupe, étendue aux deux lignes d'en-tête
+        // quand les sous-colonnes ne doivent pas être affichées.
+        sheet.mergeCells(
+          5,
+          range.start + 1,
+          range.mergeSubHeaders ? 6 : 5,
+          range.end + 1
+        )
+        const groupCell = topRow.getCell(range.start + 1)
+        groupCell.value = range.header
+        applyHeaderStyle(groupCell)
+      }
+      applyHeaderStyle(topRow.getCell(col))
+
+      const cell = subRow.getCell(col)
+      if (!range.mergeSubHeaders) {
+        cell.value = column.header
+      }
+      applyHeaderStyle(cell)
+    })
+
+    topRow.height = 22
+    subRow.height = 26
+  }
+
+  // PRE-PASS : fusions verticales par colonne (mergeKeys)
+  const cellMerges = resolveCellMerges(rowMetas)
 
   // PRE-PASS : calcul des rowSpans par groupKey
   const groupSpans = new Map<string | number, number>()
@@ -178,14 +315,14 @@ export async function exportRapportExcel(payload: RapportExportPayload) {
 
   rows.forEach((row, rowIndex) => {
     const rowMeta = rowMetas?.[rowIndex]
-    const excelRow = sheet.getRow(6 + rowIndex)
+    const excelRow = sheet.getRow(dataStartRow + rowIndex)
     const isAlt = rowIndex % 2 === 1
 
     // ── SECTION ROW (cadre analytique)
     if (rowMeta?.type === 'section') {
       const startCol = (rowMeta.niveau ?? 1) + 1
       const colCount = columns.length
-      const rowNumber = 6 + rowIndex
+      const rowNumber = dataStartRow + rowIndex
 
       sheet.mergeCells(rowNumber, startCol, rowNumber, colCount)
 
@@ -196,6 +333,41 @@ export async function exportRapportExcel(payload: RapportExportPayload) {
       cell.font = { bold: true, size: 10, color: { argb: hexArgb(theme.text) } }
 
       excelRow.height = 22
+      return
+    }
+
+    // ── DATA ROW avec mergeKeys (fusion verticale indépendante par colonne)
+    if (rowMeta?.type === 'data' && rowMeta.mergeKeys) {
+      row.forEach((value, colIndex) => {
+        const cellId = `${rowIndex}:${colIndex}`
+
+        // Cellule couverte par une fusion démarrée plus haut : on ne la
+        // touche pas.
+        if (cellMerges.covered.has(cellId)) return
+
+        const cell = excelRow.getCell(colIndex + 1)
+        const span = cellMerges.spans.get(cellId) ?? 1
+
+        if (span > 1) {
+          const rowNumber = dataStartRow + rowIndex
+          sheet.mergeCells(
+            rowNumber,
+            colIndex + 1,
+            rowNumber + span - 1,
+            colIndex + 1
+          )
+        }
+
+        setBodyCellValue(cell, value, columns[colIndex])
+        applyBodyStyle(cell, isAlt, value)
+        if (isGanttActive(rowIndex, colIndex)) applyGanttActiveStyle(cell)
+
+        if (span > 1) {
+          cell.alignment = { ...cell.alignment, vertical: 'middle' }
+        }
+      })
+
+      excelRow.height = estimateExcelRowHeight(row, columnWidths)
       return
     }
 
@@ -212,7 +384,7 @@ export async function exportRapportExcel(payload: RapportExportPayload) {
       if (isFirst) {
         groupSeen.add(groupKey)
         const span = groupSpans.get(groupKey) ?? 1
-        const rowNumber = 6 + rowIndex
+        const rowNumber = dataStartRow + rowIndex
 
         // Fusion verticale des colonnes code (1) et activité (2)
         if (span > 1) {
@@ -223,7 +395,7 @@ export async function exportRapportExcel(payload: RapportExportPayload) {
         // Écriture de toutes les colonnes
         row.forEach((value, colIndex) => {
           const cell = excelRow.getCell(colIndex + 1)
-          cell.value = value
+          setBodyCellValue(cell, value, columns[colIndex])
           applyBodyStyle(cell, isAlt, value)
           if (isGanttActive(rowIndex, colIndex)) applyGanttActiveStyle(cell)
 
@@ -239,7 +411,7 @@ export async function exportRapportExcel(payload: RapportExportPayload) {
           if (colIndex === 0 || colIndex === 1) return
 
           const cell = excelRow.getCell(colIndex + 1)
-          cell.value = value
+          setBodyCellValue(cell, value, columns[colIndex])
           applyBodyStyle(cell, isAlt, value)
           if (isGanttActive(rowIndex, colIndex)) applyGanttActiveStyle(cell)
         })
@@ -252,8 +424,8 @@ export async function exportRapportExcel(payload: RapportExportPayload) {
     // NORMAL ROW
     row.forEach((value, colIndex) => {
       const cell = excelRow.getCell(colIndex + 1)
-      cell.value = value
-      applyBodyStyle(cell, isAlt, cell.value)
+      setBodyCellValue(cell, value, columns[colIndex])
+      applyBodyStyle(cell, isAlt, value)
       if (isGanttActive(rowIndex, colIndex)) applyGanttActiveStyle(cell)
     })
 

@@ -32,8 +32,7 @@ export function buildContratPerformanceColumns(
         {
             id: 'duree',
             accessorKey: 'duree_contrat',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Date de signature' />,
-            //  il faut calculer la durée du contrat en mois ou en jours à partir de la date de début et de la date de fin
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Durée du contrat' />,
             cell: ({ row }) => {
                 const dateDebut = new Date(row.original.date_debut)
                 const dateFin = new Date(row.original.date_fin)

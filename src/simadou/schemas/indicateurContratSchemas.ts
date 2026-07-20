@@ -2,8 +2,7 @@ import { z } from 'zod'
 
 const cibleSchema = z
   .string()
-  .min(1, 'La cible est requise')
-  .max(50, 'Valeur trop longue')
+  .optional()
 
 const indicateurContratBaseSchema = z.object({
   id_indicateur_contrat: z.number().optional(),
@@ -31,9 +30,10 @@ const indicateurContratBaseSchema = z.object({
 })
 
 export const indicateurContratCreateSchema = indicateurContratBaseSchema.extend({
-  moyen_verification: z.instanceof(File, {
-    message: 'Le moyen de vérification (fichier) est requis',
-  }),
+  moyen_verification: z
+    .union([z.instanceof(File), z.string().min(1)])
+    .optional()
+    .nullable(),
 })
 
 export const indicateurContratUpdateSchema = indicateurContratBaseSchema.extend({

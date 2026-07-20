@@ -66,6 +66,8 @@ export function RapportExportProvider({ pageTitle, children }: ProviderProps) {
       isLoading: registration.isLoading,
       rowMetas: table.rowMetas ?? [],
       gantt: table.gantt,
+      headerGroups: table.headerGroups,
+      preamble: table.preamble,
     }
   }, [])
 

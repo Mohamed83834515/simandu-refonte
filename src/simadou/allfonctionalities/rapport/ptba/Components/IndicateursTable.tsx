@@ -18,6 +18,7 @@ interface IndicateursTableProps {
   ptbas: Ptba[]
   indicateurs: IndicateurTache[]
   isLoading: boolean
+  showValeurRealisee?: boolean
 }
 
 type TreeRow = {
@@ -34,6 +35,7 @@ export function IndicateursTable({
   ptbas,
   indicateurs,
   isLoading,
+  showValeurRealisee = false,
 }: IndicateursTableProps) {
   const { data: unites = [] } = useGetUnitesIndicateur()
   const { navigate } = useEmbeddedTableState()
@@ -89,6 +91,18 @@ export function IndicateursTable({
       accessorFn: (row) =>
         row.ind?.trimestre_4 != null ? String(row.ind.trimestre_4) : '',
     },
+    ...(showValeurRealisee
+      ? [
+          {
+            id: 'valeur_realisee',
+            header: 'Valeur réalisée',
+            accessorFn: (row) =>
+              row.ind?.valeur_realisee != null
+                ? String(row.ind.valeur_realisee)
+                : '',
+          } satisfies ColumnDef<TreeRow>,
+        ]
+      : []),
   ]
 
   const indicateursByActivite = useMemo(() => {
@@ -225,7 +239,10 @@ export function IndicateursTable({
          * =========================
          */
         if (r.type === 'cadre') {
-          exportRows.push([r.label ?? '', '', '', '', '', '', '', ''])
+          exportRows.push([
+            r.label ?? '',
+            ...Array.from({ length: columns.length - 1 }, () => ''),
+          ])
 
           rowMetas.push({
             type: 'section',
@@ -255,6 +272,13 @@ export function IndicateursTable({
           r.ind?.trimestre_2 != null ? String(r.ind.trimestre_2) : '',
           r.ind?.trimestre_3 != null ? String(r.ind.trimestre_3) : '',
           r.ind?.trimestre_4 != null ? String(r.ind.trimestre_4) : '',
+          ...(showValeurRealisee
+            ? [
+                r.ind?.valeur_realisee != null
+                  ? String(r.ind.valeur_realisee)
+                  : '',
+              ]
+            : []),
         ])
 
         rowMetas.push({
@@ -271,16 +295,7 @@ export function IndicateursTable({
 
         rowMetas,
         rows: exportRows,
-        visibleColumnIds: [
-          'code',
-          'activite',
-          'indicateur',
-          'unite',
-          't1',
-          't2',
-          't3',
-          't4',
-        ],
+        visibleColumnIds: columns.map((c) => c.id as string),
       }
     },
   })
@@ -384,6 +399,12 @@ export function IndicateursTable({
                 <TableCell className={cellClassName(7)}>
                   {row.ind?.trimestre_4 ?? ''}
                 </TableCell>
+
+                {showValeurRealisee && (
+                  <TableCell className={cellClassName(8)}>
+                    {row.ind?.valeur_realisee ?? ''}
+                  </TableCell>
+                )}
               </TableRow>
             )
           }}

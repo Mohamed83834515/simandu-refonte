@@ -11,6 +11,8 @@ export interface IndicateurTache extends Record<string, unknown> {
   trimestre_2: number;
   trimestre_3: number;
   trimestre_4: number;
+  valeur_cible?: number | null;
+  valeur_realisee?: number | null;
   created_at?: string;
   updated_at?: string;
 }

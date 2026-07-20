@@ -1,11 +1,19 @@
 import {
   ClipboardList,
+  Eye,
+  FileBarChart,
   LayoutDashboard,
   Target,
   type LucideIcon,
 } from 'lucide-react'
 
-export type ContratDetailTabKey = 'overview' | 'results_framework' | 'indicators' | 'followup'
+export type ContratDetailTabKey =
+  | 'overview'
+  | 'results_framework'
+  | 'indicators'
+  | 'followup'
+  | 'report'
+  | 'report_suivi'
 
 export type ContratDetailTab = {
   key: ContratDetailTabKey
@@ -32,6 +40,19 @@ export const contratDetailTabs: ContratDetailTab[] = [
     name: 'Indicateurs de résultats',
     icon: ClipboardList,
     description: 'Indicateurs et cibles de performance.',
+  },
+  {
+    key: 'report',
+    name: 'Rapport',
+    icon: FileBarChart,
+    description: 'Cadre logique du contrat, exportable en Word, Excel et PDF.',
+  },
+  {
+    key: 'report_suivi',
+    name: 'Rapport de suivi',
+    icon: Eye,
+    description:
+      'Cadre logique avec les valeurs réalisées par trimestre, exportable en Word, Excel et PDF.',
   },
 //   {
 //     key: 'followup',

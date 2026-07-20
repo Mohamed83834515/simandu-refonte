@@ -220,6 +220,11 @@ export const sidebarData: SidebarData = {
               url: '/rapport/decaissement',
               icon: Wallet,
             },
+            {
+              title: 'Indicateurs',
+              url: '/rapport/indicateurs',
+              icon: LineChart,
+            },
           ],
         },
       ],

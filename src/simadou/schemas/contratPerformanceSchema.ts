@@ -8,7 +8,7 @@ export const contratPerformanceSchema = z.object({
   date_debut: z.string().min(1, 'La date de début est requise'),
   date_fin: z.string().min(1, 'La date de fin est requise'),
   statut: z.enum(['brouillon', 'en_cours', 'valide', 'termine', 'archive']).default('en_cours'),
-  note_globale: z.string().optional().default('0'),
+  note_globale: z.number().optional().default(0),
   appreciation: z.string().optional().default(''),
   observation_globale: z.string().optional().default(''),
   etat: z.string().optional().default('Ajouter'),

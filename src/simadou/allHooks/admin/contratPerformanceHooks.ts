@@ -24,14 +24,14 @@ export const useGetContratPerformance = (id: number | string | undefined) => {
   })
 }
 
-export const useCreateContratPerformance = () => {
+export const useCreateContratPerformance = (programmeId?: number) => {
   const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: (data: ContratPerformancePayload) => contratPerformanceService.create(data),
-    onSuccess: async (_, variables) => {
+    onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: contratPerformanceQueryKeys.all(variables.programme ?? 0),
+        queryKey: contratPerformanceQueryKeys.all(programmeId ?? 0),
       })
       toast.success('Contrat de performance créé avec succès')
     },
@@ -41,15 +41,15 @@ export const useCreateContratPerformance = () => {
   })
 }
 
-export const useUpdateContratPerformance = (id: number) => {
+export const useUpdateContratPerformance = (id: number, programmeId?: number) => {
   const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: ContratPerformancePayload }) =>
       contratPerformanceService.update(id, data),
-    onSuccess: async (_, variables) => {
+    onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: contratPerformanceQueryKeys.all(variables.data.programme ?? 0),
+        queryKey: contratPerformanceQueryKeys.all(programmeId),
       })
       await queryClient.invalidateQueries({
         queryKey: contratPerformanceQueryKeys.detail(id),

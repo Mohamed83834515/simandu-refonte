@@ -11,7 +11,8 @@ import { toast } from 'sonner'
 import type { ContratPerformance, ContratPerformancePayload } from '@/simadou/allTypes/contratPerformance'
 import { useMe } from '@/simadou/allHooks/auth/authHooks'
 import { usePtbaVersionSelection } from '@/simadou/allHooks/admin/versionHooks'
-import { UGL } from '@/simadou/allTypes/entities'
+import { UGL, VersionPtba } from '@/simadou/allTypes/entities'
+import { Programme } from '@/simadou/allTypes'
 
 interface AddContratPerformanceProps {
     open: boolean
@@ -26,8 +27,8 @@ export default function AddContratPerformance({ open, onOpenChange, currentRow }
     const { data: ugls = [] } = useGetUgls()
     const { data: user } = useMe()
 
-    const createMutation = useCreateContratPerformance()
-    const updateMutation = useUpdateContratPerformance(currentRow?.id_contrat ?? 0)
+    const createMutation = useCreateContratPerformance(programmeId)
+    const updateMutation = useUpdateContratPerformance(currentRow?.id_contrat ?? 0, programmeId)
 
     const { selectedVersionId } = usePtbaVersionSelection(codeProgramme)
 
@@ -48,10 +49,10 @@ export default function AddContratPerformance({ open, onOpenChange, currentRow }
         appreciation: currentRow?.appreciation ?? '',
         observation_globale: currentRow?.observation_globale ?? '',
         etat: isEdit ? 'Modifier' : "Ajouter",
-        version_ptba: currentRow?.version_ptba ?? (selectedVersionId ? Number(selectedVersionId) : 0),
+        version_ptba: typeof currentRow?.version_ptba === 'object' ? (currentRow.version_ptba as VersionPtba).id_version_ptba : (selectedVersionId ? Number(selectedVersionId) : 0) ?? currentRow?.version_ptba,
         structure: typeof currentRow?.structure === 'object' ? (currentRow.structure as UGL).id_ugl : currentRow?.structure ?? 0,
         id_personnel: user?.n_personnel,
-        programme: currentRow?.programme ?? programmeId ?? 0,
+        programme: typeof currentRow?.programme === 'object' ? (currentRow.programme as Programme).id_programme : (programmeId ? Number(programmeId) : 0) ?? currentRow?.programme,
     }
 
     const handleSubmit = (data: ContratPerformancePayload) => {
@@ -67,7 +68,7 @@ export default function AddContratPerformance({ open, onOpenChange, currentRow }
             structure: data.structure ?? 0,
             version_ptba: resolvedVersionId,
             id_personnel: data.id_personnel ?? 0,
-            note_globale: data.note_globale ?? '0',
+            note_globale: data.note_globale ?? 0,
         }
 
         if (isEdit && currentRow?.id_contrat) {
