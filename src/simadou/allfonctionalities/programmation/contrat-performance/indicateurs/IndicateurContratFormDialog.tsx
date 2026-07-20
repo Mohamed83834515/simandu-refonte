@@ -78,9 +78,8 @@ export default function IndicateurContratFormDialog({
         clcpOptions,
         uniteOptions,
         isLoadingUnites,
-        isEdit: isEditing,
       }),
-    [clcpOptions, uniteOptions, isLoadingUnites, isEditing]
+    [clcpOptions, uniteOptions, isLoadingUnites]
   )
 
   const defaultValues = useMemo(

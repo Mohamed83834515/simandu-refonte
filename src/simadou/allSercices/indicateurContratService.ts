@@ -33,10 +33,10 @@ function toFormData(
   const fd = new FormData()
   fd.append('intitule_indicateur', data.intitule_indicateur)
   fd.append('valeur_reference', String(data.valeur_reference))
-  fd.append('cible_t1', data.cible_t1)
-  fd.append('cible_t2', data.cible_t2)
-  fd.append('cible_t3', data.cible_t3)
-  fd.append('cible_t4', data.cible_t4)
+  fd.append('cible_t1', data.cible_t1 ?? '')
+  fd.append('cible_t2', data.cible_t2 ?? '')
+  fd.append('cible_t3', data.cible_t3 ?? '')
+  fd.append('cible_t4', data.cible_t4 ?? '')
   fd.append('moyen_verification', file, file.name)
   fd.append('etat', String(data.etat))
   fd.append('clcp', String(data.clcp))
@@ -51,10 +51,10 @@ function toJsonPayload(
   const payload: Record<string, unknown> = {
     intitule_indicateur: data.intitule_indicateur,
     valeur_reference: data.valeur_reference,
-    cible_t1: data.cible_t1,
-    cible_t2: data.cible_t2,
-    cible_t3: data.cible_t3,
-    cible_t4: data.cible_t4,
+    cible_t1: data.cible_t1 ?? null,
+    cible_t2: data.cible_t2 ?? null,
+    cible_t3: data.cible_t3 ?? null,
+    cible_t4: data.cible_t4 ?? null,
     etat: data.etat,
     clcp: data.clcp,
     unite: data.unite,
@@ -97,13 +97,9 @@ export const indicateurContratService = {
 
   async create(data: IndicateurContratPayload): Promise<IndicateurContrat> {
     const file = resolveMoyenVerificationFile(data.moyen_verification)
-    if (!file) {
-      throw new Error('Le fichier moyen de vérification est requis')
-    }
-
     return apiClient.request<IndicateurContrat>(ENDPOINT, {
       method: 'POST',
-      data: toFormData(data, file),
+      data: file ? toFormData(data as IndicateurContratPayload, file) : toJsonPayload(data),
     })
   },
 

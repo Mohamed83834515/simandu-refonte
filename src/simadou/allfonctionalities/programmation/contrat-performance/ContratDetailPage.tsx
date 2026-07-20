@@ -1,25 +1,69 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, getRouteApi } from '@tanstack/react-router'
-import { ArrowLeft, ClipboardList, FileText, LayoutDashboard, Loader2, Target } from 'lucide-react'
+import {
+  ArrowLeft,
+  Building2,
+  ClipboardList,
+  FileText,
+  LayoutDashboard,
+  Loader2,
+  Star,
+  Target,
+  UserRound,
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Main } from '@/components/layout/others/main'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useGetContratPerformance } from '@/simadou/allHooks/admin/contratPerformanceHooks'
+import { useGetUgls } from '@/simadou/allHooks/admin/uglHooks'
+import type { UGL } from '@/simadou/allTypes/ugl'
 import ContratDetailPanel from './ContratDetailPanel'
 import { contratDetailTabs, type ContratDetailTab } from './contratDetailTabs'
+
+const APPRECIATION_LABELS: Record<string, string> = {
+  excellent: 'Excellent',
+  très_bien: 'Très bien',
+  bien: 'Bien',
+  assez_bien: 'Assez bien',
+  passable: 'Passable',
+  non_satisfaisant: 'Non satisfaisant',
+}
+
+function formatAppreciation(value: string | null | undefined): string {
+  if (!value) return '—'
+  return APPRECIATION_LABELS[value] ?? value
+}
+
+function resolveStructureLabel(
+  structure: number | null | undefined | UGL,
+  ugls: UGL[]
+): string {
+  if (structure == null) return '—'
+  if (typeof structure === 'object') {
+    return structure.nom_ugl || structure.abrege_ugl || '—'
+  }
+  const found = ugls.find((u) => u.id_ugl === structure)
+  return found?.nom_ugl || found?.abrege_ugl || String(structure)
+}
 
 const route = getRouteApi('/_authenticated/programmation/contrat-performance/$id')
 
 export default function ContratDetailPage() {
   const { id } = route.useParams()
   const { data: contrat, isLoading, isError } = useGetContratPerformance(id)
+  const { data: ugls = [] } = useGetUgls()
   const [selectedTab, setSelectedTab] = useState<ContratDetailTab>(contratDetailTabs[0])
   const mainContentRef = useRef<HTMLDivElement>(null)
   const mainPanelRef = useRef<HTMLElement>(null)
   const skipTabScrollRef = useRef(true)
   const [isSplitScroll, setIsSplitScroll] = useState(
     () => typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches
+  )
+
+  const structureLabel = useMemo(
+    () => resolveStructureLabel(contrat?.structure, ugls),
+    [contrat?.structure, ugls]
   )
 
   useEffect(() => {
@@ -117,6 +161,35 @@ export default function ContratDetailPage() {
                     Fin
                   </span>
                   <span className='text-[11px] font-semibold'>{contrat.date_fin}</span>
+                </div>
+              </div>
+              <div className='space-y-2.5 border-t pt-2.5'>
+                <div>
+                  <span className='mb-0.5 flex items-center gap-1 text-[9px] font-bold tracking-tight text-muted-foreground uppercase'>
+                    <UserRound className='h-2 w-2 text-primary' />
+                    Signataire du ministère
+                  </span>
+                  <span className='block text-[11px] font-semibold leading-snug'>
+                    {contrat.signataire_ministere || '—'}
+                  </span>
+                </div>
+                <div className='grid grid-cols-2 gap-3'>
+                  <div>
+                    <span className='mb-0.5 flex items-center gap-1 text-[9px] font-bold tracking-tight text-muted-foreground uppercase'>
+                      <Star className='h-2 w-2 text-amber-500' />
+                      Appréciation
+                    </span>
+                    <span className='text-[11px] font-semibold'>
+                      {formatAppreciation(contrat.appreciation)}
+                    </span>
+                  </div>
+                  <div>
+                    <span className='mb-0.5 flex items-center gap-1 text-[9px] font-bold tracking-tight text-muted-foreground uppercase'>
+                      <Building2 className='h-2 w-2 text-sky-600' />
+                      Structure / UGL
+                    </span>
+                    <span className='text-[11px] font-semibold'>{structureLabel}</span>
+                  </div>
                 </div>
               </div>
             </CardContent>

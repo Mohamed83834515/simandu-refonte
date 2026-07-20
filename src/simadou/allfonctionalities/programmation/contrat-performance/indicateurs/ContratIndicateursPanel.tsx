@@ -32,11 +32,13 @@ import { Card } from '@/components/ui/card'
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Tabs, TabsContent } from '@/components/ui/tabs'
 import IndicateurContratFormDialog from './IndicateurContratFormDialog'
+import SuiviIndicateurContratManager from './SuiviIndicateurContratManager'
 
 function IndicateurContratNiveauTable({
   indicateurs,
@@ -44,12 +46,14 @@ function IndicateurContratNiveauTable({
   tableKey,
   onEdit,
   onDeleteRequest,
+  onSuivi,
 }: {
   indicateurs: IndicateurContrat[]
   cadres: ReturnType<typeof useGetCadresLogiquesClcp>['data']
   tableKey: string
   onEdit: (row: IndicateurContrat) => void
   onDeleteRequest: (row: IndicateurContrat) => void
+  onSuivi: (row: IndicateurContrat) => void
 }) {
   const { search, navigate } = useEmbeddedTableState()
   const columns = useMemo(
@@ -58,9 +62,10 @@ function IndicateurContratNiveauTable({
         cadres: cadres ?? [],
         onEdit,
         onDeleteRequest,
+        onSuivi,
         hideClcpColumn: true,
       }),
-    [cadres, onEdit, onDeleteRequest]
+    [cadres, onEdit, onDeleteRequest, onSuivi]
   )
 
   return (
@@ -114,6 +119,8 @@ export default function ContratIndicateursPanel({
   const [deleteOpen, setDeleteOpen] = useDialogState<'delete'>(null)
   const [indicateurToDelete, setIndicateurToDelete] =
     useState<IndicateurContrat | null>(null)
+  const [suiviIndicateur, setSuiviIndicateur] =
+    useState<IndicateurContrat | null>(null)
 
   useEffect(() => {
     if (niveaux.length > 0 && activeNiveau === undefined) {
@@ -161,6 +168,10 @@ export default function ContratIndicateursPanel({
     },
     [setDeleteOpen]
   )
+
+  const handleSuivi = useCallback((indicateur: IndicateurContrat) => {
+    setSuiviIndicateur(indicateur)
+  }, [])
 
   const handleConfirmDelete = (indicateur: IndicateurContrat) => {
     deleteMutation.mutate(indicateur.id_indicateur_contrat, {
@@ -253,6 +264,7 @@ export default function ContratIndicateursPanel({
                   tableKey={`indicateurs-clcp-${n.id_niveau_ncl}-${cadresUpdatedAt}-${indicateursUpdatedAt}-${indicateursForActiveNiveau.length}`}
                   onEdit={handleEdit}
                   onDeleteRequest={handleDeleteRequest}
+                  onSuivi={handleSuivi}
                 />
               )}
             </TabsContent>
@@ -292,6 +304,23 @@ export default function ContratIndicateursPanel({
           </DialogContent>
         </Dialog>
       )}
+
+      <Dialog
+        open={suiviIndicateur != null}
+        onOpenChange={(o) => !o && setSuiviIndicateur(null)}
+      >
+        <DialogContent className='sm:max-w-3xl'>
+          <DialogHeader>
+            <DialogTitle>Suivi de l&apos;indicateur</DialogTitle>
+            <DialogDescription>
+              Saisissez la valeur réalisée, le trimestre et une observation.
+            </DialogDescription>
+          </DialogHeader>
+          {suiviIndicateur && (
+            <SuiviIndicateurContratManager indicateur={suiviIndicateur} />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

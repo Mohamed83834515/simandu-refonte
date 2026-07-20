@@ -20,7 +20,7 @@ export default function RapportIndicateursPage() {
     usePtbaVersionSelection(codeProgramme)
 
   const { data: ptbasRaw = EMPTY_PTBA_LIST, isLoading: ptbasLoading } =
-    useGetPtbas()
+    useGetPtbas(selectedVersionId ? Number(selectedVersionId) : 0)
   const { data: allIndicateurs = [], isLoading: indicateursLoading } =
     useGetAllIndicateursTache()
   const { data: cadresAnalytiques = [], isLoading: caLoading } =
