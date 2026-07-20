@@ -211,10 +211,13 @@ export function detectAlignment(value: unknown): 'left' | 'center' {
     return 'center'
   }
 
-  // string numérique ("123", "12.5", "1 200")
+  // string numérique ("123", "12.5", "1 200"), éventuellement suivie
+  // d'un symbole d'unité ("25%", "340 kg", "12,5 m²", "3 t/ha")
   if (typeof value === 'string') {
     const normalized = value.replace(/\s/g, '').replace(',', '.')
-    if (!isNaN(Number(normalized)) && normalized !== '') {
+    if (normalized === '') return 'left'
+    if (!isNaN(Number(normalized))) return 'center'
+    if (/^[-+]?\d+(?:\.\d+)?[a-zµ%°/²³]{1,6}$/i.test(normalized)) {
       return 'center'
     }
   }
