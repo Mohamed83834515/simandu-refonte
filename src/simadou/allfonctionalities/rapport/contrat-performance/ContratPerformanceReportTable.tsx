@@ -13,6 +13,9 @@ import {
   sortNiveauxConfigClcp,
 } from '@/simadou/lib/cadreLogiqueClcpUtils'
 import { resolveClcpId } from '@/simadou/lib/indicateurContratUtils'
+import { getUniteSymbole } from '@/simadou/lib/uniteIndicateurUtils'
+import { useGetUnitesIndicateur } from '@/simadou/allHooks/admin/uniteIndicateurHooks'
+import type { UniteIndicateur } from '@/simadou/allTypes/uniteIndicateur'
 import { FileSignature, Loader2 } from 'lucide-react'
 import { useEmbeddedTableState } from '@/hooks/use-embedded-table-state'
 import { Badge } from '@/components/ui/badge'
@@ -28,7 +31,7 @@ interface Props {
   cadres: CadreLogiqueClcp[]
   indicateurs: IndicateurContrat[]
   isLoading: boolean
-  /** Suivis des indicateurs : ajoute la colonne « Valeur réalisée » (T1–T4). */
+  /** Suivis des indicateurs : ajoute la colonne « Valeur réalisée ». */
   suivis?: SuiviContrat[]
   showValeurRealisee?: boolean
 }
@@ -58,6 +61,28 @@ function suiviTimestamp(suivi: SuiviContrat): number {
   return Number.isFinite(time) ? time : 0
 }
 
+/** Valeur numérique d'une cible / valeur réalisée (« 25 », « 25,5 »…). */
+function parseValeurNumerique(value: unknown): number | null {
+  if (value == null || value === '') return null
+  const parsed = Number(String(value).replace(/\s/g, '').replace(',', '.'))
+  return Number.isFinite(parsed) ? parsed : null
+}
+
+/**
+ * Somme des valeurs trimestrielles suivie du symbole de l'unité
+ * (« 120 », « 25% », « 340 kg »…). Vide si aucun trimestre n'est renseigné.
+ */
+function formatSommeTrimestres(valeurs: unknown[], symbole: string): string {
+  const nombres = valeurs
+    .map(parseValeurNumerique)
+    .filter((n): n is number => n != null)
+  if (nombres.length === 0) return ''
+
+  const somme = Number(nombres.reduce((a, b) => a + b, 0).toFixed(2))
+  if (!symbole) return String(somme)
+  return symbole === '%' ? `${somme}%` : `${somme} ${symbole}`
+}
+
 /** Nom de fichier lisible à partir de l'URL du moyen de vérification. */
 function moyenVerificationLabel(value: unknown): string {
   if (typeof value !== 'string' || !value) return ''
@@ -78,6 +103,26 @@ export function ContratPerformanceReportTable({
   showValeurRealisee = false,
 }: Props) {
   const { navigate } = useEmbeddedTableState()
+
+  // Unités des indicateurs, pour afficher leur symbole après les sommes.
+  const { data: unites = [] } = useGetUnitesIndicateur()
+
+  const unitesById = useMemo(() => {
+    const map = new Map<number, UniteIndicateur>()
+    for (const unite of unites as UniteIndicateur[]) {
+      map.set(unite.id_unite, unite)
+    }
+    return map
+  }, [unites])
+
+  const uniteSymbole = (ind: IndicateurContrat | undefined): string => {
+    if (!ind) return ''
+    if (typeof ind.unite === 'object' && ind.unite !== null) {
+      return getUniteSymbole(ind.unite as UniteIndicateur)
+    }
+    const id = resolveRelationId(ind.unite, 'id_unite')
+    return getUniteSymbole(id != null ? unitesById.get(id) : undefined)
+  }
 
   // Valeur réalisée par indicateur et par trimestre (suivi le plus récent).
   const realiseesByIndicateur = useMemo(() => {
@@ -115,6 +160,23 @@ export function ContratPerformanceReportTable({
     return suivi?.valeur_realisee != null ? String(suivi.valeur_realisee) : ''
   }
 
+  // Colonnes fusionnées : somme des trimestres + symbole de l'unité.
+  const cibleTotale = (ind: IndicateurContrat | undefined): string =>
+    ind
+      ? formatSommeTrimestres(
+          [ind.cible_t1, ind.cible_t2, ind.cible_t3, ind.cible_t4],
+          uniteSymbole(ind)
+        )
+      : ''
+
+  const realiseeTotale = (ind: IndicateurContrat | undefined): string =>
+    ind
+      ? formatSommeTrimestres(
+          [0, 1, 2, 3].map((trimestre) => valeurRealisee(ind, trimestre)),
+          uniteSymbole(ind)
+        )
+      : ''
+
   const columns: ColumnDef<ReportRow>[] = [
     {
       id: 'chaine_resultats',
@@ -149,56 +211,14 @@ export function ContratPerformanceReportTable({
     {
       id: 'valeur_cible',
       header: 'Valeur Cible',
-      columns: [
-        {
-          id: 't1',
-          header: 'T1',
-          accessorFn: (row) => row.ind?.cible_t1 ?? '',
-        },
-        {
-          id: 't2',
-          header: 'T2',
-          accessorFn: (row) => row.ind?.cible_t2 ?? '',
-        },
-        {
-          id: 't3',
-          header: 'T3',
-          accessorFn: (row) => row.ind?.cible_t3 ?? '',
-        },
-        {
-          id: 't4',
-          header: 'T4',
-          accessorFn: (row) => row.ind?.cible_t4 ?? '',
-        },
-      ],
+      accessorFn: (row) => cibleTotale(row.ind),
     },
     ...(showValeurRealisee
       ? [
           {
             id: 'valeur_realisee',
             header: 'Valeur réalisée',
-            columns: [
-              {
-                id: 'r1',
-                header: 'T1',
-                accessorFn: (row) => valeurRealisee(row.ind, 0),
-              },
-              {
-                id: 'r2',
-                header: 'T2',
-                accessorFn: (row) => valeurRealisee(row.ind, 1),
-              },
-              {
-                id: 'r3',
-                header: 'T3',
-                accessorFn: (row) => valeurRealisee(row.ind, 2),
-              },
-              {
-                id: 'r4',
-                header: 'T4',
-                accessorFn: (row) => valeurRealisee(row.ind, 3),
-              },
-            ],
+            accessorFn: (row) => realiseeTotale(row.ind),
           } satisfies ColumnDef<ReportRow>,
         ]
       : []),
@@ -216,17 +236,9 @@ export function ContratPerformanceReportTable({
     { id: 'cadre', header: '', boldPrefixSeparator: ' : ' },
     { id: 'indicateur', header: 'Indicateurs' },
     { id: 'reference', header: 'Valeur de référence' },
-    { id: 't1', header: 'T1' },
-    { id: 't2', header: 'T2' },
-    { id: 't3', header: 'T3' },
-    { id: 't4', header: 'T4' },
+    { id: 'valeur_cible', header: 'Valeur Cible' },
     ...(showValeurRealisee
-      ? [
-          { id: 'r1', header: 'T1' },
-          { id: 'r2', header: 'T2' },
-          { id: 'r3', header: 'T3' },
-          { id: 'r4', header: 'T4' },
-        ]
+      ? [{ id: 'valeur_realisee', header: 'Valeur réalisée' }]
       : []),
     { id: 'moyen_verification', header: 'Moyen de Vérification' },
   ]
@@ -322,18 +334,8 @@ export function ContratPerformanceReportTable({
           formatCadreLabel(r.cadre),
           r.ind?.intitule_indicateur ?? '',
           r.ind?.valeur_reference != null ? String(r.ind.valeur_reference) : '',
-          r.ind?.cible_t1 ?? '',
-          r.ind?.cible_t2 ?? '',
-          r.ind?.cible_t3 ?? '',
-          r.ind?.cible_t4 ?? '',
-          ...(showValeurRealisee
-            ? [
-                valeurRealisee(r.ind, 0),
-                valeurRealisee(r.ind, 1),
-                valeurRealisee(r.ind, 2),
-                valeurRealisee(r.ind, 3),
-              ]
-            : []),
+          cibleTotale(r.ind),
+          ...(showValeurRealisee ? [realiseeTotale(r.ind)] : []),
           moyenVerificationLabel(r.ind?.moyen_verification),
         ])
 
@@ -354,7 +356,7 @@ export function ContratPerformanceReportTable({
         rows: exportRows,
         visibleColumnIds: exportColumns.map((c) => c.id),
 
-        // En-têtes fusionnés au-dessus des colonnes, comme le rapport Word.
+        // En-tête fusionné au-dessus des colonnes, comme le rapport Word.
         headerGroups: [
           {
             header: 'Chaine des Résultats',
@@ -362,15 +364,6 @@ export function ContratPerformanceReportTable({
             // Sous-colonnes sans nom : l'en-tête couvre les deux lignes.
             mergeSubHeaders: true,
           },
-          { header: 'Valeur Cible', columnIds: ['t1', 't2', 't3', 't4'] },
-          ...(showValeurRealisee
-            ? [
-                {
-                  header: 'Valeur réalisée',
-                  columnIds: ['r1', 'r2', 'r3', 'r4'],
-                },
-              ]
-            : []),
         ],
       }
     },
@@ -444,30 +437,17 @@ export function ContratPerformanceReportTable({
                   </TableCell>
 
                   <TableCell className={cellClassName(4)}>
-                    {row.ind?.cible_t1 ?? ''}
-                  </TableCell>
-                  <TableCell className={cellClassName(5)}>
-                    {row.ind?.cible_t2 ?? ''}
-                  </TableCell>
-                  <TableCell className={cellClassName(6)}>
-                    {row.ind?.cible_t3 ?? ''}
-                  </TableCell>
-                  <TableCell className={cellClassName(7)}>
-                    {row.ind?.cible_t4 ?? ''}
+                    {cibleTotale(row.ind)}
                   </TableCell>
 
-                  {showValeurRealisee &&
-                    [0, 1, 2, 3].map((trimestre) => (
-                      <TableCell
-                        key={`realisee-${trimestre}`}
-                        className={cellClassName(8 + trimestre)}
-                      >
-                        {valeurRealisee(row.ind, trimestre)}
-                      </TableCell>
-                    ))}
+                  {showValeurRealisee && (
+                    <TableCell className={cellClassName(5)}>
+                      {realiseeTotale(row.ind)}
+                    </TableCell>
+                  )}
 
                   <TableCell
-                    className={cellClassName(showValeurRealisee ? 12 : 8)}
+                    className={cellClassName(showValeurRealisee ? 6 : 5)}
                   >
                     {typeof moyen === 'string' && moyen ? (
                       <a
