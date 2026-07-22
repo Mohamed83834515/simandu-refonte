@@ -5,8 +5,10 @@ import type {
 } from "../allTypes/dashboardType";
 import type { TacheActivitePtba } from "../allTypes/tacheActivitePtba";
 import {
+  filterTachesByActivite,
   type TacheActivitePtbaApiPayload,
 } from "../lib/tacheActivitePtbaUtils";
+import { normalizeApiList } from "./apiListUtils";
 
 const BASE_URL = "/tache_activite_ptba/";
 
@@ -42,16 +44,18 @@ class TacheActivitePtbaService {
   }
 
   async getAll(url:string): Promise<TacheActivitePtba[]> {
-    const response = await apiClient.request<TacheActivitePtba[]>(
-      url,
-    );
-    return response;
+    const response = await apiClient.request<unknown>(url);
+    return normalizeApiList<TacheActivitePtba>(response);
   }
 
   async getByActivite(url:string,idActivite: number): Promise<TacheActivitePtba[]> {
-    const response = await apiClient.request<TacheActivitePtba[]>
-    (`${url}?id_activite=${idActivite}`);
-    return response;
+    const response = await apiClient.request<unknown>(
+      `${url}?id_activite=${idActivite}`
+    );
+    return filterTachesByActivite(
+      normalizeApiList<TacheActivitePtba>(response),
+      idActivite
+    );
   }
 
   async getById(url:string, id: number): Promise<TacheActivitePtba> {

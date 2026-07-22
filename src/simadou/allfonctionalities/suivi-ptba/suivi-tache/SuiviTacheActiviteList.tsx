@@ -105,10 +105,8 @@ export default function SuiviTacheActiviteList({
       showViewOptions={false}
       showPagination={false}
       defaultPageSize={Math.max(taches.length, 1)}
-      emptyMessage='Aucune tâche validée pour cette activité.'
+      emptyMessage='Aucune tâche pour cette activité.'
       customRowRenderer={(tache, i, { rowClassName, cellClassName }) => {
-        const isFirst = i === 0
-        const span = taches.length
         const suivi = findSuiviForTache(suivis, tache.id_groupe_tache)
         const proportion = tache.proportion_gt?.trim()
         const proportionLabel = proportion
@@ -120,17 +118,13 @@ export default function SuiviTacheActiviteList({
 
         return (
           <TableRow className={rowClassName} key={i}>
-            {isFirst && (
-              <TableCell className={cellClassName(0)} rowSpan={span}>
-                {activite.code_activite_ptba}
-              </TableCell>
-            )}
+            <TableCell className={cellClassName(0)}>
+              {activite.code_activite_ptba}
+            </TableCell>
 
-            {isFirst && (
-              <TableCell className={cellClassName(1)} rowSpan={span}>
-                {activite.intitule_activite_ptba}
-              </TableCell>
-            )}
+            <TableCell className={cellClassName(1)}>
+              {activite.intitule_activite_ptba}
+            </TableCell>
 
             <TableCell className={cellClassName(2)}>
               <div className={cn('min-w-0 space-y-0.5', colWide)}>

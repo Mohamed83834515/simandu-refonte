@@ -46,7 +46,7 @@ export default function SuiviTacheActiviteManager({
   )
 
   const filteredTaches = useMemo(
-    () => taches.filter((t) => tacheBelongsToActivite(t, activite) && t.valide),
+    () => taches.filter((t) => tacheBelongsToActivite(t, activite)),
     [taches, activite]
   )
 
