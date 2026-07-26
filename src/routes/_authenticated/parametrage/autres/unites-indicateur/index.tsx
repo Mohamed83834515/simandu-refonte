@@ -3,19 +3,12 @@
 
 import AddUniteIndicateur from '@/simadou/allfonctionalities/parametrage/autres/unite-indicateurs/AddUniteIndicateur'
 import ListeUniteIndicateur from '@/simadou/allfonctionalities/parametrage/autres/unite-indicateurs/ListeUniteIndicateur'
-import { createFileRoute } from '@tanstack/react-router'
 import {  Ruler, } from 'lucide-react'
 import { useState } from 'react'
 
-export const Route = createFileRoute(
-  '/_authenticated/parametrage/autres/unites-indicateur/',
-)({
-  component: UnitesIndicateurPage,
-})
-
 type Mode = 'list' | 'add' | 'edit'
 
-function UnitesIndicateurPage() {
+export function UnitesIndicateurPage() {
   const [mode, setMode]           = useState<Mode>('list')
   const [currentRow, setCurrentRow] = useState<any | null>(null)
 

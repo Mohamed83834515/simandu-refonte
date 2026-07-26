@@ -76,7 +76,7 @@ export const sidebarData: SidebarData = {
               icon: Handshake,
             },
             {
-              title: 'Zones agroécologiques',
+              title: 'Zones de collecte',
               url: '/parametrage/zone-de-collecte',
               icon: MapPin,
             }, 

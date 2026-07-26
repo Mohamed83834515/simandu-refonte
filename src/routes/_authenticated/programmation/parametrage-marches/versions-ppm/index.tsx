@@ -1,18 +1,11 @@
 import AddVersionPPM from '@/simadou/allfonctionalities/ppm/version-ppm/AddVersionPPM'
 import ListeVersionPPM from '@/simadou/allfonctionalities/ppm/version-ppm/ListeVersionPPM'
-import { createFileRoute } from '@tanstack/react-router'
 import { Briefcase } from 'lucide-react'
 import { useState } from 'react'
 
-export const Route = createFileRoute(
-  '/_authenticated/programmation/parametrage-marches/versions-ppm/',
-)({
-  component: VersionPPMPage,
-})
-
 type Mode = 'list' | 'add' | 'edit'
 
-function VersionPPMPage() {
+export function VersionPPMPage() {
     const [mode, setMode] = useState<Mode>('list')
     const [currentRow, setCurrentRow] = useState<any | null>(null)
 

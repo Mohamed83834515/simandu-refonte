@@ -1,4 +1,3 @@
-import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
@@ -24,10 +23,6 @@ import { useUpdateGeneralParams } from '@/simadou/allHooks/generalParams/mutatio
 import { SeuilInput } from '@/simadou/allfonctionalities/parametrage/autres/system/schemas/seuils.schemas'
 import { SeuilSection } from '@/simadou/allfonctionalities/parametrage/autres/system/SeuilSection'
 
-export const Route = createFileRoute(
-  '/_authenticated/parametrage/autres/system/'
-)({ component: SystemPage })
-
 const TABS = [
   { id: 'identite',      label: 'Identité système', icon: AppWindow   },
   { id: 'contacts',      label: 'Contacts',          icon: Mail        },
@@ -40,7 +35,7 @@ const TABS = [
 
 type TabId = typeof TABS[number]['id']
 
-function SystemPage() {
+export function SystemPage() {
    const { headerColor } = useColor()
    const { data: config, isLoading } = useGeneralParamsQuery()
   const { mutate: patch, isPending } = useUpdateGeneralParams()
