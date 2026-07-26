@@ -13,16 +13,16 @@ import { FonctionPage } from './fonction'
 
 export const Route = createFileRoute('/_authenticated/parametrage/autres')({
   component: AutresParametrageLayout,
-}) 
+})
 
 // ── Tabs config ───────────────────────────────────────────────────────────────
 type TabId = 'system' | 'unity' | 'zone' | 'fonction'
 
 const TABS: { id: TabId; label: string; icon: React.ElementType }[] = [
-  { id: 'system',   label: 'Système',             icon: Settings  },
-  { id: 'unity',    label: 'Unités indicateurs',   icon: Ruler     },
-  { id: 'zone',     label: 'Type zone',             icon: MapPin    },
-  { id: 'fonction', label: 'Fonction',              icon: Briefcase },
+  { id: 'system', label: 'Système', icon: Settings },
+  { id: 'unity', label: 'Unités indicateurs', icon: Ruler },
+  { id: 'zone', label: 'Type zone', icon: MapPin },
+  { id: 'fonction', label: 'Fonction', icon: Briefcase },
 ]
 
 // ── Layout ────────────────────────────────────────────────────────────────────
@@ -52,8 +52,8 @@ function AutresParametrageLayout() {
           value={currentTab}
           onValueChange={(v) => setCurrentTab(v as TabId)}
           style={{
-            '--tab-active-bg':          bg,
-            '--tab-active-color':       '#ffffff',
+            '--tab-active-bg': bg,
+            '--tab-active-color': '#ffffff',
             '--tab-active-font-weight': '700',
           } as React.CSSProperties}
         >
