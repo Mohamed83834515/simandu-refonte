@@ -28,6 +28,23 @@ import {
 import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
 import { TableLoadingOverlay } from './table-loading-overlay'
 
+type ColumnWidthMeta = {
+  width?: string | number
+  maxWidth?: string | number
+  className?: string
+  thClassName?: string
+  tdClassName?: string
+  mergeSubHeaders?: boolean
+}
+
+function columnWidthStyle(meta?: ColumnWidthMeta) {
+  if (!meta?.width && !meta?.maxWidth) return undefined
+  return {
+    width: meta.width,
+    maxWidth: meta.maxWidth ?? meta.width,
+  }
+}
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type ColumnFilterConfig = {
@@ -279,6 +296,9 @@ export function GenericTable<TData>({
                           ? headerGroups.length - groupIndex
                           : undefined
                       }
+                      style={columnWidthStyle(
+                        header.column.columnDef.meta as ColumnWidthMeta | undefined
+                      )}
                       className={cn(
                         // py-1.5 → header compact, pas d'espace inutile
                         'px-4 py-1.5 text-xs font-semibold tracking-wider uppercase',
@@ -347,7 +367,13 @@ export function GenericTable<TData>({
                 return (
                   <TableRow key={row.id} className={rowClassName}>
                     {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id} className={cellClassName(cell)}>
+                      <TableCell
+                        key={cell.id}
+                        className={cellClassName(cell)}
+                        style={columnWidthStyle(
+                          cell.column.columnDef.meta as ColumnWidthMeta | undefined
+                        )}
+                      >
                         {flexRender(
                           cell.column.columnDef.cell,
                           cell.getContext()
