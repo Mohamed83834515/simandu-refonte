@@ -132,9 +132,18 @@ export function DataTablePagination<TData>({
   compact = false,
 }: DataTablePaginationProps<TData>) {
   const currentPage = table.getState().pagination.pageIndex + 1
-  const totalPages = table.getPageCount()
+  const totalPages  = table.getPageCount()
   const pageNumbers = getPageNumbers(currentPage, totalPages)
-  const totalRows = table.getCoreRowModel().rows.length
+  const totalRows   = table.getCoreRowModel().rows.length
+  const pageSize    = table.getState().pagination.pageSize
+  const pageIndex   = table.getState().pagination.pageIndex
+  const rowFrom     = totalRows === 0 ? 0 : pageIndex * pageSize + 1
+  const rowTo       = Math.min((pageIndex + 1) * pageSize, totalRows)
+
+  // Label style ancien système : "Affichage de X à Y sur Z éléments"
+  const affichageLabel = totalRows === 0
+    ? 'Aucun élément'
+    : `Affichage de ${rowFrom} à ${rowTo} sur ${totalRows} éléments`
 
   if (compact) {
     return (
@@ -144,7 +153,12 @@ export function DataTablePagination<TData>({
           className
         )}
       >
-        <PageSizeSelect table={table} totalRows={totalRows} />
+        <div className='flex flex-wrap items-center gap-3'>
+          <PageSizeSelect table={table} totalRows={totalRows} />
+          <span className='text-sm text-muted-foreground whitespace-nowrap'>
+            {affichageLabel}
+          </span>
+        </div>
         <PageNavButtons
           table={table}
           currentPage={currentPage}
@@ -158,32 +172,29 @@ export function DataTablePagination<TData>({
   return (
     <div
       className={cn(
-        'flex items-center justify-between overflow-clip px-2',
-        '@max-2xl/content:flex-col-reverse @max-2xl/content:gap-4',
+        'flex flex-wrap items-center justify-between gap-3 px-2',
         className
       )}
-      style={{ overflowClipMargin: 1 }}
     >
-      <div className='flex w-full items-center justify-between'>
-        <div className='flex w-25 items-center justify-center text-sm font-medium @2xl/content:hidden'>
-          Page {currentPage} sur {totalPages}
-        </div>
-        <div className='flex items-center gap-2 @max-2xl/content:flex-row-reverse'>
-          <PageSizeSelect table={table} totalRows={totalRows} />
-          <p className='hidden text-sm font-medium sm:block'>Lignes par page</p>
-        </div>
+      {/* Gauche : sélecteur + lignes par page */}
+      <div className='flex flex-wrap items-center gap-3'>
+        <PageSizeSelect table={table} totalRows={totalRows} />
+        <span className='hidden text-sm font-medium sm:block whitespace-nowrap'>
+          Lignes par page
+        </span>
       </div>
 
-      <div className='flex items-center sm:space-x-6 lg:space-x-8'>
-        <div className='flex w-25 items-center justify-center text-sm font-medium @max-3xl/content:hidden'>
-          Page {currentPage} sur {totalPages}
-        </div>
-        <PageNavButtons
-          table={table}
-          currentPage={currentPage}
-          pageNumbers={pageNumbers}
-        />
-      </div>
+      {/* Centre : label affichage */}
+      <span className='text-sm text-muted-foreground whitespace-nowrap'>
+        {affichageLabel}
+      </span>
+
+      {/* Droite : navigation */}
+      <PageNavButtons
+        table={table}
+        currentPage={currentPage}
+        pageNumbers={pageNumbers}
+      />
     </div>
   )
 }
