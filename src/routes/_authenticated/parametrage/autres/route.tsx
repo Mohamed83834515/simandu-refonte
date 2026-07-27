@@ -13,7 +13,7 @@ import { FonctionPage } from './fonction'
 
 export const Route = createFileRoute('/_authenticated/parametrage/autres')({
   component: AutresParametrageLayout,
-})
+}) 
 
 // ── Tabs config ───────────────────────────────────────────────────────────────
 type TabId = 'system' | 'unity' | 'zone' | 'fonction'
