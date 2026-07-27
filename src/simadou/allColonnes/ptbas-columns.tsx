@@ -134,7 +134,7 @@ export const buildPtbasColumns = (
     const coutColumns: ColumnDef<Ptba> = {
         id: 'cout_row',
         header: ({ column }) => (
-            <DataTableColumnHeader column={column} title={`Cout Activites (${currencyCode})`}  />
+            <DataTableColumnHeader column={column} title={`Budget (${currencyCode})`}  />
         ),
         cell: ({ row }) => {
             const budget = row.original.cout_total_ptba
