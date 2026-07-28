@@ -54,7 +54,7 @@ export function buildCadreParentOptions({
       )
     })
     .map((cadre) => ({
-      value: cadre.code_cr,
+      value: cadre.id_cr,
       label: `${cadre.code_cr} - ${cadre.intutile_cr}`,
     }))
 }
