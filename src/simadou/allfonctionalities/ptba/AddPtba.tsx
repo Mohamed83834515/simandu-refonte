@@ -77,7 +77,6 @@ const AddPtba = ({ open, onOpenChange, currentRow }: OpenPropsPTBA) => {
     return getHighestLevelId(niveaux);
   }, [niveaux]);
 
-  console.log('ID du niveau le plus élevé:', highestLevelId);
   const selectedCadreId = useMemo(
     () =>
       resolveCadreAnalytiqueFormValue(

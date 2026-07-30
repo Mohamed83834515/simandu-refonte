@@ -18,6 +18,8 @@ export const niveauActiviteProjetQueryKeys = {
   all: ['niveaux-activite-projet'] as const,
   byProjet: (codeProjet: string | undefined) =>
     [...niveauActiviteProjetQueryKeys.all, 'by-projet', codeProjet] as const,
+  byProjetAndLast: (codeProjet: string | undefined) =>
+    [...niveauActiviteProjetQueryKeys.all, 'by-projet-last', codeProjet] as const,
 }
 
 /** Niveaux d'activité : globaux ou rattachés au projet selon la réponse API. */
@@ -106,17 +108,11 @@ export function useGetActivitesProjet(codeProjet: string | undefined) {
 }
 export function useGetActivitesProjetLastNiveau(codeProjet: string | undefined) {
   return useQuery({
-    queryKey: activiteProjetQueryKeys.byProjet(codeProjet),
+    queryKey: niveauActiviteProjetQueryKeys.byProjetAndLast(codeProjet),
     queryFn: async () => {
       if (!codeProjet) return []
-      try {
-        const scoped = await activiteProjetService.getLAstNiveauByProjet(codeProjet)
-        if (scoped.length > 0) return scoped
-      } catch {
-        // fallback client-side
-      }
-      const all = await activiteProjetService.getAll()
-      return all.filter((a) => matchesCodeProjet(a.code_projet, codeProjet))
+      const scoped = await activiteProjetService.getLAstNiveauByProjet(codeProjet)
+      return scoped
     },
     enabled: !!codeProjet,
   })
