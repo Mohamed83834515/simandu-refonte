@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useRef } from 'react'
 import { Loader2 } from 'lucide-react'
 import type { Ptba, TacheActivitePtba } from '@/simadou/allTypes'
 import { DataTableToolbarOutlineButton } from '@/components/data-table/toolbar-outline-button'
@@ -8,6 +8,11 @@ import {
   useActiviteTabbedToolbarAction,
 } from '@/simadou/allfonctionalities/ptba/ActiviteTabbedDialogContext'
 import ActiviteTabbedFormPanel from '@/simadou/allfonctionalities/suivi-ptba/ActiviteTabbedFormPanel'
+import {
+  canAddTacheWithProportions,
+  sumTacheProportions,
+  TACHE_PROPORTION_TOTAL_MAX,
+} from '@/simadou/lib/tacheActivitePtbaUtils'
 import TacheActiviteProjetForm from './TacheActiviteForm'
 import TacheActiviteProjetList from './TacheActiviteList'
 import { useGetTachesByActiviteProjet } from '@/simadou/allHooks/admin/tacheActiviteProjetHooks'
@@ -15,6 +20,8 @@ import { useGetTachesByActiviteProjet } from '@/simadou/allHooks/admin/tacheActi
 type TacheActivitePtbaManagerProps = {
   activite: Ptba
 }
+
+const EMPTY_TACHES: TacheActivitePtba[] = []
 
 export default function TacheActiviteProjetManager({
   activite,
@@ -24,22 +31,31 @@ export default function TacheActiviteProjetManager({
 
   useActiviteTabbedSubView(showForm)
 
-  const { data: taches = [], isLoading } = useGetTachesByActiviteProjet(
-    activite.id_ptba
-  )
+  const { data, isLoading } = useGetTachesByActiviteProjet(activite.id_ptba)
+  const taches = data ?? EMPTY_TACHES
+
+  const proportionTotal = useMemo(() => sumTacheProportions(taches), [taches])
+  const canAdd = useMemo(() => canAddTacheWithProportions(taches), [taches])
+
+  // Keeps `handleAdd` referentially stable: the toolbar action is pushed into
+  // the dialog via an effect, so an unstable identity would loop renders.
+  const canAddRef = useRef(canAdd)
+  canAddRef.current = canAdd
 
   const handleAdd = useCallback(() => {
+    if (!canAddRef.current) return
     setEditing(undefined)
     setShowForm(true)
   }, [])
 
   const toolbarAction = useMemo(
-    () => (
-      <DataTableToolbarOutlineButton onClick={handleAdd}>
-        Ajouter
-      </DataTableToolbarOutlineButton>
-    ),
-    [handleAdd]
+    () =>
+      canAdd ? (
+        <DataTableToolbarOutlineButton onClick={handleAdd}>
+          Ajouter
+        </DataTableToolbarOutlineButton>
+      ) : null,
+    [canAdd, handleAdd]
   )
 
   useActiviteTabbedToolbarAction('taches', toolbarAction, !showForm)
@@ -85,6 +101,7 @@ export default function TacheActiviteProjetManager({
           <TacheActiviteProjetForm
             tache={editing}
             activite={activite}
+            existingTaches={taches}
             onClose={handleCloseForm}
             onSuccess={handleSuccess}
           />
@@ -101,8 +118,14 @@ export default function TacheActiviteProjetManager({
 
       {!showForm && (
         <div className='shrink-0 border-t bg-muted/40 px-3 py-2 text-sm sm:px-4'>
-          <div className='text-xs text-muted-foreground'>
-            {taches.length} {taches.length === 1 ? 'tâche' : 'tâches'}
+          <div className='flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground'>
+            <span>
+              {taches.length} {taches.length === 1 ? 'tâche' : 'tâches'}
+            </span>
+            <span>
+              Proportion totale : {proportionTotal}% / {TACHE_PROPORTION_TOTAL_MAX}%
+              {!canAdd ? ' — quota atteint' : ''}
+            </span>
           </div>
         </div>
       )}

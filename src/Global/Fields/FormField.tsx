@@ -1439,6 +1439,8 @@ export const FormField = ({
               type='number'
               inputMode='numeric'
               placeholder={field.placeholder}
+              min={field.min}
+              max={field.max}
               {...register(field.name, {
                 setValueAs: (value: any) => {
                   if (value === '' || value === null || value === undefined) {
