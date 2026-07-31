@@ -31,7 +31,7 @@ interface PageRouteLayoutProps {
 
   extraButtons?: ActionButtonConfig[]
   /** Custom actions rendered before the dialog/extra buttons (e.g. download, import). */
-  headerActions?: React.ReactNode
+  headerActions?: ReactNode
 }
 
 export function PageRouteLayout({
