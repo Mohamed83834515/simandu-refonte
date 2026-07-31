@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button"
 import { CHART_COLORS, useColor } from "@/stores/others/color-store"
 import type { LucideIcon } from "lucide-react"
-import { useState, type ComponentType } from "react"
+import { useState, type ComponentType, type ReactNode } from "react"
 
 type ActionButtonConfig = {
   title: string
@@ -30,6 +30,8 @@ interface PageRouteLayoutProps {
   listComponent: ComponentType
 
   extraButtons?: ActionButtonConfig[]
+  /** Custom actions rendered before the dialog/extra buttons (e.g. download, import). */
+  headerActions?: React.ReactNode
 }
 
 export function PageRouteLayout({
@@ -40,6 +42,7 @@ export function PageRouteLayout({
   addDialogComponent: AddDialog,
   listComponent: ListComponent,
   extraButtons = [],
+  headerActions,
 }: PageRouteLayoutProps) {
 
   const [showAddDialog, setShowAddDialog] = useState(false)
@@ -68,6 +71,8 @@ export function PageRouteLayout({
 
         {/* ACTIONS */}
         <div className="flex items-center gap-2 flex-wrap">
+
+          {headerActions}
 
           {/* BOUTONS SUPPLÉMENTAIRES */}
           {extraButtons.map((button) => {

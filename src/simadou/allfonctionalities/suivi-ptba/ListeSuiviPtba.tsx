@@ -23,7 +23,7 @@ import SuiviTacheActiviteManager from './suivi-tache/SuiviTacheActiviteManager'
 import SuiviDecaissementPtbaManager from './suivi-decaissement/SuiviDecaissementPtbaManager'
 import suiviAvancementContratService from '@/simadou/allSercices/suiviAvancementContratService'
 
-const route = getRouteApi('/_authenticated/programmation/suivi-ptba/')
+const route = getRouteApi('/_authenticated/suivi-resultats/suivi-ptba/')
 
 export default function ListeSuiviPtba() {
   const codeProgramme = useActiveProgrammeCode()

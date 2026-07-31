@@ -148,11 +148,6 @@ export const sidebarData: SidebarData = {
               icon: FileSignature,
             },
             {
-              title: 'Suivi du PAO',
-              url: '/programmation/suivi-ptba',
-              icon: Eye,
-            },
-            {
               title: 'Parametrage des marches',
               url: '/programmation/parametrage-marches',
               icon: List,
@@ -187,6 +182,11 @@ export const sidebarData: SidebarData = {
           title: 'Suivi des résultats',
           icon: ClipboardCheck,
           items: [
+            {
+              title: 'Suivi du PAO',
+              url: '/suivi-resultats/suivi-ptba',
+              icon: Eye,
+            },
             {
               title: 'Suivi des indicateurs',
               url: '/suivi-resultats/suivi-indicateurs',

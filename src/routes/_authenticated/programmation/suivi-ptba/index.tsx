@@ -1,21 +1,10 @@
-import { PageRouteLayout } from '@/Global/HookRoute/genericRoute'
-import ListeSuiviPtba from '@/simadou/allfonctionalities/suivi-ptba/ListeSuiviPtba'
-import { createFileRoute } from '@tanstack/react-router'
-import { Eye } from 'lucide-react'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 
+/** Ancien chemin — redirige vers Suivi des résultats. */
 export const Route = createFileRoute(
   '/_authenticated/programmation/suivi-ptba/',
 )({
-  component: RouteComponent,
+  beforeLoad: () => {
+    throw redirect({ to: '/suivi-resultats/suivi-ptba/' })
+  },
 })
-
-function RouteComponent() {
-  return (
-    <PageRouteLayout
-      title="Suivi du Plan d'Action Operationnel"
-      icon={Eye}
-      showAddButton={false}
-      listComponent={ListeSuiviPtba}
-    />
-  )
-}
