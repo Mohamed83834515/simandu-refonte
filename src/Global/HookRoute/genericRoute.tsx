@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button"
 import { CHART_COLORS, useColor } from "@/stores/others/color-store"
 import type { LucideIcon } from "lucide-react"
-import { useState, type ComponentType, type ReactNode } from "react"
+import { useState, type ComponentType, type ReactNode } from 'react'
 
 type ActionButtonConfig = {
   title: string
@@ -31,7 +31,7 @@ interface PageRouteLayoutProps {
 
   extraButtons?: ActionButtonConfig[]
   /** Custom actions rendered before the dialog/extra buttons (e.g. download, import). */
-  headerActions?: React.ReactNode
+  headerActions?: ReactNode
 }
 
 export function PageRouteLayout({

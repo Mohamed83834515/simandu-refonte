@@ -5,6 +5,6 @@ export const Route = createFileRoute(
   '/_authenticated/programmation/suivi-ptba/',
 )({
   beforeLoad: () => {
-    throw redirect({ to: '/suivi-resultats/suivi-ptba/' })
+    throw redirect({ to: '/suivi-resultats/suivi-ptba' })
   },
 })
