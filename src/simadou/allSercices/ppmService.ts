@@ -1,8 +1,25 @@
-import { apiClient } from '@/axios/api'
+import { api, apiClient } from '@/axios/api'
 import type { Ppm } from '@/simadou/allTypes/ppm'
 import type { PpmFormData } from '@/simadou/schemas/ppmSchema'
 
 const ENDPOINT = '/ppms/'
+
+function filenameFromContentDisposition(
+  header: string | undefined,
+  fallback: string
+): string {
+  if (!header) return fallback
+  const utf8Match = /filename\*=UTF-8''([^;]+)/i.exec(header)
+  if (utf8Match?.[1]) {
+    try {
+      return decodeURIComponent(utf8Match[1].trim())
+    } catch {
+      return utf8Match[1].trim()
+    }
+  }
+  const plainMatch = /filename="?([^";]+)"?/i.exec(header)
+  return plainMatch?.[1]?.trim() || fallback
+}
 
 export const ppmService = {
   async getAll(): Promise<Ppm[]> {
@@ -31,5 +48,21 @@ export const ppmService = {
     await apiClient.request<void>(`${ENDPOINT}${id}/`, {
       method: 'DELETE',
     })
+  },
+
+  async downloadTemplate(): Promise<{ blob: Blob; filename: string }> {
+    const response = await api.request<Blob>({
+      url: `${ENDPOINT}template/`,
+      method: 'GET',
+      responseType: 'blob',
+    })
+
+    return {
+      blob: response.data,
+      filename: filenameFromContentDisposition(
+        response.headers['content-disposition'],
+        'PPM-canevas.xlsx'
+      ),
+    }
   },
 }

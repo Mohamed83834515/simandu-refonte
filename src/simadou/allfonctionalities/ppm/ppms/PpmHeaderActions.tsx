@@ -1,24 +1,30 @@
-import { useRef } from 'react'
-import { Download, FileUp } from 'lucide-react'
+import { useRef, useState } from 'react'
+import { Download, FileUp, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-
-const PPM_CANEVAS_URL = '/templates/ppm-canevas.xlsx'
-const PPM_CANEVAS_FILENAME = 'PPM-2025-Sans-Montant.xlsx'
+import { getApiErrorMessage } from '@/lib/api-error-message'
+import { downloadBlob } from '@/simadou/allfonctionalities/rapport/export/rapportExportUtils'
+import { ppmService } from '@/simadou/allSercices/ppmService'
 
 export default function PpmHeaderActions() {
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [isDownloading, setIsDownloading] = useState(false)
 
-  const handleDownloadCanevas = () => {
-    const link = document.createElement('a')
-    link.href = PPM_CANEVAS_URL
-    link.download = PPM_CANEVAS_FILENAME
-    link.rel = 'noopener'
-    document.body.appendChild(link)
-    link.click()
-    link.remove()
-    toast.success('Téléchargement du canevas démarré')
+  const handleDownloadCanevas = async () => {
+    if (isDownloading) return
+    setIsDownloading(true)
+    try {
+      const { blob, filename } = await ppmService.downloadTemplate()
+      downloadBlob(blob, filename)
+      toast.success('Canevas téléchargé')
+    } catch (error) {
+      toast.error(
+        getApiErrorMessage(error, 'Erreur lors du téléchargement du canevas')
+      )
+    } finally {
+      setIsDownloading(false)
+    }
   }
 
   const handleImportClick = () => {
@@ -51,6 +57,7 @@ export default function PpmHeaderActions() {
         type='button'
         variant='outline'
         onClick={handleDownloadCanevas}
+        disabled={isDownloading}
         className={cn(
           'h-9 gap-2 border-emerald-200/80 bg-emerald-50/70 text-emerald-800',
           'shadow-sm transition-all hover:border-emerald-300 hover:bg-emerald-100 hover:text-emerald-900',
@@ -58,8 +65,14 @@ export default function PpmHeaderActions() {
           'dark:hover:bg-emerald-950/70'
         )}
       >
-        <Download className='h-4 w-4' />
-        <span className='text-sm font-medium'>Télécharger le canevas</span>
+        {isDownloading ? (
+          <Loader2 className='h-4 w-4 animate-spin' />
+        ) : (
+          <Download className='h-4 w-4' />
+        )}
+        <span className='text-sm font-medium'>
+          {isDownloading ? 'Téléchargement…' : 'Télécharger le canevas'}
+        </span>
       </Button>
 
       <Button
