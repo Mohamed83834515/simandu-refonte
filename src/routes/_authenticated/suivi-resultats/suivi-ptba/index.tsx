@@ -1,3 +1,4 @@
+
 import { PageRouteLayout } from '@/Global/HookRoute/genericRoute'
 import ListeSuiviPtba from '@/simadou/allfonctionalities/suivi-ptba/ListeSuiviPtba'
 import { createFileRoute } from '@tanstack/react-router'
