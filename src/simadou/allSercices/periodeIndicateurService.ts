@@ -7,7 +7,7 @@ import { filterPeriodesByIndicateur } from '@/simadou/lib/periodeIndicateurUtils
 import { normalizeApiList } from './apiListUtils'
 
 const BASE_URL = '/periodes-indicateurs/'
-const INDICATEUR_BASE_URL = '/indicateurs-cmr/'
+const INDICATEUR_BASE_URL = '/indicateurs-cmrs/'
 
 export const periodeIndicateurService = {
   getByIndicateur: async (refIndicateur: number): Promise<PeriodeIndicateur[]> => {

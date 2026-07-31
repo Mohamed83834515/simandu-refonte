@@ -32,7 +32,7 @@ export const niveauActionService = {
 
   // Supprimer un niveau d'action (Note: l'URL dans delete.ts était activite_programme/)
   async delete(id: number): Promise<void> {
-    await apiClient.request<void>(`/activite_programme/${id}/`, {
+    await apiClient.request<void>(`/activites-programmes/${id}/`, {
       method: "DELETE",
     });
   }

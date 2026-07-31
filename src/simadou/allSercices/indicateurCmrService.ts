@@ -2,7 +2,7 @@ import { apiClient } from "@/axios/api";
 import type { IndicateurCmr, IndicateurCmrFormData } from "../allTypes";
 import { normalizeApiList } from "./apiListUtils";
 
-const BASE_URL = "/indicateurs-cmr/";
+const BASE_URL = "/indicateurs-cmrs/";
 
 function mapIndicateurCmrFromApi(raw: Record<string, unknown>): IndicateurCmr {
   const rawResultat = raw.resultat_cmr ?? raw.Resultat_cmr;

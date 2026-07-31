@@ -154,11 +154,11 @@ export function toPartenaireCaFormValue(
 
 export function buildCadreAnalytiqueParentOptions({
   cadres,
-  niveauCodeNumber,
+  parentNIveauId,
   excludeCadreId,
 }: {
   cadres: CadreAnalytique[]
-  niveauCodeNumber: number
+  parentNIveauId: number | null
   excludeCadreId?: number
 }) {
   return cadres
@@ -166,9 +166,9 @@ export function buildCadreAnalytiqueParentOptions({
       const cadreNiveau = resolveNiveauCaNumber(cadre.niveau_ca)
       return (
         cadreNiveau != null &&
-        cadreNiveau === niveauCodeNumber - 1 &&
+        cadreNiveau === (parentNIveauId != null ? parentNIveauId : 0) &&
         cadre.id_ca !== excludeCadreId
-      ) 
+      )
     })
     .map((cadre) => ({
       value: cadre.id_ca,
@@ -186,9 +186,9 @@ export function getFixedCodeLengthForNiveau(
     : niveaux
 
   const niveauConfig = scoped.find(
-    (n) => Number(n.code_number_nca) === niveauCodeNumber
+    (n) => Number(n.nombre_nca) === niveauCodeNumber
   )
-  return Number(niveauConfig?.nombre_nca) || 2
+  return Number(niveauConfig?.code_number_nca) || 2
 }
 
 export function getNiveauCadreAnalytiqueLibelle(
@@ -201,7 +201,7 @@ export function getNiveauCadreAnalytiqueLibelle(
     : niveaux
 
   const niveauConfig = scoped.find(
-    (n) => Number(n.id_nca) === niveauCodeNumber
+    (n) => Number(n.nombre_nca) === niveauCodeNumber
   )
   return niveauConfig?.libelle_nca ?? ''
 }

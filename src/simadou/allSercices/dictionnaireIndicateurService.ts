@@ -7,7 +7,7 @@ export const dictionnaireIndicateurService = {
   getAll: async (): Promise<DictionnaireIndicateur[]> => {
     try {
       const response = await apiClient.request<DictionnaireIndicateur[]>(
-        "/dictionnaire_indicateur/",
+        "/dictionnaires-indicateurs/",
       );
       return Array.isArray(response) ? response : [];
     } catch (error) {
@@ -22,7 +22,7 @@ export const dictionnaireIndicateurService = {
   getById: async (id: number): Promise<DictionnaireIndicateur> => {
     try {
       return await apiClient.request<DictionnaireIndicateur>(
-        `/dictionnaire_indicateur/${id}/`,
+        `/dictionnaires-indicateurs/${id}/`,
       );
     } catch (error) {
       toast.error(
@@ -36,7 +36,7 @@ export const dictionnaireIndicateurService = {
   searchByCode: async (code: string): Promise<DictionnaireIndicateur[]> => {
     try {
       const response = await apiClient.request<DictionnaireIndicateur[]>(
-        `/dictionnaire_indicateur/?code_ref_ind__icontains=${code}`,
+        `/dictionnaires-indicateurs/?code_ref_ind__icontains=${code}`,
       );
       return Array.isArray(response) ? response : [];
     } catch (error) {
@@ -53,7 +53,7 @@ export const dictionnaireIndicateurService = {
   ): Promise<DictionnaireIndicateur[]> => {
     try {
       const response = await apiClient.request<DictionnaireIndicateur[]>(
-        `/dictionnaire_indicateur/?responsable_collecte_cmr=${responsable}`,
+        `/dictionnaires-indicateurs/?responsable_collecte_cmr=${responsable}`,
       );
       return Array.isArray(response) ? response : [];
     } catch (error) {
@@ -70,7 +70,7 @@ export const dictionnaireIndicateurService = {
   ): Promise<DictionnaireIndicateur[]> => {
     try {
       const response = await apiClient.request<DictionnaireIndicateur[]>(
-        `/dictionnaire_indicateur/?typologie=${typologie}`,
+        `/dictionnaires-indicateurs/?typologie=${typologie}`,
       );
       return Array.isArray(response) ? response : [];
     } catch (error) {
@@ -85,7 +85,7 @@ export const dictionnaireIndicateurService = {
   getByDomaine: async (domaine: string): Promise<DictionnaireIndicateur[]> => {
     try {
       const response = await apiClient.request<DictionnaireIndicateur[]>(
-        `/dictionnaire_indicateur/?domaine_thematique=${domaine}`,
+        `/dictionnaires-indicateurs/?domaine_thematique=${domaine}`,
       );
       return Array.isArray(response) ? response : [];
     } catch (error) {
@@ -102,7 +102,7 @@ export const dictionnaireIndicateurService = {
   ): Promise<DictionnaireIndicateur> => {
     try {
       const response = await apiClient.request<DictionnaireIndicateur>(
-        "/dictionnaire_indicateur/",
+        "/dictionnaires-indicateurs/",
         {
           method: "POST",
           data,
@@ -123,7 +123,7 @@ export const dictionnaireIndicateurService = {
   ): Promise<DictionnaireIndicateur> => {
     try {
       const response = await apiClient.request<DictionnaireIndicateur>(
-        `/dictionnaire_indicateur/${id}/`,
+        `/dictionnaires-indicateurs/${id}/`,
         {
           method: "PUT",
           data,
@@ -143,7 +143,7 @@ export const dictionnaireIndicateurService = {
   delete: async (id: number): Promise<void> => {
     try {
       await apiClient.request<DictionnaireIndicateur>(
-        `/dictionnaire_indicateur/${id}/`,
+        `/dictionnaires-indicateurs/${id}/`,
         {
           method: "DELETE",
         },
@@ -161,7 +161,7 @@ export const dictionnaireIndicateurService = {
   toggleStatus: async (id: number): Promise<DictionnaireIndicateur> => {
     try {
       const response = await apiClient.request<DictionnaireIndicateur>(
-        `/dictionnaire_indicateur/${id}/toggle_status/`,
+        `/dictionnaires-indicateurs/${id}/toggle_status/`,
         {
           method: "PATCH",
         },

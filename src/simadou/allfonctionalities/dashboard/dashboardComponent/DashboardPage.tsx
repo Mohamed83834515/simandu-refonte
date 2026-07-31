@@ -268,7 +268,7 @@ const DashboardPage: React.FC = () => {
 
                 {/* Carte 3 : PAO Département */}
                 <StatCard
-                    title={`PAO ${paoMinagriStats.annee} du MINAGRI`}
+                    title={`PAO ${paoMinagriStats.annee} du MMAFP`}
                     color='purple'
                     rows={[
                         {

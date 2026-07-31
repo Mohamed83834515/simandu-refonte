@@ -79,9 +79,9 @@ export const sidebarData: SidebarData = {
               title: 'Zones agroécologiques',
               url: '/parametrage/zone-de-collecte',
               icon: MapPin,
-            },
+            }, 
             {
-              title: 'Cadre Organique du MINAGRI',
+              title: 'Cadre Organique du MMAFP',
               url: '/parametrage/plans-de-site',
               icon: ClipboardList,
             },

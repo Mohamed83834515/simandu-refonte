@@ -1,5 +1,4 @@
 import type { SelectOption } from '@/Global/types/formConfig'
-import type { IndicateurCmr } from '@/simadou/allTypes/indicateurCmr'
 import type {
   IndicateurTache,
   IndicateurTacheRequest,
@@ -7,7 +6,7 @@ import type {
 import type { UniteIndicateur } from '@/simadou/allTypes/uniteIndicateur'
 import type { IndicateurTacheFormData } from '@/simadou/schemas/indicateurTacheSchemas'
 import { resolveRelationId } from '@/simadou/lib/resolveApiRelation'
-import { IndicateurPerformanceProjet } from '../allTypes'
+import { IndicateurPerformanceProgramme, IndicateurPerformanceProjet } from '../allTypes'
 
 function normalizeTrimestre(value: unknown): number {
   if (value == null) return 0
@@ -49,16 +48,16 @@ export function filterIndicateursByActivite(
 }
 
 export function buildIndicateurCmrSelectOptions(
-  cmrs: IndicateurCmr[]
+  cmrs: IndicateurPerformanceProgramme[]
 ): SelectOption[] {
   return cmrs.map((cmr) => {
-    const code = cmr.code_ref_ind?.trim()
-    const intitule = cmr.intitule_ref_ind?.trim()
+    const code = cmr.id_indicateur_performance?.toString().trim()
+    const intitule = cmr.intitule_indicateur_tache?.trim()
     const label =
-      [code, intitule].filter(Boolean).join(' — ') || String(cmr.id_ref_ind_cmr)
+      [code, intitule].filter(Boolean).join(' — ') || String(cmr.id_indicateur_performance)
 
     return {
-      value: cmr.id_ref_ind_cmr,
+      value: cmr.id_indicateur_performance,
       label,
     }
   })

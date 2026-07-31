@@ -2,7 +2,7 @@ import { apiClient } from "@/axios/api";
 import { ActiviteProgrammeFormData } from "../schemas/activiteProgrammeSchemas";
 import type { ActiviteProgramme } from "../allTypes/activiteProgramme";
 
-const BASE_URL = "/activite_programme/";
+const BASE_URL = "/activites-programmes/";
 
 const activiteProgrammeService = {
   // Récupérer toutes les activités programme

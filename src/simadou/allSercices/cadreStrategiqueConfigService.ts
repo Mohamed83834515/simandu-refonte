@@ -10,7 +10,7 @@ export const cadreStrategiqueConfigService = {
   getAll: async (): Promise<CadreStrategiqueConfig[]> => {
     try {
       const response = await apiClient.request<CadreStrategiqueConfig[]>(
-        "/niveau_cadre_strategique/",
+        "/niveaux-cadres-strategiques/",
       );
       return Array.isArray(response) ? response : [];
     } catch (error) {
@@ -23,7 +23,7 @@ export const cadreStrategiqueConfigService = {
   getById: async (id: number): Promise<CadreStrategiqueConfig> => {
     try {
       return await apiClient.request<CadreStrategiqueConfig>(
-        `/niveau_cadre_strategique/${id}/`,
+        `/niveaux-cadres-strategiques/${id}/`,
       );
     } catch (error) {
       toast.error("Erreur lors de la récupération de la configuration");
@@ -35,7 +35,7 @@ export const cadreStrategiqueConfigService = {
   getByType: async (type: 1 | 2 | 3): Promise<CadreStrategiqueConfig[]> => {
     try {
       const response = await apiClient.request<CadreStrategiqueConfig[]>(
-        `/niveau_cadre_strategique/?type_csc=${type}`,
+        `/niveaux-cadres-strategiques/?type_csc=${type}`,
       );
       return Array.isArray(response) ? response : [];
     } catch (error) {
@@ -50,7 +50,7 @@ export const cadreStrategiqueConfigService = {
   ): Promise<CadreStrategiqueConfig[]> => {
     try {
       const response = await apiClient.request<CadreStrategiqueConfig[]>(
-        `/niveau_cadre_strategique/?programme=${programmeId}`,
+        `/niveaux-cadres-strategiques/?programme=${programmeId}`,
       );
       return Array.isArray(response) ? response : [];
     } catch (error) {
@@ -67,7 +67,7 @@ export const cadreStrategiqueConfigService = {
   ): Promise<CadreStrategiqueConfig[]> => {
     try {
       const response = await apiClient.request<CadreStrategiqueConfig[]>(
-        `/niveau_cadre_strategique/?libelle_csc__icontains=${libelle}`,
+        `/niveaux-cadres-strategiques/?libelle_csc__icontains=${libelle}`,
       );
       return Array.isArray(response) ? response : [];
     } catch (error) {
@@ -82,7 +82,7 @@ export const cadreStrategiqueConfigService = {
   ): Promise<CadreStrategiqueConfig> => {
     try {
       const response = await apiClient.request<CadreStrategiqueConfig>(
-        "/niveau_cadre_strategique/",
+        "/niveaux-cadres-strategiques/",
         {
           method: "POST",
           data,
@@ -103,7 +103,7 @@ export const cadreStrategiqueConfigService = {
   ): Promise<CadreStrategiqueConfig> => {
     try {
       const response = await apiClient.request<CadreStrategiqueConfig>(
-        `/niveau_cadre_strategique/${id}/`,
+        `/niveaux-cadres-strategiques/${id}/`,
         {
           method: "PUT",
           data,
@@ -120,7 +120,7 @@ export const cadreStrategiqueConfigService = {
   // Delete configuration
   delete: async (id: number): Promise<void> => {
     try {
-      await apiClient.request(`/niveau_cadre_strategique/${id}/`, {
+      await apiClient.request(`/niveaux-cadres-strategiques/${id}/`, {
         method: "DELETE",
       });
       toast.success("Configuration supprimée avec succès");
@@ -134,7 +134,7 @@ export const cadreStrategiqueConfigService = {
   toggleStatus: async (id: number): Promise<CadreStrategiqueConfig> => {
     try {
       const response = await apiClient.request<CadreStrategiqueConfig>(
-        `/niveau_cadre_strategique/${id}/toggle_status/`,
+        `/niveaux-cadres-strategiques/${id}/toggle_status/`,
         {
           method: "PATCH",
         },
@@ -154,7 +154,7 @@ export const cadreStrategiqueConfigService = {
   ): Promise<boolean> => {
     try {
       const response = await apiClient.request<{ isUnique: boolean }>(
-        "/niveau_cadre_strategique/validate_libelle/",
+        "/niveaux-cadres-strategiques/validate_libelle/",
         {
           method: "POST",
           data: { libelle_csc: libelle, exclude_id: excludeId },
@@ -176,7 +176,7 @@ export const cadreStrategiqueConfigService = {
       const response = await apiClient.request<{
         total: number;
         byType: Record<1 | 2 | 3, number>;
-      }>("/niveau_cadre_strategique/stats/");
+      }>("/niveaux-cadres-strategiques/stats/");
       return response;
     } catch (error) {
       toast.error("Erreur lors de la récupération des statistiques");

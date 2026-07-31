@@ -9,7 +9,7 @@ export const typeActiviteSchema = z.object({
   intutile_type: z
     .string()
     .min(1, "L'intitulé est requis")
-    .max(200, "L'intitulé ne peut pas dépasser 200 caractères"),
+    .max(1000, "L'intitulé ne peut pas dépasser 1000 caractères"),
   description: z
     .string()
    .optional(),

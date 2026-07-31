@@ -1,6 +1,6 @@
 /**
  * Suivi indicateur tâche.
- * - Programme: GET/POST /suivi_indicateur_tache/
+ * - Programme: GET/POST /suivis-indicateurs-taches/
  * - Projet: GET/POST /suivi-indicateur-tache-projets/
  *
  * - personnel_sit: id du personnel qui a enregistré le suivi

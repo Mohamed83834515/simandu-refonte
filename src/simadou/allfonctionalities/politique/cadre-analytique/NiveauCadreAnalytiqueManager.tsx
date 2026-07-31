@@ -126,7 +126,6 @@ export default function NiveauCadreAnalytiqueManager() {
           code_number_nca: Number(row.codeLength) || 2,
           programme: codeProgramme,
         }
-        console.log('row', data)
         if (row.isNew) {
           await createMutation.mutateAsync(data)
         } else if (row.id != null) {
@@ -136,7 +135,7 @@ export default function NiveauCadreAnalytiqueManager() {
 
       const fresh = await queryClient.fetchQuery({
         queryKey: niveauCadreAnalytiqueQueryKeys.all,
-        queryFn: () => niveauCadreAnalytiqueService.getAll(),
+        queryFn: () => niveauCadreAnalytiqueService.getAll(codeProgramme),
       })
       const synced = sortNiveauxCadreAnalytique(
         filterNiveauxByProgramme(fresh, codeProgramme, programmeId)
@@ -192,7 +191,6 @@ export default function NiveauCadreAnalytiqueManager() {
   if (isLoading && !isDirty && rows.every((r) => r.isNew && !r.libelle)) {
     return <div className='py-6 text-sm text-muted-foreground'>Chargement…</div>
   }
-  console.log('niveau', niveauxProgramme)
   return (
     <div className='space-y-4'>
       <div className='flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between'>

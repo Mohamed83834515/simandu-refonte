@@ -3,7 +3,7 @@ import { apiClient } from "@/axios/api";
 import { CadreSecteur, CadreSecteurFormData } from "../allTypes/entities";
 
 class CadreSecteurService {
-  private baseUrl = "/cadre_secteur";
+  private baseUrl = "/cadres-secteurs";
 
   async getAll(): Promise<CadreSecteur[]> {
     const response = await apiClient.request<CadreSecteur[]>(this.baseUrl);

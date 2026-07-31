@@ -2,7 +2,7 @@ import { apiClient } from "@/axios/api";
 import type { IndicateurActivitePtba } from "../allTypes";
 import { IndicateurActivitePtbaFormData } from "../schemas/activiteProjetSchemas";
 
-const ENDPOINT = "/indicateur_activite_ptba/";
+const ENDPOINT = "/indicateurs-activites-ptbas/";
 
 const indicateurActivitePtbaService = {
   /**

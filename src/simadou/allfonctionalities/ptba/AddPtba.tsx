@@ -15,8 +15,7 @@ import {
 } from '@/simadou/allTypes/entities'
 import { getPtbaFormConfig } from '@/simadou/allfieldsConfig/ptbaForm'
 import {
-  buildCadreAnalytiqueSelectOptions,
-  getPtbaCadreAnalytiqueNiveauCode,
+  buildCadreAnalytiqueSelectOptions
 } from '@/simadou/lib/cadreAnalytiqueUtils'
 import {
   resolveCadreAnalytiqueFormValue,
@@ -37,6 +36,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { useGetTypeActivites } from '@/simadou/allHooks/admin/typeActivitesHooks'
+import { useGetLocalites } from '@/simadou/allHooks/admin/localiteHooks'
+import { useGetActeurs } from '@/simadou/allHooks/admin/acteurHooks'
+import { useGetPersonnels } from '@/simadou/allHooks/admin/personnelHooks'
+import { useGetCadreStrategiques } from '@/simadou/allHooks/admin/cadreStrategiqueHooks'
+import { useGetUgls } from '@/simadou/allHooks/admin/uglHooks'
 
 export interface OpenPropsPTBA {
   open: boolean
@@ -49,11 +54,30 @@ const AddPtba = ({ open, onOpenChange, currentRow }: OpenPropsPTBA) => {
   const { selectedVersionId } = usePtbaVersionSelection(codeProgramme)
   const { data: cadresAnalytique = [] } = useGetCadresAnalytique()
   const { data: niveaux = [] } = useGetNiveauxCadreAnalytique()
+  const { data: types_activites = [] } = useGetTypeActivites()
+  const { data: localites = [] } = useGetLocalites()
+  const { data: acteurs = [] } = useGetActeurs()
+  const { data: personnels = [] } = useGetPersonnels()
+  const { data: cadres_strategiques = [] } = useGetCadreStrategiques()
+  const { data: ugls = [] } = useGetUgls()
 
-  const ptbaNiveauCode = useMemo(() => {
-    return getPtbaCadreAnalytiqueNiveauCode(niveaux)
-  }, [niveaux])
+  // Fonction utilitaire (hors du composant)
+  const getHighestLevelId = (niveauxx: any[]) => {
+    if (!niveauxx || niveauxx.length === 0) return null;
 
+    const highestLevel = niveauxx.reduce((max, current) =>
+      current.nombre_nca > max.nombre_nca ? current : max
+    );
+
+    return highestLevel.id_nca;
+  };
+
+  // Dans votre composant React
+  const highestLevelId = useMemo(() => {
+    return getHighestLevelId(niveaux);
+  }, [niveaux]);
+
+  console.log('ID du niveau le plus élevé:', highestLevelId);
   const selectedCadreId = useMemo(
     () =>
       resolveCadreAnalytiqueFormValue(
@@ -66,15 +90,98 @@ const AddPtba = ({ open, onOpenChange, currentRow }: OpenPropsPTBA) => {
   const cadreAnalytiqueOptions = useMemo(
     () =>
       buildCadreAnalytiqueSelectOptions(cadresAnalytique, {
-        niveauCodeNumber: ptbaNiveauCode,
+        niveauCodeNumber: highestLevelId,
         includeCadreIds: selectedCadreId ? [selectedCadreId] : [],
       }),
-    [cadresAnalytique, ptbaNiveauCode, selectedCadreId]
+    [cadresAnalytique, highestLevelId, selectedCadreId]
   )
+  const typeActivitesOptions = useMemo(() => {
+    if (!types_activites || types_activites.length === 0) return [];
+    return types_activites
+      .filter(item => item?.code_type != null)
+      .map((item: any) => ({
+        label: item.intutile_type || 'Sans nom',
+        value: String(item.code_type),
+      }));
+  }, [types_activites]);
+
+  const localiteOptions = useMemo(() => {
+    if (!localites || localites.length === 0) return [];
+    return localites
+      .filter((localite) => {
+        if (!localite) return false;
+        if (typeof localite.niveau_loca === 'object' && localite.niveau_loca !== null) {
+          return localite.niveau_loca.nombre_nlc === 1;
+        }
+        return localite.niveau_loca === 1;
+      })
+      .map((localite) => ({
+        value: localite.id_loca as number,
+        label: localite.intitule_loca || 'Sans nom',
+      }));
+  }, [localites]);
+
+  const acteurOptions = useMemo(() => {
+    if (!acteurs || acteurs.length === 0) return [];
+    return acteurs
+      .filter((acteur) => acteur?.id_acteur != null)
+      .map((acteur) => ({
+        value: acteur.id_acteur as number,
+        label: acteur.nom_acteur || 'Sans nom',
+      }));
+  }, [acteurs]);
+
+  const personnelOptions = useMemo(() => {
+    if (!personnels || personnels.length === 0) return [];
+    return personnels
+      .filter(p => p?.n_personnel != null)
+      .map((p) => ({
+        value: p.n_personnel!,
+        label: `${p.prenom_perso || ''} ${p.nom_perso || ''}`.trim() || 'Sans nom',
+      }));
+  }, [personnels]);
+
+  const uglOptions = useMemo(() => {
+    if (!ugls || ugls.length === 0) return [];
+    return ugls
+      .filter(ugl => ugl?.code_ugl != null)
+      .map((ugl) => ({
+        value: ugl.code_ugl,
+        label: ugl.nom_ugl || 'Sans nom',
+      }));
+  }, [ugls]);
+
+  const cadreStrategiqueOptions = useMemo(() => {
+    if (!cadres_strategiques || cadres_strategiques.length === 0) return [];
+    return cadres_strategiques
+      .filter(cadre => cadre?.id_cs != null)
+      .map((cadre) => ({
+        value: cadre.id_cs,
+        label: `${cadre.code_cs || ''} - ${cadre.intutile_cs || ''}`.trim() || 'Sans nom',
+      }));
+  }, [cadres_strategiques]);
+
+  // Utilisation dans le formConfig
   const formConfig = useMemo(
-    () => getPtbaFormConfig(cadreAnalytiqueOptions),
-    [cadreAnalytiqueOptions]
-  )
+    () => getPtbaFormConfig(
+      cadreAnalytiqueOptions,
+      typeActivitesOptions,
+      localiteOptions,
+      acteurOptions,
+      personnelOptions,
+      uglOptions,
+      cadreStrategiqueOptions
+    ),
+    [
+      cadreAnalytiqueOptions,
+      typeActivitesOptions,
+      localiteOptions,
+      acteurOptions,
+      personnelOptions,
+      uglOptions,
+      cadreStrategiqueOptions
+    ]
+  );
   const defaultValues = useMemo(
     (): PtbaFormData => ({
       localites_ptba:
@@ -85,8 +192,8 @@ const AddPtba = ({ open, onOpenChange, currentRow }: OpenPropsPTBA) => {
       partenaire_conserne_ptba:
         typeof currentRow?.partenaire_conserne_ptba === 'object'
           ? (currentRow?.partenaire_conserne_ptba as Acteur[]).map(
-              (p) => p.id_acteur
-            )
+            (p) => p.id_acteur
+          )
           : [],
 
       code_activite_ptba: currentRow?.code_activite_ptba || '',
@@ -185,16 +292,19 @@ const AddPtba = ({ open, onOpenChange, currentRow }: OpenPropsPTBA) => {
           </DialogDescription>
         </DialogHeader>
 
-        <StepDynamicForm
-          key={`${currentRow?.id_ptba ?? 'new'}-${open}`}
-          config={formConfig}
-          schema={ptbaSchema}
-          defaultValues={defaultValues}
-          onSubmit={onSubmit}
-          isLoading={mutation.isPending}
-          submitText={isEdit ? 'Modifier' : 'Ajouter'}
-          loadingText={isEdit ? 'Modification...' : 'Ajout en cours...'}
-        />
+        {/* Conteneur avec défilement */}
+        <div className="max-h-[70vh] overflow-y-auto pr-2 -mr-2">
+          <StepDynamicForm
+            key={`${currentRow?.id_ptba ?? 'new'}-${open}`}
+            config={formConfig}
+            schema={ptbaSchema}
+            defaultValues={defaultValues}
+            onSubmit={onSubmit}
+            isLoading={mutation.isPending}
+            submitText={isEdit ? 'Modifier' : 'Ajouter'}
+            loadingText={isEdit ? 'Modification...' : 'Ajout en cours...'}
+          />
+        </div>
       </DialogContent>
     </Dialog>
   )

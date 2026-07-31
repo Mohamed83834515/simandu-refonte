@@ -10,7 +10,7 @@ import {
 } from "../lib/tacheActivitePtbaUtils";
 import { normalizeApiList } from "./apiListUtils";
 
-const BASE_URL = "/tache_activite_ptba/";
+const BASE_URL = "/taches-activites-ptbas/";
 
 class TacheActivitePtbaService {
   async getByPlanSite(params: {
@@ -43,12 +43,12 @@ class TacheActivitePtbaService {
     )
   }
 
-  async getAll(url:string): Promise<TacheActivitePtba[]> {
+  async getAll(url: string): Promise<TacheActivitePtba[]> {
     const response = await apiClient.request<unknown>(url);
     return normalizeApiList<TacheActivitePtba>(response);
   }
 
-  async getByActivite(url:string,idActivite: number): Promise<TacheActivitePtba[]> {
+  async getByActivite(url: string, idActivite: number): Promise<TacheActivitePtba[]> {
     const response = await apiClient.request<unknown>(
       `${url}?id_activite=${idActivite}`
     );
@@ -58,14 +58,14 @@ class TacheActivitePtbaService {
     );
   }
 
-  async getById(url:string, id: number): Promise<TacheActivitePtba> {
+  async getById(url: string, id: number): Promise<TacheActivitePtba> {
     const response = await apiClient.request<TacheActivitePtba>(
       `${url}${id}/`,
     );
     return response;
   }
 
-  async create(url:string, data: TacheActivitePtbaApiPayload): Promise<TacheActivitePtba> {
+  async create(url: string, data: TacheActivitePtbaApiPayload): Promise<TacheActivitePtba> {
     const response = await apiClient.request<TacheActivitePtba>(
       url,
       {
@@ -77,7 +77,7 @@ class TacheActivitePtbaService {
   }
 
   async update(
-    url:string,
+    url: string,
     id: number,
     data: Partial<TacheActivitePtbaApiPayload>,
   ): Promise<TacheActivitePtba> {
@@ -91,7 +91,7 @@ class TacheActivitePtbaService {
     return response;
   }
 
-  async delete(url:string, id: number): Promise<void> {
+  async delete(url: string, id: number): Promise<void> {
     await apiClient.request(`${url}${id}/`, {
       method: "DELETE",
     });

@@ -177,9 +177,7 @@ export default function ListeCadreAnalytique() {
         const niveau = niveaux[index]
         if (niveau && niveau.id_nca != null) {
           setActiveNiveauId(niveau.id_nca)
-          console.log('Niveau sélectionné:', niveau.id_nca)
         } else {
-          console.warn("Niveau invalide à l'index:", index)
           setActiveNiveauId(0)
         }
       } else {

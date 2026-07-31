@@ -2,7 +2,7 @@ import { apiClient } from "@/axios/api";
 import { SuiviIndicateurActiviteFormData } from "../schemas/suiviIndicateurSchemas";
 import type { SuiviIndicateurActivite } from "../allTypes";
 
-const ENDPOINT = "/suivi_indicateur_activite/";
+const ENDPOINT = "/suivis-indicateurs-activites/";
 
 const suiviIndicateurActiviteService = {
   /**

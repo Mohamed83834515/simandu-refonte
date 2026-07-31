@@ -23,7 +23,7 @@ import type { SuiviIndicateurTachePayload } from '@/simadou/schemas/suiviIndicat
 import suiviIndicateurTacheService from '@/simadou/allSercices/suiviIndicateurTacheService'
 
 
-const BASE_URL = "/tache_activite_ptba/"
+const BASE_URL = "/taches-activites-ptbas/"
 
 export const suiviPtbaQueryKeys = {
   tachesAll: ['taches-activite-all'] as const,

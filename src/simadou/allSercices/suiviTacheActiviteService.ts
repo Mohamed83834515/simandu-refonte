@@ -11,7 +11,7 @@ const WITH_LIVRABLES_ENDPOINT = "/suivi-tache-activites/with-livrables/";
 
 export type SuiviFieldsJson = Omit<SuiviTacheActiviteFormData, "livrable_fichier"> & {
   id_activite_ptba: number;
-  lot_realisee: number;
+  lot_realisee: number; 
 };
 
 function normalizeList(response: unknown): Record<string, unknown>[] {

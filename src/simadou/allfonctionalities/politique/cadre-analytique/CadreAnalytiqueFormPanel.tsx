@@ -47,7 +47,6 @@ export default function CadreAnalytiqueFormPanel({
   const createMutation = useCreateCadreAnalytique()
   const updateMutation = useUpdateCadreAnalytique(programmeId)
   const { data: acteurs = [], isLoading: isLoadingActeurs } = useGetActeurs()
-
   const codeLength = getFixedCodeLengthForNiveau(
     niveaux,
     niveauCodeNumber,
@@ -78,15 +77,21 @@ export default function CadreAnalytiqueFormPanel({
 
     return showBudget ? withCode : withCode.omit({ cout_axe: true })
   }, [codeLength, niveauCodeNumber, showBudget])
-
+  const parentNIveauId = useMemo(() => {
+    if (!showParent) return null
+    const parentNiveau = niveaux.find(
+      (n) => Number(n.nombre_nca) === niveauCodeNumber - 1
+    )
+    return parentNiveau?.id_nca ?? null
+  }, [niveaux, niveauCodeNumber, showParent])
   const parentOptions = useMemo(
     () =>
       buildCadreAnalytiqueParentOptions({
         cadres,
-        niveauCodeNumber,
+        parentNIveauId,
         excludeCadreId: cadre?.id_ca,
       }),
-    [cadres, niveauCodeNumber, cadre?.id_ca]
+    [cadres, parentNIveauId, cadre?.id_ca]
   )
 
   const acteurOptions = useMemo(

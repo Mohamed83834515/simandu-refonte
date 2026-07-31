@@ -3,7 +3,7 @@ import type { SuiviIndicateurTache } from '../allTypes/suiviIndicateurTacheProje
 import type { SuiviIndicateurTachePayload } from '@/simadou/schemas/suiviIndicateurTacheProjetSchemas'
 import { normalizeApiList } from './apiListUtils'
 
-const ENDPOINT = '/suivi_indicateur_tache/'
+const ENDPOINT = '/suivis-indicateurs-taches/'
 
 function toDateInput(value: unknown): string {
   if (typeof value !== 'string' || !value.trim()) return ''
@@ -35,12 +35,12 @@ export function mapSuiviIndicateurTacheFromApi(
           : null,
     indicateur_sit:
       typeof indicateurRaw === 'object' &&
-      indicateurRaw &&
-      'id_indicateur_tache' in indicateurRaw
+        indicateurRaw &&
+        'id_indicateur_tache' in indicateurRaw
         ? Number(
-            (indicateurRaw as { id_indicateur_tache: unknown })
-              .id_indicateur_tache
-          )
+          (indicateurRaw as { id_indicateur_tache: unknown })
+            .id_indicateur_tache
+        )
         : indicateurRaw != null
           ? Number(indicateurRaw)
           : null,

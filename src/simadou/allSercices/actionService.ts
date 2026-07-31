@@ -1,7 +1,7 @@
 import { apiClient } from "@/axios/api";
 import { Action } from "../allTypes/action";
 
-const BASE_URL = "/activite_programme/";
+const BASE_URL = "/activites-programmes/";
 
 export const actionService = {
   // Récupérer toutes les actions (filtrées par programme)

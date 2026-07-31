@@ -11,7 +11,7 @@ export const getSuiviTacheActiviteFormConfig = (): FormConfig => ({
     },
     {
       name: "proportion_realisee",
-      label: "Proportion réalisée",
+      label: "Lot réalisée",
       type: "number",
       placeholder: "0 – 100",
       required: true,

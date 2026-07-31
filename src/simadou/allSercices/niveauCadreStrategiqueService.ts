@@ -17,7 +17,7 @@ export const niveauCadreStrategiqueService = {
   ): Promise<NiveauCadreStrategique[]> {
     try {
       const response = await apiClient.request<NiveauCadreStrategique[]>(
-        '/niveau_cadre_strategique/'
+        '/niveaux-cadres-strategiques/'
       )
       response.sort((a, b) => a.nombre_nsc - b.nombre_nsc)
       if (activeProgrammeCode) {
@@ -37,7 +37,7 @@ export const niveauCadreStrategiqueService = {
   // Récupérer un niveau par ID
   async getById(id_nsc: number): Promise<NiveauCadreStrategique> {
     return await apiClient.request<NiveauCadreStrategique>(
-      `/niveau_cadre_strategique/${id_nsc}/`
+      `/niveaux-cadres-strategiques/${id_nsc}/`
     )
   },
 
@@ -46,7 +46,7 @@ export const niveauCadreStrategiqueService = {
     data: NiveauCadreStrategiqueFormData
   ): Promise<NiveauCadreStrategique> {
     return await apiClient.request<NiveauCadreStrategique>(
-      '/niveau_cadre_strategique/',
+      '/niveaux-cadres-strategiques/',
       {
         method: 'POST',
         data,
@@ -60,7 +60,7 @@ export const niveauCadreStrategiqueService = {
     data: NiveauCadreStrategiqueFormData
   ): Promise<NiveauCadreStrategique> {
     return await apiClient.request<NiveauCadreStrategique>(
-      `/niveau_cadre_strategique/${id_nsc}/`,
+      `/niveaux-cadres-strategiques/${id_nsc}/`,
       {
         method: 'PUT',
         data,
@@ -70,7 +70,7 @@ export const niveauCadreStrategiqueService = {
 
   // Supprimer un niveau
   async delete(id_nsc: number): Promise<void> {
-    await apiClient.request<void>(`/niveau_cadre_strategique/${id_nsc}/`, {
+    await apiClient.request<void>(`/niveaux-cadres-strategiques/${id_nsc}/`, {
       method: 'DELETE',
     })
   },

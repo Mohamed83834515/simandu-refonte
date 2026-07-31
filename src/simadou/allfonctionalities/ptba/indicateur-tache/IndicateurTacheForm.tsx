@@ -10,7 +10,6 @@ import {
   useCreateIndicateurTache,
   useUpdateIndicateurTache,
 } from '@/simadou/allHooks/admin/indicateurTacheHooks'
-import { useGetIndicateursCmr } from '@/simadou/allHooks/admin/indicateurCmrHooks'
 import { useGetUnitesIndicateur } from '@/simadou/allHooks/admin/uniteIndicateurHooks'
 import type { Ptba } from '@/simadou/allTypes'
 import { IndicateurTache } from '@/simadou/allTypes/indicateurTache'
@@ -21,6 +20,7 @@ import {
   resolveIndicateurCmrFormValue,
   resolveUniteIndicateurFormValue,
 } from '@/simadou/lib/indicateurTacheUtils'
+import {  useGetAllIndicateursPerformanceProgramme } from '@/simadou/allHooks/admin/indicateurPerformanceProgrammeHooks'
 
 interface IndicateurTacheFormProps {
   indicateur?: IndicateurTache
@@ -36,19 +36,20 @@ export default function IndicateurTacheForm({
   onSuccess,
 }: IndicateurTacheFormProps) {
   const isEditing = !!indicateur
-  const { data: indicateursCmr = [], isLoading: isLoadingIndicateurCmrs } =
-    useGetIndicateursCmr()
+  const { data: indicateurs_performance = [], isLoading: isLoadingIndicateurCmrs } =
+    useGetAllIndicateursPerformanceProgramme()
+
   const { data: unites = [], isLoading: isLoadingUnites } = useGetUnitesIndicateur()
 
   const formConfig = useMemo(
     () =>
       getIndicateurTacheFormConfigForDialog({
-        indicateurCmrOptions: buildIndicateurCmrSelectOptions(indicateursCmr),
+        indicateurCmrOptions: buildIndicateurCmrSelectOptions(indicateurs_performance),
         uniteIndicateurOptions: buildUniteIndicateurSelectOptions(unites),
         isLoadingIndicateurCmrs,
         isLoadingUnites,
       }),
-    [indicateursCmr, unites, isLoadingIndicateurCmrs, isLoadingUnites]
+    [indicateurs_performance, unites, isLoadingIndicateurCmrs, isLoadingUnites]
   )
   const idActivite = activite.id_ptba
 

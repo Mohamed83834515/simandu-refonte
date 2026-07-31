@@ -2,27 +2,27 @@ import tacheActivitePtbaService from "@/simadou/allSercices/tacheActivitePtbaSer
 import type { TacheActivitePtbaApiPayload } from "@/simadou/lib/tacheActivitePtbaUtils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-const BASE_URL = "/tache_activite_ptba/"
+const BASE_URL = "/taches-activites-ptbas/"
 
 export const suiviPtbaQueryKeys = {
-    tachesAll: ['taches-activite-all'] as const,
-    tachesActivite: (idActivite: number) =>
-        ['taches-activite', idActivite] as const,
+  tachesAll: ['taches-activite-all'] as const,
+  tachesActivite: (idActivite: number) =>
+    ['taches-activite', idActivite] as const,
 }
 
 export const useGetAllTachesActivite = (enabled = true) =>
-    useQuery({
-        queryKey: suiviPtbaQueryKeys.tachesAll,
-        queryFn: () => tacheActivitePtbaService.getAll(BASE_URL),
-        enabled,
-    })
+  useQuery({
+    queryKey: suiviPtbaQueryKeys.tachesAll,
+    queryFn: () => tacheActivitePtbaService.getAll(BASE_URL),
+    enabled,
+  })
 
 export const useGetTachesByActivite = (idActivite: number) =>
-    useQuery({
-        queryKey: suiviPtbaQueryKeys.tachesActivite(idActivite),
-        queryFn: () => tacheActivitePtbaService.getByActivite(BASE_URL, idActivite),
-        enabled: Number.isFinite(idActivite),
-    })
+  useQuery({
+    queryKey: suiviPtbaQueryKeys.tachesActivite(idActivite),
+    queryFn: () => tacheActivitePtbaService.getByActivite(BASE_URL, idActivite),
+    enabled: Number.isFinite(idActivite),
+  })
 
 
 export const useCreateTacheActivite = (idActivite: number) => {
