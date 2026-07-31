@@ -5,11 +5,15 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { getApiErrorMessage } from '@/lib/api-error-message'
 import { downloadBlob } from '@/simadou/allfonctionalities/rapport/export/rapportExportUtils'
+import { useImportPpm } from '@/simadou/allHooks/admin/ppmHooks'
 import { ppmService } from '@/simadou/allSercices/ppmService'
+import { usePpmVersionContext } from './PpmVersionContext'
 
 export default function PpmHeaderActions() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isDownloading, setIsDownloading] = useState(false)
+  const { selectedVersionId } = usePpmVersionContext()
+  const importMutation = useImportPpm()
 
   const handleDownloadCanevas = async () => {
     if (isDownloading) return
@@ -28,6 +32,7 @@ export default function PpmHeaderActions() {
   }
 
   const handleImportClick = () => {
+    if (importMutation.isPending) return
     fileInputRef.current?.click()
   }
 
@@ -47,9 +52,20 @@ export default function PpmHeaderActions() {
       return
     }
 
-    // Backend import endpoint not available yet — keep the file picker ready.
-    toast.message(`Fichier sélectionné : ${file.name}`)
+    const versionPpm = selectedVersionId
+      ? Number(selectedVersionId)
+      : undefined
+
+    importMutation.mutate({
+      file,
+      versionPpm:
+        versionPpm != null && Number.isFinite(versionPpm)
+          ? versionPpm
+          : undefined,
+    })
   }
+
+  const isBusy = isDownloading || importMutation.isPending
 
   return (
     <div className='flex items-center gap-2'>
@@ -57,7 +73,7 @@ export default function PpmHeaderActions() {
         type='button'
         variant='outline'
         onClick={handleDownloadCanevas}
-        disabled={isDownloading}
+        disabled={isBusy}
         className={cn(
           'h-9 gap-2 border-emerald-200/80 bg-emerald-50/70 text-emerald-800',
           'shadow-sm transition-all hover:border-emerald-300 hover:bg-emerald-100 hover:text-emerald-900',
@@ -79,6 +95,7 @@ export default function PpmHeaderActions() {
         type='button'
         variant='outline'
         onClick={handleImportClick}
+        disabled={isBusy}
         className={cn(
           'h-9 gap-2 border-sky-200/80 bg-sky-50/70 text-sky-800',
           'shadow-sm transition-all hover:border-sky-300 hover:bg-sky-100 hover:text-sky-900',
@@ -86,8 +103,14 @@ export default function PpmHeaderActions() {
           'dark:hover:bg-sky-950/70'
         )}
       >
-        <FileUp className='h-4 w-4' />
-        <span className='text-sm font-medium'>Importer</span>
+        {importMutation.isPending ? (
+          <Loader2 className='h-4 w-4 animate-spin' />
+        ) : (
+          <FileUp className='h-4 w-4' />
+        )}
+        <span className='text-sm font-medium'>
+          {importMutation.isPending ? 'Import…' : 'Importer'}
+        </span>
       </Button>
 
       <input

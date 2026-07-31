@@ -65,4 +65,20 @@ export const ppmService = {
       ),
     }
   },
+
+  async importFromExcel(
+    file: File,
+    versionPpm?: number
+  ): Promise<unknown> {
+    const formData = new FormData()
+    formData.append('file', file, file.name)
+    if (versionPpm != null && Number.isFinite(versionPpm)) {
+      formData.append('version_ppm', String(versionPpm))
+    }
+
+    return apiClient.request(`${ENDPOINT}import/`, {
+      method: 'POST',
+      data: formData,
+    })
+  },
 }

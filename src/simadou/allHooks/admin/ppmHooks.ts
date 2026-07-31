@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { getApiErrorMessage } from '@/lib/api-error-message'
 import { ppmService } from '@/simadou/allSercices/ppmService'
 import type { PpmFormData } from '@/simadou/schemas/ppmSchema'
 
@@ -56,6 +57,32 @@ export const useDeletePpm = () => {
     },
     onError: () => {
       toast.error('Erreur lors de la suppression du PPM')
+    },
+  })
+}
+
+export const useImportPpm = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({
+      file,
+      versionPpm,
+    }: {
+      file: File
+      versionPpm?: number
+    }) => ppmService.importFromExcel(file, versionPpm),
+    meta: { suppressGlobalErrorToast: true },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ppmQueryKeys.list(),
+      })
+      toast.success('PPM importé avec succès')
+    },
+    onError: (error) => {
+      toast.error(
+        getApiErrorMessage(error, "Erreur lors de l'import du PPM")
+      )
     },
   })
 }
