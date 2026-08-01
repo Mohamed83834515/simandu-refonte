@@ -16,8 +16,14 @@ import { usePtbaVersionSelection } from '@/simadou/allHooks/admin/versionHooks'
 import { useGeneralParamsQuery } from '@/simadou/allHooks/generalParams/queries'
 import { PtbaVersionSelect } from '@/simadou/allfonctionalities/ptba/PtbaVersionSelect'
 import {
+  ActiviteLabelCell,
+  CadreSectionCells,
+} from '@/simadou/allfonctionalities/rapport/CadreSectionCells'
+import {
   EMPTY_PTBA_LIST,
   buildPlaceholderDecaissementMap,
+  formatActiviteLabel,
+  formatCadreSectionLabel,
   resolvePtbaActiviteId,
 } from '@/simadou/allfonctionalities/rapport/rapportTableUtils'
 import {
@@ -58,14 +64,9 @@ export default function ListeRapportDecaissement() {
 
   const columns: ColumnDef<TreeRow>[] = [
     {
-      id: 'code',
-      header: 'Code',
-      accessorFn: (row) => row.ptba?.code_activite_ptba ?? '',
-    },
-    {
       id: 'activite',
       header: 'Activité',
-      accessorFn: (row) => row.ptba?.intitule_activite_ptba ?? '',
+      accessorFn: (row) => (row.ptba ? formatActiviteLabel(row.ptba) : ''),
     },
     {
       id: 'montant_activite',
@@ -97,8 +98,6 @@ export default function ListeRapportDecaissement() {
       }
     })
 
-
-  console.log('ptbasByCadre', filteredPtbas);
     const result: TreeRow[] = []
 
     function children(parentId: number) {
@@ -121,7 +120,7 @@ export default function ListeRapportDecaissement() {
 
       result.push({
         type: 'cadre',
-        label: cadre.intutile_ca,
+        label: formatCadreSectionLabel(cadre),
         niveau,
       })
 
@@ -182,7 +181,7 @@ export default function ListeRapportDecaissement() {
 
       rows.forEach((r) => {
         if (r.type === 'cadre') {
-          exportRows.push([r.label ?? '', '', '', '', ''])
+          exportRows.push([r.label ?? '', '', '', ''])
           rowMetas.push({ type: 'section', niveau: r.niveau, label: r.label })
         } else if (r.ptba) {
           exportRows.push(
@@ -190,7 +189,11 @@ export default function ListeRapportDecaissement() {
           )
           rowMetas.push({
             type: 'data',
-            groupKey: r.activiteId != null ? String(r.activiteId) : undefined,
+            // Les activités s'indentent d'un cran sous leur cadre.
+            niveau: r.niveau + 1,
+            ...(r.activiteId != null
+              ? { mergeKeys: { 0: String(r.activiteId) } }
+              : {}),
           })
         }
       })
@@ -199,13 +202,7 @@ export default function ListeRapportDecaissement() {
         columns: getRapportDecaissementExportColumns(currencyCode),
         rows: exportRows,
         rowMetas,
-        visibleColumnIds: [
-          'code',
-          'activite',
-          'montant',
-          'decaissement',
-          'taux',
-        ],
+        visibleColumnIds: ['activite', 'montant', 'decaissement', 'taux'],
       }
     },
   })
@@ -230,17 +227,14 @@ export default function ListeRapportDecaissement() {
         }
         customRowRenderer={(row, i, { rowClassName, cellClassName }) => {
           if (row.type === 'cadre') {
-            const emptyColumns = row.niveau
-            const spanColumns = columns.length - emptyColumns
-
             return (
-              <TableRow className={`${rowClassName} font-bold`} key={i}>
-                {Array.from({ length: emptyColumns }).map((_, index) => (
-                  <TableCell key={index} className={cellClassName()} />
-                ))}
-                <TableCell colSpan={spanColumns} className={cellClassName()}>
-                  {row.label}
-                </TableCell>
+              <TableRow className={rowClassName} key={i}>
+                <CadreSectionCells
+                  label={row.label ?? ''}
+                  niveau={row.niveau}
+                  columnCount={columns.length}
+                  cellClassName={cellClassName}
+                />
               </TableRow>
             )
           }
@@ -249,19 +243,18 @@ export default function ListeRapportDecaissement() {
 
           return (
             <TableRow className={rowClassName} key={i}>
-              <TableCell className={cellClassName(0)}>
-                {row.ptba?.code_activite_ptba}
-              </TableCell>
+              <ActiviteLabelCell
+                label={row.ptba ? formatActiviteLabel(row.ptba) : ''}
+                niveau={row.niveau + 1}
+                className={cellClassName(0)}
+              />
               <TableCell className={cellClassName(1)}>
-                {row.ptba?.intitule_activite_ptba}
-              </TableCell>
-              <TableCell className={cellClassName(2)}>
                 <RapportMontantCell value={row.ptba?.cout_total_ptba} />
               </TableCell>
-              <TableCell className={cellClassName(3)}>
+              <TableCell className={cellClassName(2)}>
                 {renderDecaissement(id)}
               </TableCell>
-              <TableCell className={cellClassName(4)}>
+              <TableCell className={cellClassName(3)}>
                 {renderTaux(row.ptba, id)}
               </TableCell>
             </TableRow>

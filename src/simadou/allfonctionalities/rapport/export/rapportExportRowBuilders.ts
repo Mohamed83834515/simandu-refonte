@@ -11,7 +11,10 @@ import type {
   TacheActivitePtba,
 } from '@/simadou/allTypes'
 import type { SuiviTacheActivite } from '@/simadou/allTypes/suiviTacheActivite'
-import { resolvePtbaActiviteId } from '@/simadou/allfonctionalities/rapport/rapportTableUtils'
+import {
+  formatActiviteLabel,
+  resolvePtbaActiviteId,
+} from '@/simadou/allfonctionalities/rapport/rapportTableUtils'
 import {
   formatExportDate,
   formatExportMontant,
@@ -70,8 +73,12 @@ export function buildRapportPtbaExportRows(
 
 export function getRapportEtatActivitesExportColumns(): RapportExportColumn[] {
   return [
-    { id: 'code', header: 'Code', width: 16 },
-    { id: 'activite', header: 'Activité', width: 36 },
+    {
+      id: 'activite',
+      header: 'Activité',
+      width: 46,
+      boldPrefixSeparator: ' : ',
+    },
     { id: 'statut', header: 'Statut', width: 24 },
     { id: 'difficultes', header: 'Difficultés', width: 28 },
     { id: 'delai', header: 'Délai de réalisation', width: 22 },
@@ -91,14 +98,7 @@ export function buildRapportEtatActivitesExportRows(
   return ptbas.map((ptba) => {
     const id = resolvePtbaActiviteId(ptba)
     if (id == null) {
-      return [
-        ptba.code_activite_ptba?.trim() || '—',
-        ptba.intitule_activite_ptba?.trim() || '—',
-        '—',
-        '—',
-        '—',
-        '—',
-      ]
+      return [formatActiviteLabel(ptba) || '—', '—', '—', '—', '—']
     }
 
     const observations = handlers.observationsByActivite.get(id) ?? []
@@ -120,8 +120,7 @@ export function buildRapportEtatActivitesExportRows(
     const retard = computeRetardAccuse(latestDate, { hasTaches, percent })
 
     return [
-      ptba.code_activite_ptba?.trim() || '—',
-      ptba.intitule_activite_ptba?.trim() || '—',
+      formatActiviteLabel(ptba) || '—',
       statut,
       difficultes,
       formatExportDate(latestDate),
@@ -134,8 +133,12 @@ export function getRapportDecaissementExportColumns(
   currencyCode?: string
 ): RapportExportColumn[] {
   return [
-    { id: 'code', header: 'Code', width: 16 },
-    { id: 'activite', header: 'Activité', width: 36 },
+    {
+      id: 'activite',
+      header: 'Activité',
+      width: 46,
+      boldPrefixSeparator: ' : ',
+    },
     {
       id: 'montant',
       header: currencyCode
@@ -163,8 +166,7 @@ export function buildRapportDecaissementExportRows(
     const taux = computeTauxDecaissement(ptba.cout_total_ptba, decaissement)
 
     return [
-      ptba.code_activite_ptba?.trim() || '—',
-      ptba.intitule_activite_ptba?.trim() || '—',
+      formatActiviteLabel(ptba) || '—',
       formatExportMontant(ptba.cout_total_ptba),
       formatExportMontant(decaissement),
       taux == null ? '—' : `${formatExportTaux(taux)} %`,

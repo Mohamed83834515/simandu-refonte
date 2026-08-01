@@ -91,7 +91,12 @@ export type RapportExportDocumentMeta = {
 
 export type RapportExportRowMeta = {
   type: 'section' | 'data'
-  niveau?: number // profondeur pour l'indentation
+  /**
+   * Profondeur d'indentation dans la colonne « Activité » : niveau du
+   * cadre pour les sections, niveau du cadre parent + 1 pour les lignes
+   * de données (les activités s'indentent sous leur cadre).
+   */
+  niveau?: number
   label?: string
   /** Fusion legacy : colonnes 0 et 1 fusionnées ensemble par groupe. */
   groupKey?: string

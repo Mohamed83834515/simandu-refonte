@@ -11,6 +11,11 @@ import { useEmbeddedTableState } from '@/hooks/use-embedded-table-state'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { TableCell, TableRow } from '@/components/ui/table'
+import { ActiviteLabelCell, CadreSectionCells } from '../../CadreSectionCells'
+import {
+  formatActiviteLabel,
+  formatCadreSectionLabel,
+} from '../../rapportTableUtils'
 import { type RapportExportRowMeta } from '../../export/rapportExportTypes'
 
 interface IndicateursTableProps {
@@ -42,14 +47,9 @@ export function IndicateursTable({
 
   const columns: ColumnDef<TreeRow>[] = [
     {
-      id: 'code',
-      header: 'Code',
-      accessorFn: (row) => row.ptba?.code_activite_ptba ?? '',
-    },
-    {
       id: 'activite',
       header: 'Activité',
-      accessorFn: (row) => row.ptba?.intitule_activite_ptba ?? '',
+      accessorFn: (row) => (row.ptba ? formatActiviteLabel(row.ptba) : ''),
     },
     {
       id: 'indicateur',
@@ -164,7 +164,7 @@ export function IndicateursTable({
 
       result.push({
         type: 'cadre',
-        label: cadre.intutile_ca,
+        label: formatCadreSectionLabel(cadre),
         niveau,
       })
 
@@ -262,8 +262,7 @@ export function IndicateursTable({
         const unite = unites.find((u) => u.id_unite == r.ind?.unite_ind_tache)
 
         exportRows.push([
-          r.ptba?.code_activite_ptba ?? '',
-          r.ptba?.intitule_activite_ptba ?? '',
+          r.ptba ? formatActiviteLabel(r.ptba) : '',
           r.ind?.intitule_indicateur_tache ?? 'Aucun indicateur',
           ...(unite
             ? [`${unite.definition_ui} (${unite.unite_ui})`]
@@ -283,7 +282,11 @@ export function IndicateursTable({
 
         rowMetas.push({
           type: 'data',
-          groupKey: r.ptba?.id_ptba ? String(r.ptba.id_ptba) : undefined,
+          // Les activités s'indentent d'un cran sous leur cadre.
+          niveau: r.niveau + 1,
+          ...(r.ptba?.id_ptba
+            ? { mergeKeys: { 0: String(r.ptba.id_ptba) } }
+            : {}),
         })
       })
 
@@ -291,6 +294,8 @@ export function IndicateursTable({
         columns: columns.map((c) => ({
           id: c.id as string,
           header: c.header as string,
+          // Code d'activité en gras dans les exports (« CODE : Intitulé »).
+          ...(c.id === 'activite' ? { boldPrefixSeparator: ' : ' } : {}),
         })),
 
         rowMetas,
@@ -331,17 +336,14 @@ export function IndicateursTable({
              * =========================
              */
             if (row.type === 'cadre') {
-              const empty = row.niveau
-              const span = columns.length - empty
-
               return (
-                <TableRow className={`${rowClassName} font-bold`} key={i}>
-                  {Array.from({ length: empty }).map((_, idx) => (
-                    <TableCell className={cellClassName()} key={idx} />
-                  ))}
-                  <TableCell className={cellClassName()} colSpan={span}>
-                    {row.label}
-                  </TableCell>
+                <TableRow className={rowClassName} key={i}>
+                  <CadreSectionCells
+                    label={row.label ?? ''}
+                    niveau={row.niveau}
+                    columnCount={columns.length}
+                    cellClassName={cellClassName}
+                  />
                 </TableRow>
               )
             }
@@ -366,42 +368,39 @@ export function IndicateursTable({
             return (
               <TableRow className={rowClassName} key={i}>
                 {isFirst && (
-                  <TableCell className={cellClassName(0)} rowSpan={span}>
-                    {row.ptba?.code_activite_ptba}
-                  </TableCell>
+                  <ActiviteLabelCell
+                    label={row.ptba ? formatActiviteLabel(row.ptba) : ''}
+                    niveau={row.niveau + 1}
+                    className={cellClassName(0)}
+                    rowSpan={span}
+                  />
                 )}
 
-                {isFirst && (
-                  <TableCell className={cellClassName(1)} rowSpan={span}>
-                    {row.ptba?.intitule_activite_ptba}
-                  </TableCell>
-                )}
-
-                <TableCell className={cellClassName(2)}>
+                <TableCell className={cellClassName(1)}>
                   {row.ind?.intitule_indicateur_tache ?? '—'}
                 </TableCell>
 
-                <TableCell className={cellClassName(3)}>
+                <TableCell className={cellClassName(2)}>
                   {unite
                     ? `${unite.definition_ui} (${unite.unite_ui})`
                     : row.ind?.unite_ind_tache}
                 </TableCell>
 
-                <TableCell className={cellClassName(4)}>
+                <TableCell className={cellClassName(3)}>
                   {row.ind?.trimestre_1 ?? ''}
                 </TableCell>
-                <TableCell className={cellClassName(5)}>
+                <TableCell className={cellClassName(4)}>
                   {row.ind?.trimestre_2 ?? ''}
                 </TableCell>
-                <TableCell className={cellClassName(6)}>
+                <TableCell className={cellClassName(5)}>
                   {row.ind?.trimestre_3 ?? ''}
                 </TableCell>
-                <TableCell className={cellClassName(7)}>
+                <TableCell className={cellClassName(6)}>
                   {row.ind?.trimestre_4 ?? ''}
                 </TableCell>
 
                 {showValeurRealisee && (
-                  <TableCell className={cellClassName(8)}>
+                  <TableCell className={cellClassName(7)}>
                     {row.ind?.valeur_realisee ?? ''}
                   </TableCell>
                 )}

@@ -36,8 +36,10 @@ import {
   detectAlignment,
   downloadBlob,
   filterExportRows,
+  findSectionColumnIndex,
   resolveCellMerges,
   resolveHeaderGroupRanges,
+  SECTION_LABEL_SEPARATOR,
   splitCellBoldPrefix,
   type ResolvedHeaderGroupRange,
 } from './rapportExportUtils'
@@ -85,11 +87,16 @@ function cellParagraph(
     bold?: boolean
     color?: string
     size?: number
+    /** Retrait hiérarchique (niveau × SECTION_INDENT_DXA). */
+    indentNiveau?: number
   } = {}
 ) {
   const align = options.align ? options.align : detectAlignment(text)
   return new Paragraph({
     alignment: toDocxAlignment(align),
+    indent: options.indentNiveau
+      ? { left: options.indentNiveau * SECTION_INDENT_DXA }
+      : undefined,
     spacing: { before: 40, after: 40, line: 260 },
     children: [
       new TextRun({
@@ -209,17 +216,39 @@ function headerCell(
 function buildHeaderRows(
   columns: { header: string }[],
   columnWidths: number[],
-  groupRanges: ResolvedHeaderGroupRange[]
+  groupRanges: ResolvedHeaderGroupRange[],
+  sectionColumnIndex = 0,
+  indentColumnCount = 0
 ): TableRow[] {
   if (groupRanges.length === 0) {
+    const cells: TableCell[] = []
+
+    columns.forEach((column, index) => {
+      // En-tête « Activité » fusionné au-dessus des colonnes
+      // d'indentation et de la colonne principale.
+      if (index === sectionColumnIndex && indentColumnCount > 0) {
+        const regionWidth = columnWidths
+          .slice(
+            sectionColumnIndex,
+            sectionColumnIndex + indentColumnCount + 1
+          )
+          .reduce((sum, w) => sum + (w ?? 1800), 0)
+
+        cells.push(
+          headerCell(column.header, regionWidth, {
+            columnSpan: indentColumnCount + 1,
+          })
+        )
+        return
+      }
+
+      const gridIndex =
+        index < sectionColumnIndex ? index : index + indentColumnCount
+      cells.push(headerCell(column.header, columnWidths[gridIndex] ?? 1800))
+    })
+
     return [
-      new TableRow({
-        tableHeader: true,
-        cantSplit: true,
-        children: columns.map((c, i) =>
-          headerCell(c.header, columnWidths[i] ?? 1800)
-        ),
-      }),
+      new TableRow({ tableHeader: true, cantSplit: true, children: cells }),
     ]
   }
 
@@ -320,18 +349,26 @@ function ganttCell(width: number, active: boolean, shaded: boolean) {
 /**
  * Paragraphe d'une cellule de données : quand la colonne définit
  * boldPrefixSeparator, le code (avant le séparateur) est en gras.
+ * indentNiveau porte le retrait hiérarchique (activité sous son cadre).
  */
-function bodyCellParagraph(text: string, column?: { boldPrefixSeparator?: string }) {
+function bodyCellParagraph(
+  text: string,
+  column?: { boldPrefixSeparator?: string },
+  indentNiveau?: number
+) {
   const split = column?.boldPrefixSeparator
     ? splitCellBoldPrefix(text, column.boldPrefixSeparator)
     : null
 
   if (!split) {
-    return cellParagraph(text, { size: FONT_BODY })
+    return cellParagraph(text, { size: FONT_BODY, indentNiveau })
   }
 
   return new Paragraph({
     alignment: toDocxAlignment(detectAlignment(text)),
+    indent: indentNiveau
+      ? { left: indentNiveau * SECTION_INDENT_DXA }
+      : undefined,
     spacing: { before: 40, after: 40, line: 260 },
     children: [
       new TextRun({
@@ -351,11 +388,69 @@ function bodyCellParagraph(text: string, column?: { boldPrefixSeparator?: string
   })
 }
 
+/** Retrait (dxa) par niveau de cadre des libellés de section (~0,5 cm). */
+const SECTION_INDENT_DXA = 283
+
+/** Largeur (dxa) d'une colonne d'indentation hiérarchique (~5 mm). */
+const WORD_INDENT_COLUMN_WIDTH = 300
+
+/** Cellule vide bordée (colonnes d'indentation, cellules de section). */
+function emptyBodyCell(width: number, fill: string) {
+  return new TableCell({
+    width: { size: width, type: WidthType.DXA },
+    shading: { fill, type: ShadingType.CLEAR, color: 'auto' },
+    borders: dataCellBorders(false),
+    children: [new Paragraph('')],
+  })
+}
+
+/**
+ * Paragraphe d'un libellé de section : code en gras + reste en normal
+ * (séparateur ' : '), tout en gras sinon ; retrait proportionnel au niveau.
+ */
+function sectionLabelParagraph(label: string, niveau: number) {
+  const split = splitCellBoldPrefix(label, SECTION_LABEL_SEPARATOR)
+
+  const children = split
+    ? [
+        new TextRun({
+          text: split.prefix,
+          bold: true,
+          color: theme.text,
+          size: FONT_BODY,
+          font: 'Calibri',
+        }),
+        new TextRun({
+          text: `${SECTION_LABEL_SEPARATOR}${split.rest}`,
+          color: theme.text,
+          size: FONT_BODY,
+          font: 'Calibri',
+        }),
+      ]
+    : [
+        new TextRun({
+          text: label,
+          bold: true,
+          color: theme.text,
+          size: FONT_BODY,
+          font: 'Calibri',
+        }),
+      ]
+
+  return new Paragraph({
+    alignment: AlignmentType.LEFT,
+    indent: niveau > 0 ? { left: niveau * SECTION_INDENT_DXA } : undefined,
+    spacing: { before: 40, after: 40, line: 260 },
+    children,
+  })
+}
+
 function bodyCell(
   text: string,
   width: number,
   shaded: boolean,
-  column?: { boldPrefixSeparator?: string }
+  column?: { boldPrefixSeparator?: string },
+  indentNiveau?: number
 ) {
   return new TableCell({
     width: { size: width, type: WidthType.DXA },
@@ -367,7 +462,7 @@ function bodyCell(
     borders: dataCellBorders(false),
     margins: { top: 80, bottom: 80, left: 100, right: 100 },
     verticalAlign: VerticalAlignTable.CENTER,
-    children: [bodyCellParagraph(text, column)],
+    children: [bodyCellParagraph(text, column, indentNiveau)],
   })
 }
 
@@ -375,7 +470,8 @@ function buildDataTable(
   merged: MergedGanttTable,
   columnWidths: number[],
   rowMetas?: RapportExportRowMeta[],
-  headerGroupRanges: ResolvedHeaderGroupRange[] = []
+  headerGroupRanges: ResolvedHeaderGroupRange[] = [],
+  indentColumnCount = 0
 ) {
   const { columns, rows, ganttStartIndex, isGanttActive } = merged
   // GROUPING PTBA (comme PDF)
@@ -393,6 +489,22 @@ function buildDataTable(
   // Fusions verticales par colonne (mergeKeys)
   const cellMerges = resolveCellMerges(rowMetas)
 
+  // Colonne « Activité » qui accueille les libellés de section indentés.
+  const sectionColumnIndex = findSectionColumnIndex(columns)
+
+  /** Index grid (0-based) d'une colonne de données hors zone Activité. */
+  const toGridIndex = (colIndex: number) =>
+    colIndex < sectionColumnIndex ? colIndex : colIndex + indentColumnCount
+
+  /** Largeur (dxa) de la zone Activité fusionnée depuis un niveau donné. */
+  const regionWidth = (startOffset: number) =>
+    columnWidths
+      .slice(
+        sectionColumnIndex + startOffset,
+        sectionColumnIndex + indentColumnCount + 1
+      )
+      .reduce((sum, w) => sum + (w ?? 1800), 0)
+
   return new Table({
     width: { size: WORD_LANDSCAPE_CONTENT_WIDTH, type: WidthType.DXA },
     columnWidths,
@@ -401,91 +513,183 @@ function buildDataTable(
 
     rows: [
       // HEADER (1 ligne, ou 2 lignes avec en-têtes fusionnés)
-      ...buildHeaderRows(columns, columnWidths, headerGroupRanges),
+      ...buildHeaderRows(
+        columns,
+        columnWidths,
+        headerGroupRanges,
+        sectionColumnIndex,
+        indentColumnCount
+      ),
 
       // BODY
       ...rows.map((row, rowIndex) => {
         const meta = rowMetas?.[rowIndex]
         const shaded = rowIndex % 2 === 1
 
-        // SECTION (CADRE ANALYTIQUE)
+        // SECTION (CADRE ANALYTIQUE) : libellé dans la zone « Activité »,
+        // indenté par de vraies colonnes bordées (comme l'export Excel) —
+        // le libellé fusionne jusqu'à la colonne principale, les lignes
+        // repliées restent indentées.
         if (meta?.type === 'section') {
-          const startCol = meta.niveau ?? 0
-          const colSpan = columns.length - startCol
+          const niveau = meta.niveau ?? 0
+          const startOffset = Math.min(niveau, indentColumnCount)
+          const spanCount = indentColumnCount - startOffset + 1
 
-          // Les cellules couvertes par le span ne sont PAS émises : en
-          // OOXML une ligne occupe `nb de tc + (gridSpan - 1)` colonnes du
-          // grid — des tc excédentaires élargiraient le grid et
-          // écraseraient les vraies colonnes.
-          return new TableRow({
-            children: [
-              // colonnes d'indentation avant le niveau → vides
-              ...Array.from(
-                { length: startCol },
-                (_, colIndex) =>
-                  new TableCell({
-                    width: {
-                      size: columnWidths[colIndex] ?? 1800,
-                      type: WidthType.DXA,
-                    },
-                    children: [new Paragraph('')],
-                    borders: dataCellBorders(false),
-                  })
-              ),
+          const cells: TableCell[] = []
 
-              // cellule fusionnée sur tout le reste de la ligne
-              new TableCell({
-                columnSpan: colSpan,
-                shading: {
-                  fill: theme.greenMuted,
-                  type: ShadingType.CLEAR,
-                  color: 'auto',
-                },
-                borders: dataCellBorders(false),
-                verticalAlign: VerticalAlignTable.CENTER,
-                children: [
-                  cellParagraph(meta.label ?? '', {
-                    bold: true,
-                    align: 'left',
-                    size: FONT_BODY,
-                  }),
-                ],
-              }),
-            ],
+          columns.forEach((_, colIndex) => {
+            if (colIndex === sectionColumnIndex) {
+              // Cellules d'indentation avant le libellé.
+              for (let k = 0; k < startOffset; k += 1) {
+                cells.push(
+                  emptyBodyCell(
+                    columnWidths[sectionColumnIndex + k] ??
+                      WORD_INDENT_COLUMN_WIDTH,
+                    theme.greenMuted
+                  )
+                )
+              }
+
+              cells.push(
+                new TableCell({
+                  width: {
+                    size: regionWidth(startOffset),
+                    type: WidthType.DXA,
+                  },
+                  columnSpan: spanCount > 1 ? spanCount : undefined,
+                  shading: {
+                    fill: theme.greenMuted,
+                    type: ShadingType.CLEAR,
+                    color: 'auto',
+                  },
+                  borders: dataCellBorders(false),
+                  margins: { top: 80, bottom: 80, left: 100, right: 100 },
+                  verticalAlign: VerticalAlignTable.CENTER,
+                  children: [
+                    sectionLabelParagraph(
+                      meta.label ?? '',
+                      indentColumnCount === 0 ? niveau : 0
+                    ),
+                  ],
+                })
+              )
+              return
+            }
+
+            cells.push(
+              emptyBodyCell(
+                columnWidths[toGridIndex(colIndex)] ?? 1800,
+                theme.greenMuted
+              )
+            )
           })
+
+          return new TableRow({ cantSplit: true, children: cells })
         }
 
         // DATA ROW (fusions verticales par colonne via mergeKeys)
 
         if (meta?.type === 'data' && meta.mergeKeys) {
-          return new TableRow({
-            cantSplit: true,
-            children: row.map((value, colIndex) => {
-              const width = columnWidths[colIndex] ?? 1800
-              const cellId = `${rowIndex}:${colIndex}`
+          const startOffset = Math.min(meta.niveau ?? 0, indentColumnCount)
+          const spanCount = indentColumnCount - startOffset + 1
+          const rowFill = shaded ? theme.greenMuted : theme.white
 
-              // Cellule couverte par une fusion démarrée plus haut.
+          const cells: TableCell[] = []
+
+          row.forEach((value, colIndex) => {
+            const cellId = `${rowIndex}:${colIndex}`
+
+            // Zone « Activité » : cellules d'indentation puis libellé
+            // fusionné jusqu'à la colonne principale.
+            if (colIndex === sectionColumnIndex) {
+              for (let k = 0; k < startOffset; k += 1) {
+                cells.push(
+                  emptyBodyCell(
+                    columnWidths[sectionColumnIndex + k] ??
+                      WORD_INDENT_COLUMN_WIDTH,
+                    rowFill
+                  )
+                )
+              }
+
+              const width = regionWidth(startOffset)
+              const columnSpan = spanCount > 1 ? spanCount : undefined
+
+              // Ligne suivante d'une fusion verticale.
               if (cellMerges.covered.has(cellId)) {
-                return new TableCell({
+                cells.push(
+                  new TableCell({
+                    width: { size: width, type: WidthType.DXA },
+                    columnSpan,
+                    verticalMerge: VerticalMergeType.CONTINUE,
+                    shading: {
+                      fill: rowFill,
+                      type: ShadingType.CLEAR,
+                      color: 'auto',
+                    },
+                    borders: dataCellBorders(false),
+                    children: [new Paragraph('')],
+                  })
+                )
+                return
+              }
+
+              const span = cellMerges.spans.get(cellId) ?? 1
+
+              cells.push(
+                new TableCell({
+                  width: { size: width, type: WidthType.DXA },
+                  columnSpan,
+                  verticalMerge:
+                    span > 1 ? VerticalMergeType.RESTART : undefined,
+                  shading: {
+                    fill: rowFill,
+                    type: ShadingType.CLEAR,
+                    color: 'auto',
+                  },
+                  borders: dataCellBorders(false),
+                  margins: { top: 80, bottom: 80, left: 100, right: 100 },
+                  verticalAlign: VerticalAlignTable.CENTER,
+                  children: [
+                    bodyCellParagraph(
+                      value,
+                      columns[colIndex],
+                      indentColumnCount === 0 ? meta.niveau : undefined
+                    ),
+                  ],
+                })
+              )
+              return
+            }
+
+            const width = columnWidths[toGridIndex(colIndex)] ?? 1800
+
+            // Cellule couverte par une fusion démarrée plus haut.
+            if (cellMerges.covered.has(cellId)) {
+              cells.push(
+                new TableCell({
                   width: { size: width, type: WidthType.DXA },
                   verticalMerge: VerticalMergeType.CONTINUE,
                   shading: {
-                    fill: shaded ? theme.greenMuted : theme.white,
+                    fill: rowFill,
                     type: ShadingType.CLEAR,
                     color: 'auto',
                   },
                   borders: dataCellBorders(false),
                   children: [new Paragraph('')],
                 })
-              }
+              )
+              return
+            }
 
-              // Première cellule d'un groupe fusionné.
-              if ((cellMerges.spans.get(cellId) ?? 1) > 1) {
-                return new TableCell({
+            // Première cellule d'un groupe fusionné.
+            if ((cellMerges.spans.get(cellId) ?? 1) > 1) {
+              cells.push(
+                new TableCell({
                   width: { size: width, type: WidthType.DXA },
                   verticalMerge: VerticalMergeType.RESTART,
                   shading: {
-                    fill: shaded ? theme.greenMuted : theme.white,
+                    fill: rowFill,
                     type: ShadingType.CLEAR,
                     color: 'auto',
                   },
@@ -493,24 +697,32 @@ function buildDataTable(
                   verticalAlign: VerticalAlignTable.CENTER,
                   children: [bodyCellParagraph(value, columns[colIndex])],
                 })
-              }
+              )
+              return
+            }
 
-              if (colIndex >= ganttStartIndex) {
-                return ganttCell(
-                  width,
-                  isGanttActive(rowIndex, colIndex),
-                  shaded
-                )
-              }
+            if (colIndex >= ganttStartIndex) {
+              cells.push(
+                ganttCell(width, isGanttActive(rowIndex, colIndex), shaded)
+              )
+              return
+            }
 
-              return bodyCell(value, width, shaded, columns[colIndex])
-            }),
+            cells.push(bodyCell(value, width, shaded, columns[colIndex]))
           })
+
+          return new TableRow({ cantSplit: true, children: cells })
         }
 
-        // DATA ROW (PTBA GROUPING)
+        // DATA ROW (PTBA GROUPING — fusion legacy des colonnes 0 et 1,
+        // plus émise par les pages et jamais combinée à l'indentation
+        // structurelle)
 
-        if (meta?.type === 'data' && meta.groupKey != null) {
+        if (
+          meta?.type === 'data' &&
+          meta.groupKey != null &&
+          indentColumnCount === 0
+        ) {
           const groupKey = meta.groupKey
           const isFirst = !groupSeen.has(groupKey)
 
@@ -521,6 +733,8 @@ function buildDataTable(
               cantSplit: true,
               children: row.map((value, colIndex) => {
                 const width = columnWidths[colIndex] ?? 1800
+                const indentNiveau =
+                  colIndex === sectionColumnIndex ? meta.niveau : undefined
 
                 // fusion Code + Activité
                 if (colIndex === 0 || colIndex === 1) {
@@ -534,7 +748,13 @@ function buildDataTable(
                     },
                     borders: dataCellBorders(false),
                     verticalAlign: VerticalAlignTable.CENTER,
-                    children: [bodyCellParagraph(value, columns[colIndex])],
+                    children: [
+                      bodyCellParagraph(
+                        value,
+                        columns[colIndex],
+                        indentNiveau
+                      ),
+                    ],
                   })
                 }
 
@@ -546,7 +766,13 @@ function buildDataTable(
                   )
                 }
 
-                return bodyCell(value, width, shaded, columns[colIndex])
+                return bodyCell(
+                  value,
+                  width,
+                  shaded,
+                  columns[colIndex],
+                  indentNiveau
+                )
               }),
             })
           }
@@ -585,18 +811,69 @@ function buildDataTable(
 
         // NORMAL ROW
 
-        return new TableRow({
-          cantSplit: true,
-          children: row.map((value, colIndex) => {
-            const width = columnWidths[colIndex] ?? 1800
+        const startOffset = Math.min(
+          meta?.type === 'data' ? (meta.niveau ?? 0) : 0,
+          indentColumnCount
+        )
+        const spanCount = indentColumnCount - startOffset + 1
+        const rowFill = shaded ? theme.greenMuted : theme.white
 
-            if (colIndex >= ganttStartIndex) {
-              return ganttCell(width, isGanttActive(rowIndex, colIndex), shaded)
+        const cells: TableCell[] = []
+
+        row.forEach((value, colIndex) => {
+          if (colIndex === sectionColumnIndex) {
+            for (let k = 0; k < startOffset; k += 1) {
+              cells.push(
+                emptyBodyCell(
+                  columnWidths[sectionColumnIndex + k] ??
+                    WORD_INDENT_COLUMN_WIDTH,
+                  rowFill
+                )
+              )
             }
 
-            return bodyCell(value, width, shaded, columns[colIndex])
-          }),
+            cells.push(
+              new TableCell({
+                width: {
+                  size: regionWidth(startOffset),
+                  type: WidthType.DXA,
+                },
+                columnSpan: spanCount > 1 ? spanCount : undefined,
+                shading: {
+                  fill: rowFill,
+                  type: ShadingType.CLEAR,
+                  color: 'auto',
+                },
+                borders: dataCellBorders(false),
+                margins: { top: 80, bottom: 80, left: 100, right: 100 },
+                verticalAlign: VerticalAlignTable.CENTER,
+                children: [
+                  bodyCellParagraph(
+                    value,
+                    columns[colIndex],
+                    indentColumnCount === 0 && meta?.type === 'data'
+                      ? meta.niveau
+                      : undefined
+                  ),
+                ],
+              })
+            )
+            return
+          }
+
+          const width = columnWidths[toGridIndex(colIndex)] ?? 1800
+
+          if (colIndex >= ganttStartIndex) {
+            cells.push(
+              ganttCell(width, isGanttActive(rowIndex, colIndex), shaded)
+            )
+            return
+          }
+
+          cells.push(bodyCell(value, width, shaded, columns[colIndex]))
         })
+
+        return new TableRow({ cantSplit: true, children: cells })
       }),
     ],
   })
@@ -667,7 +944,7 @@ function buildPreambleParagraphs(
 }
 
 /** Largeur max (dxa) d'une colonne mensuelle du Gantt. */
-const GANTT_WORD_COLUMN_WIDTH = 700
+const GANTT_WORD_COLUMN_WIDTH = 400
 /** Part max de la largeur utile réservée aux colonnes du Gantt. */
 const GANTT_WORD_MAX_WIDTH_RATIO = 0.5
 
@@ -692,6 +969,16 @@ export async function exportRapportWord(payload: RapportExportPayload) {
     payload.headerGroups
   )
 
+  // Indentation structurelle (comme l'export Excel) : colonnes étroites
+  // insérées avant la colonne « Activité » — non combinable avec les
+  // en-têtes fusionnés (aucun rapport ne cumule les deux).
+  const baseSectionIndex = findSectionColumnIndex(merged.columns)
+  const maxNiveau = (rowMetas ?? []).reduce(
+    (max, rowMeta) => Math.max(max, rowMeta.niveau ?? 0),
+    0
+  )
+  const indentColumnCount = headerGroupRanges.length === 0 ? maxNiveau : 0
+
   // Colonnes du Gantt étroites (plafonnées à la moitié de la page), le
   // reste de la largeur est réparti entre les colonnes de données.
   const ganttColWidth =
@@ -705,14 +992,26 @@ export async function exportRapportWord(payload: RapportExportPayload) {
         )
       : 0
 
-  const columnWidths = [
-    ...computeWordColumnWidthsDxa(
-      filtered.columns,
-      filtered.rows,
-      WORD_LANDSCAPE_CONTENT_WIDTH - ganttColWidth * merged.ganttColumnCount
-    ),
-    ...Array.from({ length: merged.ganttColumnCount }, () => ganttColWidth),
-  ]
+  const dataColumnWidths = computeWordColumnWidthsDxa(
+    filtered.columns,
+    filtered.rows,
+    WORD_LANDSCAPE_CONTENT_WIDTH -
+      ganttColWidth * merged.ganttColumnCount -
+      indentColumnCount * WORD_INDENT_COLUMN_WIDTH
+  )
+
+  const columnWidths: number[] = []
+  dataColumnWidths.forEach((width, index) => {
+    if (index === baseSectionIndex) {
+      for (let k = 0; k < indentColumnCount; k += 1) {
+        columnWidths.push(WORD_INDENT_COLUMN_WIDTH)
+      }
+    }
+    columnWidths.push(width)
+  })
+  columnWidths.push(
+    ...Array.from({ length: merged.ganttColumnCount }, () => ganttColWidth)
+  )
 
   const hasPreamble = Boolean(payload.preamble?.length)
 
@@ -786,7 +1085,13 @@ export async function exportRapportWord(payload: RapportExportPayload) {
                   children: [],
                 }),
               ]),
-          buildDataTable(merged, columnWidths, rowMetas, headerGroupRanges),
+          buildDataTable(
+            merged,
+            columnWidths,
+            rowMetas,
+            headerGroupRanges,
+            indentColumnCount
+          ),
         ],
       },
     ],
