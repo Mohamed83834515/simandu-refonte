@@ -20,7 +20,7 @@ const versionPtbaService = {
   ): Promise<VersionPtbasProjetsResponse> {
     const params =
       codeProjet?.trim()
-        ? { code_projet: codeProjet.trim() }
+        ? { projet: codeProjet.trim() }
         : undefined
 
     return apiClient.request(`${ENDPOINT}${idVersion}/ptbas-projets/`, {
