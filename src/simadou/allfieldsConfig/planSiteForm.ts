@@ -1,37 +1,30 @@
 import type { FormConfig } from "../../Global/types/formConfig";
 
-export const getPlanSiteFormConfig = (): FormConfig => ({
-
+export const getPlanSiteFormConfig = (niveauLabel = 'structure'): FormConfig => ({
     fields: [
-        // texte - Code plan site
         {
             name: "code_ds",
-            label: "Code plan site",
+            label: `C ${niveauLabel}`,
             type: "text",
-            placeholder: "Ex: DS001, SITE01...",
+            placeholder: `Ex: code ${niveauLabel}...`,
             required: true,
             gridCols: 2,
         },
-        // texte - Intitulé plan site
         {
             name: "intutile_ds",
-            label: "Intitulé plan site",
+            label: `Intitulé ${niveauLabel}`,
             type: "text",
-            placeholder: "Intitulé du plan site",
+            placeholder: `Intitulé ${niveauLabel}`,
             required: true,
             gridCols: 2,
         },
-
-        // texte - Code relai plan site
         {
             name: "code_relai_ds",
-            label: "Code relai plan site",
+            label: `Numéro ${niveauLabel}`,
             type: "text",
-            placeholder: "Code du relai",
+            placeholder: `Numéro ${niveauLabel}`,
             required: true,
             gridCols: 2,
         },
-
     ]
-
 })

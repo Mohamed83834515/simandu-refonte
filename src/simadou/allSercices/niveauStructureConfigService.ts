@@ -46,10 +46,8 @@ export const niveauStructureConfigService = {
           data,
         },
       );
-      toast.success("Configuration de niveau créée avec succès");
       return response;
     } catch (error) {
-      toast.error("Erreur lors de la création de la configuration");
       throw error;
     }
   },
@@ -67,10 +65,8 @@ export const niveauStructureConfigService = {
           data,
         },
       );
-      toast.success("Configuration de niveau modifiée avec succès");
       return response;
     } catch (error) {
-      toast.error("Erreur lors de la modification de la configuration");
       throw error;
     }
   },

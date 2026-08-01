@@ -36,6 +36,20 @@ export const useSaveNiveauxPlanSite = () => {
   })
 }
 
+export const useUpdateNiveauPlanSite = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data: NiveauStructureConfigFormData & { id_nsc: number }) => {
+      const { id_nsc, ...payload } = data
+      return niveauStructureConfigService.update(id_nsc, payload)
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: niveauPlanSiteQueryKeys.list() })
+    },
+    onError: () => toast.error('Erreur lors de la modification du niveau'),
+  })
+}
+
 export const useDeleteNiveauPlanSite = () => {
   const queryClient = useQueryClient()
   return useMutation({

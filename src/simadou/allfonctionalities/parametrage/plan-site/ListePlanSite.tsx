@@ -6,7 +6,6 @@ import { Card } from '@/components/ui/card'
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
@@ -201,12 +200,6 @@ export default function ListePlanSite() {
       {/* Dialogue Niveaux — always mounted so empty-state "Niveaux" works */}
       <Dialog open={showModal === 'niveaux'} onOpenChange={(o) => !o && handleClose()}>
         <DialogContent className='sm:max-w-3xl'>
-          <DialogHeader>
-            <DialogTitle>Configuration des niveaux de structure</DialogTitle>
-            <DialogDescription>
-              Définissez les niveaux (Ministère, Direction, Service, etc.)
-            </DialogDescription>
-          </DialogHeader>
           <NiveauPlanSiteManager onSuccess={handleClose} />
         </DialogContent>
       </Dialog>
@@ -217,8 +210,8 @@ export default function ListePlanSite() {
           <DialogHeader>
             <DialogTitle>
               {selectedPlan
-                ? 'Modifier le plan site'
-                : 'Créer un plan site'}
+                ? `Modifier un(e) ${currentNiveau?.libelle_nsc ?? 'structure'}`
+                : `Créer un(e) ${currentNiveau?.libelle_nsc ?? 'structure'}`}
             </DialogTitle>
           </DialogHeader>
           <AddPlanSite
