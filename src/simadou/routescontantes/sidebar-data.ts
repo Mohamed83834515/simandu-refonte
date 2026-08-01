@@ -80,7 +80,7 @@ export const sidebarData: SidebarData = {
             //   icon: Handshake,
             // },
             {
-              title: 'Cadre Organique du MMAFP',
+              title: 'Cadre Organique du MINAGRI',
               url: '/parametrage/plans-de-site',
               icon: ClipboardList,
             },
@@ -170,7 +170,7 @@ export const sidebarData: SidebarData = {
             },
 
             {
-              title: 'Zones de collecte',
+              title: 'Zones agro-écologiques',
               url: '/projet-programme/zone-de-collecte',
               icon: MapPin,
             },

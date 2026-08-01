@@ -4,7 +4,7 @@ export const getPlanSiteFormConfig = (niveauLabel = 'structure'): FormConfig => 
     fields: [
         {
             name: "code_ds",
-            label: `C ${niveauLabel}`,
+            label: `Code ${niveauLabel}`,
             type: "text",
             placeholder: `Ex: code ${niveauLabel}...`,
             required: true,
