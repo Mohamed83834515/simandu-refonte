@@ -38,6 +38,19 @@ export default function ProjetPtbaPanel({ projet }: ProjetPtbaPanelProps) {
     selectedVersion,
   } = useProjetPtbaVersionSelection(projet)
 
+  const handleChangeVersionForProjet = useCallback(
+    (versionId: string | null) => {
+      handleChangeVersion(versionId)
+      const storageKey = `selectedVersionProjetId`
+      if (versionId) {
+        localStorage.setItem(storageKey, versionId)
+      } else {
+        localStorage.removeItem(storageKey)
+      }
+    },
+    [handleChangeVersion, codeProjet]
+  )
+
   const { search, navigate } = useEmbeddedTableState()
   const deleteMutation = useDeletePtbaProjet(codeProjet)
 
@@ -104,7 +117,7 @@ export default function ProjetPtbaPanel({ projet }: ProjetPtbaPanelProps) {
             <PtbaVersionSelect
               options={filteredVersionOptions}
               value={selectedVersionId}
-              onChange={handleChangeVersion}
+              onChange={handleChangeVersionForProjet}
             />
           ) : null
         }
@@ -128,36 +141,36 @@ export default function ProjetPtbaPanel({ projet }: ProjetPtbaPanelProps) {
         tabs={
           planifierActivite
             ? [
-                {
-                  value: 'taches',
-                  label: 'Planification des tâches',
-                  content: (
-                    <TacheActiviteProjetManager activite={planifierActivite} />
-                  ),
-                },
-                {
-                  value: 'indicateurs',
-                  label: 'Planification des indicateurs',
-                  content: (
-                    <IndicateurTacheProjetManager activite={planifierActivite} />
-                  ),
-                },
-                {
-                  value: 'cout-activite',
-                  label: 'Coût activité PTBA',
-                  content: (
-                    <CoutActivitePtbaGridPanel
-                      activite={planifierActivite}
-                      projet={projet}
-                      versionPtbaId={
-                        Number(planifierActivite.version_ptba) ||
-                        selectedVersionPtbaId
-                      }
-                      anneePtbaYear={selectedVersion?.annee_ptba}
-                    />
-                  ),
-                },
-              ]
+              {
+                value: 'taches',
+                label: 'Planification des tâches',
+                content: (
+                  <TacheActiviteProjetManager activite={planifierActivite} />
+                ),
+              },
+              {
+                value: 'indicateurs',
+                label: 'Planification des indicateurs',
+                content: (
+                  <IndicateurTacheProjetManager activite={planifierActivite} />
+                ),
+              },
+              {
+                value: 'cout-activite',
+                label: 'Coût activité PTBA',
+                content: (
+                  <CoutActivitePtbaGridPanel
+                    activite={planifierActivite}
+                    projet={projet}
+                    versionPtbaId={
+                      Number(planifierActivite.version_ptba) ||
+                      selectedVersionPtbaId
+                    }
+                    anneePtbaYear={selectedVersion?.annee_ptba}
+                  />
+                ),
+              },
+            ]
             : []
         }
       />
