@@ -16,10 +16,10 @@ import { Main } from '@/components/layout/others/main'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useGetContratPerformance } from '@/simadou/allHooks/admin/contratPerformanceHooks'
-import { useGetUgls } from '@/simadou/allHooks/admin/uglHooks'
-import type { UGL } from '@/simadou/allTypes/ugl'
 import ContratDetailPanel from './ContratDetailPanel'
 import { contratDetailTabs, type ContratDetailTab } from './contratDetailTabs'
+import { useGetPlanSites } from '@/simadou/allHooks/admin/planSiteHooks'
+import { PlanSite } from '@/simadou/allTypes'
 
 const APPRECIATION_LABELS: Record<string, string> = {
   excellent: 'Excellent',
@@ -36,15 +36,15 @@ function formatAppreciation(value: string | null | undefined): string {
 }
 
 function resolveStructureLabel(
-  structure: number | null | undefined | UGL,
-  ugls: UGL[]
+  structure: number | null | undefined | PlanSite,
+  plansites: PlanSite[]
 ): string {
   if (structure == null) return '—'
   if (typeof structure === 'object') {
-    return structure.nom_ugl || structure.abrege_ugl || '—'
+    return structure.code_ds + ':' + structure.intutile_ds
   }
-  const found = ugls.find((u) => u.id_ugl === structure)
-  return found?.nom_ugl || found?.abrege_ugl || String(structure)
+  const found = plansites.find((u) => u.id_ds === structure)
+  return found?.code_ds + ':' + found?.intutile_ds
 }
 
 const route = getRouteApi('/_authenticated/programmation/contrat-performance/$id')
@@ -52,7 +52,7 @@ const route = getRouteApi('/_authenticated/programmation/contrat-performance/$id
 export default function ContratDetailPage() {
   const { id } = route.useParams()
   const { data: contrat, isLoading, isError } = useGetContratPerformance(id)
-  const { data: ugls = [] } = useGetUgls()
+  const { data: plansites = [] } = useGetPlanSites()
   const [selectedTab, setSelectedTab] = useState<ContratDetailTab>(contratDetailTabs[0])
   const mainContentRef = useRef<HTMLDivElement>(null)
   const mainPanelRef = useRef<HTMLElement>(null)
@@ -62,8 +62,8 @@ export default function ContratDetailPage() {
   )
 
   const structureLabel = useMemo(
-    () => resolveStructureLabel(contrat?.structure, ugls),
-    [contrat?.structure, ugls]
+    () => resolveStructureLabel(contrat?.structure, plansites),
+    [contrat?.structure, plansites]
   )
 
   useEffect(() => {
