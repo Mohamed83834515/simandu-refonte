@@ -14,7 +14,7 @@ function buildPayload(
   overrides: Partial<RapportExportPayload> = {}
 ): RapportExportPayload {
   return {
-    pageTitle: 'Tâches PTBA',
+    pageTitle: 'Tâches PAO',
     columns: [
       { id: 'activite', header: 'Activité', boldPrefixSeparator: ' : ' },
       { id: 'tache', header: 'Intitulé tâche' },
@@ -42,8 +42,8 @@ async function exportAndReload(payload: RapportExportPayload) {
     blobs.push(blob as Blob)
     return 'blob:mock'
   })
-  vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
-  vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+  vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => { })
+  vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => { })
 
   await exportRapportExcel(payload)
 

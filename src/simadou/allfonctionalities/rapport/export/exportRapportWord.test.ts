@@ -13,7 +13,7 @@ function buildPayload(
   overrides: Partial<RapportExportPayload> = {}
 ): RapportExportPayload {
   return {
-    pageTitle: 'Tâches PTBA',
+    pageTitle: 'Tâches PAO',
     columns: [
       { id: 'activite', header: 'Activité', boldPrefixSeparator: ' : ' },
       { id: 'tache', header: 'Intitulé tâche' },
@@ -41,8 +41,8 @@ async function exportAndReadXml(payload: RapportExportPayload) {
     blobs.push(blob as Blob)
     return 'blob:mock'
   })
-  vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
-  vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+  vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => { })
+  vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => { })
 
   await exportRapportWord(payload)
 
@@ -208,8 +208,8 @@ describe('exportRapportWord', () => {
     expect(xml).toMatch(/w:orient="landscape"/)
 
     // La bannière d'en-tête ouvre le document, avant le préambule.
-    expect(xml.indexOf('Rapport — Tâches PTBA')).toBeGreaterThanOrEqual(0)
-    expect(xml.indexOf('Rapport — Tâches PTBA')).toBeLessThan(
+    expect(xml.indexOf('Rapport — Tâches PAO')).toBeGreaterThanOrEqual(0)
+    expect(xml.indexOf('Rapport — Tâches PAO')).toBeLessThan(
       xml.indexOf('PREAMBULE')
     )
 

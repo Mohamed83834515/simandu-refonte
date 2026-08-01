@@ -127,7 +127,7 @@ export default function RapportPtbaPage() {
         >
           <div className='flex items-center justify-between gap-4'>
             <TabsList>
-              <TabsTrigger value='taches'>Tâches PTBA</TabsTrigger>
+              <TabsTrigger value='taches'>Tâches PAO</TabsTrigger>
               <TabsTrigger value='indicateurs'>Indicateurs</TabsTrigger>
               <TabsTrigger value='couts'>Coût Activité</TabsTrigger>
             </TabsList>
