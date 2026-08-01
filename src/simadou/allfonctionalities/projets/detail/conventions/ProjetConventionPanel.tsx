@@ -47,17 +47,6 @@ export default function ProjetConventionPanel({
   const [suiviConvention, setSuiviConvention] = useState<Convention | null>(null)
   const [showSuiviModal, setShowSuiviModal] = useState(false)
 
-  const signatairesById = useMemo(
-    () =>
-      new Map(
-        (projet.signataires_projet ?? []).map((acteur) => [
-          acteur.id_acteur,
-          acteur,
-        ])
-      ),
-    [projet.signataires_projet]
-  )
-
   const handleAdd = () => {
     setSelectedConvention(null)
     setFormOpen(true)
@@ -89,12 +78,11 @@ export default function ProjetConventionPanel({
   const columns = useMemo(
     () =>
       buildConventionProjetColumns({
-        signatairesById,
         onEdit: handleEdit,
         onDeleteRequest: handleDeleteRequest,
         onOpenSuivi,
       }),
-    [signatairesById, handleEdit, handleDeleteRequest, onOpenSuivi]
+    [handleEdit, handleDeleteRequest, onOpenSuivi]
   )
 
   const handleConfirmDelete = (row: Convention) => {

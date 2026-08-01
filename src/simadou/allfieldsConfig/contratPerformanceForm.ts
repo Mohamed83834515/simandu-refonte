@@ -67,7 +67,7 @@ export const getContratPerformanceFormConfig = (
     },
     {
       name: 'structure',
-      label: 'Structure / UGL',
+      label: 'Direction / Services',
       type: 'select',
       placeholder: 'Sélectionner une UGL',
       required: true,

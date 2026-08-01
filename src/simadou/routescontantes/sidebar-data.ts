@@ -11,7 +11,6 @@ import {
   LayoutGrid,
   User,
   SlidersHorizontal,
-  Handshake,
   MapPin,
   FileStack,
   BarChart2,
@@ -71,15 +70,15 @@ export const sidebarData: SidebarData = {
               icon: UserCog,
             },
             {
-              title: 'Partenaire Financier',
-              url: '/parametrage/partenaire-financier',
-              icon: Handshake,
+              title: 'Unités de gestion',
+              url: '/parametrage/unites-de-gestion',
+              icon: LayoutGrid,
             },
-            {
-              title: 'Zones de collecte',
-              url: '/parametrage/zone-de-collecte',
-              icon: MapPin,
-            }, 
+            // {
+            //   title: 'Partenaire Financier',
+            //   url: '/parametrage/partenaire-financier',
+            //   icon: Handshake,
+            // },
             {
               title: 'Cadre Organique du MMAFP',
               url: '/parametrage/plans-de-site',
@@ -124,7 +123,7 @@ export const sidebarData: SidebarData = {
               icon: LineChart,
             },
             {
-              title: 'Indicateurs du CMR',
+              title: 'Cadre des mésures de resultats',
               url: '/programme/indicateurs-cmr',
               icon: TrendingUp,
             }
@@ -138,7 +137,7 @@ export const sidebarData: SidebarData = {
           items: [
 
             {
-              title: 'PAO',
+              title: 'Plans d\'Actions Opérationnels',
               url: '/programmation/ptba',
               icon: ClipboardList,
             },
@@ -148,12 +147,7 @@ export const sidebarData: SidebarData = {
               icon: FileSignature,
             },
             {
-              title: 'Suivi du PAO',
-              url: '/programmation/suivi-ptba',
-              icon: Eye,
-            },
-            {
-              title: 'Parametrage des marches',
+              title: 'Paramétrage des marchés',
               url: '/programmation/parametrage-marches',
               icon: List,
             },
@@ -174,11 +168,13 @@ export const sidebarData: SidebarData = {
               url: '/projet-programme/projets',
               icon: FolderOpen,
             },
+
             {
-              title: 'Unités de gestion',
-              url: '/projet-programme/unites-de-gestion',
-              icon: LayoutGrid,
+              title: 'Zones de collecte',
+              url: '/projet-programme/zone-de-collecte',
+              icon: MapPin,
             },
+
           ],
         },
 
@@ -191,6 +187,11 @@ export const sidebarData: SidebarData = {
               title: 'Suivi des indicateurs',
               url: '/suivi-resultats/suivi-indicateurs',
               icon: LineChart,
+            },
+            {
+              title: 'Suivi du Plan d\'Action Opérationnel',
+              url: '/suivi-resultats/suivi-ptba',
+              icon: Eye,
             },
             {
               title: 'Cartographie',
@@ -206,7 +207,7 @@ export const sidebarData: SidebarData = {
           icon: FileBarChart,
           items: [
             {
-              title: 'PAO',
+              title: 'Plans d\'Actions Opérationnels',
               url: '/rapport/ptba',
               icon: ClipboardList,
             },

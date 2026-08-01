@@ -70,7 +70,8 @@ function ListePtbas() {
         setOpen,
         setCurrentRow,
         onOpenPlanification,
-        currencyCode
+        currencyCode,
+        getResponsableLabel
       ),
     [setOpen, setCurrentRow, onOpenPlanification, getResponsableLabel,
       currencyCode

@@ -23,7 +23,7 @@ import SuiviTacheActiviteManager from './suivi-tache/SuiviTacheActiviteManager'
 import SuiviDecaissementPtbaManager from './suivi-decaissement/SuiviDecaissementPtbaManager'
 import suiviAvancementContratService from '@/simadou/allSercices/suiviAvancementContratService'
 
-const route = getRouteApi('/_authenticated/programmation/suivi-ptba/')
+const route = getRouteApi('/_authenticated/suivi-resultats/suivi-ptba/')
 
 export default function ListeSuiviPtba() {
   const codeProgramme = useActiveProgrammeCode()
@@ -38,7 +38,7 @@ export default function ListeSuiviPtba() {
   const [observationActivite, setObservationActivite] = useState<Ptba | null>(null)
 
   const { data: ptbas = [] } = useGetPtbas(Number(selectedVersionId))
- 
+
   const filteredPtbas = useMemo(() => {
     if (!selectedVersionId) return ptbas
     return ptbas.filter(
@@ -68,7 +68,7 @@ export default function ListeSuiviPtba() {
     const fetchAllObservations = async () => {
       setIsLoadingObservations(true)
       const map = new Map<number, SuiviAvancementContrat[]>()
-      
+
       for (const ptba of filteredPtbas) {
         try {
           const observations = await suiviAvancementContratService.getByActivite(ptba.id_ptba)
@@ -78,11 +78,11 @@ export default function ListeSuiviPtba() {
           map.set(ptba.id_ptba, [])
         }
       }
-      
+
       setObservationsByActivite(map)
       setIsLoadingObservations(false)
     }
-    
+
     if (filteredPtbas.length > 0) {
       fetchAllObservations()
     }
@@ -156,37 +156,37 @@ export default function ListeSuiviPtba() {
         tabs={
           suiviActivite
             ? [
-                {
-                  value: 'taches',
-                  label: 'Suivi des tâches',
-                  content: <SuiviTacheActiviteManager activite={suiviActivite} />,
-                },
-                {
-                  value: 'indicateurs',
-                  label: 'Suivi des indicateurs',
-                  content: <SuiviIndicateurManager activite={suiviActivite} />,
-                },
-                {
-                  value: 'decaissement',
-                  label: 'Suivi décaissement',
-                  content: (
-                    <SuiviDecaissementPtbaManager
-                      key={suiviActivite.id_ptba}
-                      activite={suiviActivite}
-                    />
-                  ),
-                },
-                {
-                  value: 'avancement-contrat',
-                  label: "Observation globale sur l'activité",
-                  content: (
-                    <SuiviAvancementContratManager
-                      key={suiviActivite.id_ptba}
-                      activite={suiviActivite}
-                    />
-                  ),
-                },
-              ]
+              {
+                value: 'taches',
+                label: 'Suivi des tâches',
+                content: <SuiviTacheActiviteManager activite={suiviActivite} />,
+              },
+              {
+                value: 'indicateurs',
+                label: 'Suivi des indicateurs',
+                content: <SuiviIndicateurManager activite={suiviActivite} />,
+              },
+              {
+                value: 'decaissement',
+                label: 'Suivi décaissement',
+                content: (
+                  <SuiviDecaissementPtbaManager
+                    key={suiviActivite.id_ptba}
+                    activite={suiviActivite}
+                  />
+                ),
+              },
+              {
+                value: 'avancement-contrat',
+                label: "Observation globale sur l'activité",
+                content: (
+                  <SuiviAvancementContratManager
+                    key={suiviActivite.id_ptba}
+                    activite={suiviActivite}
+                  />
+                ),
+              },
+            ]
             : []
         }
       />

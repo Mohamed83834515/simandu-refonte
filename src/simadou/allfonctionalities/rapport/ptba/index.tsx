@@ -115,7 +115,7 @@ export default function RapportPtbaPage() {
   }
 
   return (
-    <RapportPageLayout title='Rapport des états PTBA' icon={ClipboardList}>
+    <RapportPageLayout title='Rapport des états PAO' icon={ClipboardList}>
       <div className='space-y-4'>
         {/* ✅ Version Select sur la même ligne que les tabs */}
         <Tabs

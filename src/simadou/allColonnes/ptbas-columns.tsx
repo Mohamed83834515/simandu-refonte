@@ -106,7 +106,8 @@ export const buildPtbasColumns = (
     setOpen: (dialog: PtbasDialogType | null) => void,
     setCurrentRow: React.Dispatch<React.SetStateAction<Ptba | null>>,
     onOpenPlanification: (activite: Ptba) => void,
-    currencyCode?:string
+    currencyCode: string | undefined,
+    getResponsableLabel: (activite: Ptba) => string | null,
 ) => {
     const baseColumns = buildColumns<Ptba>([
         { type: "text", key: "code_activite_ptba", title: "Code", sticky: true, maxWidth: 'max-w-24' },
@@ -143,6 +144,22 @@ export const buildPtbasColumns = (
         return col
     })
 
+    const responsableColumn: ColumnDef<Ptba> = {
+        id: "responsable",
+        accessorKey: 'responsable',
+        header: ({ column }) => (
+            <DataTableColumnHeader column={column} title='Responsable' />
+        ),
+        cell: ({ row }) => {
+            const activite = row.original;
+            // const structure = row.original.partenaire_conserne_ptbab;
+            const responsable_ptba = getResponsableLabel(activite);
+            if (!responsable_ptba) return 'N/A'
+            return <Button variant="ghost" className="text-left" size="sm">  ({responsable_ptba})</Button>
+        },
+        enableSorting: false,
+        enableHiding: false,
+    }
     const actionsColumn: ColumnDef<Ptba> = {
         id: "actions",
         accessorKey: 'id_ptba',
@@ -183,7 +200,7 @@ export const buildPtbasColumns = (
     const coutColumns: ColumnDef<Ptba> = {
         id: 'cout_row',
         header: ({ column }) => (
-            <DataTableColumnHeader column={column} title={`Budget (${currencyCode})`}  />
+            <DataTableColumnHeader column={column} title={`Budget (${currencyCode})`} />
         ),
         cell: ({ row }) => {
             const budget = row.original.cout_total_ptba
@@ -248,6 +265,7 @@ export const buildPtbasColumns = (
 
     return [
         ...baseColumns,
+        responsableColumn,
         ...chronogrammeColumns,
         planificationColumn,
         coutColumns,
