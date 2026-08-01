@@ -155,7 +155,7 @@ export const buildPtbasColumns = (
             // const structure = row.original.partenaire_conserne_ptbab;
             const responsable_ptba = getResponsableLabel(activite);
             if (!responsable_ptba) return 'N/A'
-            return <Button variant="ghost" className="text-left" size="sm">  ({responsable_ptba})</Button>
+            return <Button variant="ghost" className="text-left" size="sm">  {responsable_ptba}</Button>
         },
         enableSorting: false,
         enableHiding: false,

@@ -3,7 +3,6 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { StepDynamicForm } from '@/Global/Forms/StepDynamicForm'
 import { DIALOG_SIZES } from '@/Global/Forms/dialog'
 import { useActiveProgrammeCode, useActiveProgrammeId } from '@/hooks/use-active-programme'
-import { useGetUgls } from '@/simadou/allHooks/admin/uglHooks'
 import { getContratPerformanceFormConfig } from '@/simadou/allfieldsConfig/contratPerformanceForm'
 import { contratPerformanceSchema } from '@/simadou/schemas/contratPerformanceSchema'
 import { useCreateContratPerformance, useUpdateContratPerformance } from '@/simadou/allHooks/admin/contratPerformanceHooks'
@@ -11,8 +10,9 @@ import { toast } from 'sonner'
 import type { ContratPerformance, ContratPerformancePayload } from '@/simadou/allTypes/contratPerformance'
 import { useMe } from '@/simadou/allHooks/auth/authHooks'
 import { usePtbaVersionSelection } from '@/simadou/allHooks/admin/versionHooks'
-import { UGL, VersionPtba } from '@/simadou/allTypes/entities'
+import { VersionPtba } from '@/simadou/allTypes/entities'
 import { Programme } from '@/simadou/allTypes'
+import { useGetPlanSites } from '@/simadou/allHooks/admin/planSiteHooks'
 
 interface AddContratPerformanceProps {
     open: boolean
@@ -24,7 +24,7 @@ export default function AddContratPerformance({ open, onOpenChange, currentRow }
     const programmeId = useActiveProgrammeId()
     const codeProgramme = useActiveProgrammeCode()
     const isEdit = !!currentRow?.id_contrat
-    const { data: ugls = [] } = useGetUgls()
+    const { data: plan_sites = [] } = useGetPlanSites()
     const { data: user } = useMe()
 
     const createMutation = useCreateContratPerformance(programmeId)
@@ -33,8 +33,8 @@ export default function AddContratPerformance({ open, onOpenChange, currentRow }
     const { selectedVersionId } = usePtbaVersionSelection(codeProgramme)
 
     const formConfig = useMemo(
-        () => getContratPerformanceFormConfig(ugls),
-        [ugls]
+        () => getContratPerformanceFormConfig(plan_sites),
+        [plan_sites]
     )
 
     const defaultValues = {
@@ -50,7 +50,9 @@ export default function AddContratPerformance({ open, onOpenChange, currentRow }
         observation_globale: currentRow?.observation_globale ?? '',
         etat: isEdit ? 'Modifier' : "Ajouter",
         version_ptba: typeof currentRow?.version_ptba === 'object' ? (currentRow.version_ptba as VersionPtba).id_version_ptba : (selectedVersionId ? Number(selectedVersionId) : 0) ?? currentRow?.version_ptba,
-        structure: typeof currentRow?.structure === 'object' ? (currentRow.structure as UGL).id_ugl : currentRow?.structure ?? 0,
+        structure: currentRow?.structure && typeof currentRow.structure === 'object' && currentRow.structure !== null
+            ? currentRow.structure.id_ds
+            : currentRow?.structure ?? 0,
         id_personnel: user?.n_personnel,
         programme: typeof currentRow?.programme === 'object' ? (currentRow.programme as Programme).id_programme : (programmeId ? Number(programmeId) : 0) ?? currentRow?.programme,
     }

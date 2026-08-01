@@ -212,17 +212,17 @@ export const sidebarData: SidebarData = {
               icon: ClipboardList,
             },
             {
-              title: 'État des activités',
+              title: 'Avancement des activités',
               url: '/rapport/etat-des-activites',
               icon: ListChecks,
             },
             {
-              title: 'Décaissement',
+              title: 'Suivi budgétaire',
               url: '/rapport/decaissement',
               icon: Wallet,
             },
             {
-              title: 'Indicateurs',
+              title: 'Suivi des indicateurs',
               url: '/rapport/indicateurs',
               icon: LineChart,
             },
