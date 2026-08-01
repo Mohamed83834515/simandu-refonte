@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { GenericDialogs } from '@/Global/Generic/Genericdialogs'
@@ -38,17 +38,22 @@ export default function ProjetPtbaPanel({ projet }: ProjetPtbaPanelProps) {
     selectedVersion,
   } = useProjetPtbaVersionSelection(projet)
 
+  const storageKey = 'selectedVersionProjetId'
+  useEffect(() => {
+
+    localStorage.setItem(storageKey, String(selectedVersionId))
+  }, [selectedVersionId])
+
   const handleChangeVersionForProjet = useCallback(
     (versionId: string | null) => {
       handleChangeVersion(versionId)
-      const storageKey = `selectedVersionProjetId`
       if (versionId) {
         localStorage.setItem(storageKey, versionId)
       } else {
         localStorage.removeItem(storageKey)
       }
     },
-    [handleChangeVersion, codeProjet]
+    [handleChangeVersion]
   )
 
   const { search, navigate } = useEmbeddedTableState()
