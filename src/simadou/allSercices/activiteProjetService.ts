@@ -24,13 +24,13 @@ export const activiteProjetService = {
     );
   },
 
+
   // Récupérer une activité projet par code
   getLAstNiveauByProjet: async (code: string): Promise<ActiviteProjet[]> => {
     return await apiClient.request<ActiviteProjet[]>(
       `${BASE_URL_LAST_NIVEAU}?project_code=${encodeURIComponent(code)}`,
     );
   },
-
   // Créer une activité projet
   create: async (data: Partial<ActiviteProjet>): Promise<ActiviteProjet> => {
     return await apiClient.request<ActiviteProjet>(BASE_URL, {
