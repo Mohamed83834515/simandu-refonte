@@ -103,12 +103,12 @@ export const sidebarData: SidebarData = {
           icon: FileStack,
           items: [
             {
-              title: 'Liste des politiques et stratégies',
+              title: 'Liste des programmes',
               url: '/programme/liste',
               icon: FileStack,
             },
             {
-              title: 'Cadre analytique',
+              title: 'CDMT',
               url: '/programme/cadre-analytique',
               icon: BarChart2,
             },
