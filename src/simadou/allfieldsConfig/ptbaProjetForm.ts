@@ -132,7 +132,7 @@ export function getPtbaProjetFormConfig(
         placeholder: 'Sélectionner une ou plusieurs localités',
         required: true,
         options: localiteOptions(localites),
-        gridCols: 1,
+        gridCols: 2,
         formStep: 2,
       },
       {
@@ -142,7 +142,7 @@ export function getPtbaProjetFormConfig(
         placeholder: 'Sélectionner un ou plusieurs partenaires',
         required: true,
         options: acteurOptions(acteurs),
-        gridCols: 1,
+        gridCols: 2,
         formStep: 2,
       },
       {
