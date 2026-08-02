@@ -132,7 +132,7 @@ export const sidebarData: SidebarData = {
 
         // ── Programmation ─────────────────────────────────────
         {
-          title: 'Programmation',
+          title: 'Planification',
           icon: CalendarDays,
           items: [
 
