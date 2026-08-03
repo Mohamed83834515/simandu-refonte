@@ -100,15 +100,14 @@ describe('exportRapportWord', () => {
       expect(occupiedGridColumns(row[0])).toBe(gridColumns)
     })
 
-    // La ligne de section (ligne 1, après l'en-tête) garde son libellé en
-    // tête de la zone « Activité » (fusion des colonnes d'indentation),
-    // sans déborder sur les colonnes de données.
+    // La ligne de section (ligne 1, après l'en-tête) : le libellé prend
+    // toutes les colonnes disponibles à droite (fusion pleine largeur,
+    // niveau 0 → aucune cellule d'indentation).
     const sectionRow = rows[1][0]
     const sectionCells = [...sectionRow.matchAll(/<w:tc>.*?<\/w:tc>/gs)]
-    expect(sectionCells.length).toBe(6)
+    expect(sectionCells.length).toBe(1)
     expect(sectionCells[0][0]).toContain('Composante 1')
-    expect(sectionCells[0][0]).toMatch(/<w:gridSpan w:val="2"/)
-    expect(sectionCells[1][0]).not.toContain('Composante 1')
+    expect(sectionCells[0][0]).toMatch(/<w:gridSpan w:val="7"/)
   })
 
   it('section : libellé indenté dans la colonne Activité, code en gras', async () => {
@@ -144,17 +143,20 @@ describe('exportRapportWord', () => {
       expect(occupiedGridColumns(row[0])).toBe(gridColumns)
     })
 
-    // Section niveau 0 : libellé en tête, fusionné sur toute la zone (3).
+    // Section niveau 0 : libellé en tête, fusionné sur toutes les
+    // colonnes disponibles à droite (5).
     const section0Cells = [...rows[1][0].matchAll(/<w:tc>.*?<\/w:tc>/gs)]
+    expect(section0Cells.length).toBe(1)
     expect(section0Cells[0][0]).toContain('Composante 1')
-    expect(section0Cells[0][0]).toMatch(/<w:gridSpan w:val="3"/)
+    expect(section0Cells[0][0]).toMatch(/<w:gridSpan w:val="5"/)
 
     // Section niveau 1 : une cellule d'indentation vide puis le libellé
-    // fusionné sur le reste de la zone (2).
+    // fusionné sur toutes les colonnes restantes (4).
     const section1Cells = [...rows[2][0].matchAll(/<w:tc>.*?<\/w:tc>/gs)]
+    expect(section1Cells.length).toBe(2)
     expect(section1Cells[0][0]).not.toContain('1A')
     expect(section1Cells[1][0]).toContain('1A')
-    expect(section1Cells[1][0]).toMatch(/<w:gridSpan w:val="2"/)
+    expect(section1Cells[1][0]).toMatch(/<w:gridSpan w:val="4"/)
 
     // Activité (niveau cadre + 1 = 2) : deux cellules d'indentation vides
     // puis le libellé dans la colonne principale.

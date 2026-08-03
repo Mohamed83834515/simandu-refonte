@@ -145,17 +145,19 @@ describe('exportRapportExcel', () => {
     expect(sheet.getCell(5, 4).value).toBe('Intitulé tâche')
 
     // dataStartRow = 6 (une seule ligne d'en-tête) → sections lignes 6 et 7.
-    // Niveau 0 : libellé posé colonne 1, fusionné jusqu'à la colonne 3 —
-    // les lignes repliées restent indentées (fusion, pas espaces).
+    // Niveau 0 : libellé posé colonne 1, fusionné jusqu'à la DERNIÈRE
+    // colonne (5) — le libellé prend toutes les colonnes disponibles à
+    // droite, les lignes repliées restent indentées.
     expect(sheet.getCell(6, 1).value).toBe('Composante 1')
     expect(sheet.getCell(6, 1).isMerged).toBe(true)
-    expect(sheet.getCell(6, 3).isMerged).toBe(true)
+    expect(sheet.getCell(6, 5).isMerged).toBe(true)
     expect(sheet.getCell(6, 1).font?.bold).toBe(true)
-    expect(sheet.getCell(6, 4).value ?? '').toBe('')
 
     // Niveau 1 : libellé posé colonne 2 (1 colonne d'indentation vide),
-    // code « 1A » en gras + reste en normal (texte riche).
+    // fusionné jusqu'à la colonne 5, code « 1A » en gras + reste en
+    // normal (texte riche).
     expect(sheet.getCell(7, 1).value ?? '').toBe('')
+    expect(sheet.getCell(7, 1).isMerged).toBe(false)
 
     const richText = (sheet.getCell(7, 2).value as ExcelJS.CellRichTextValue)
       .richText
@@ -163,7 +165,7 @@ describe('exportRapportExcel', () => {
     expect(richText[0].font?.bold).toBe(true)
     expect(richText[1].text).toBe(' : Promotion des entreprises')
     expect(richText[1].font?.bold ?? false).toBe(false)
-    expect(sheet.getCell(7, 3).isMerged).toBe(true)
+    expect(sheet.getCell(7, 5).isMerged).toBe(true)
 
     // Ligne d'activité (niveau cadre + 1 = 2) : libellé posé colonne 3
     // (2 colonnes d'indentation vides), code en gras dans le texte riche.

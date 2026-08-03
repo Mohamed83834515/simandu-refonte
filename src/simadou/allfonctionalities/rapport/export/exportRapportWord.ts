@@ -526,63 +526,60 @@ function buildDataTable(
         const meta = rowMetas?.[rowIndex]
         const shaded = rowIndex % 2 === 1
 
-        // SECTION (CADRE ANALYTIQUE) : libellé dans la zone « Activité »,
-        // indenté par de vraies colonnes bordées (comme l'export Excel) —
-        // le libellé fusionne jusqu'à la colonne principale, les lignes
-        // repliées restent indentées.
+        // SECTION (CADRE ANALYTIQUE) : cellules d'indentation bordées
+        // (comme l'export Excel) puis libellé fusionné sur toutes les
+        // colonnes restantes à droite.
         if (meta?.type === 'section') {
           const niveau = meta.niveau ?? 0
           const startOffset = Math.min(niveau, indentColumnCount)
-          const spanCount = indentColumnCount - startOffset + 1
+          const labelGridStart = sectionColumnIndex + startOffset
+          const spanCount = columnWidths.length - labelGridStart
 
           const cells: TableCell[] = []
 
-          columns.forEach((_, colIndex) => {
-            if (colIndex === sectionColumnIndex) {
-              // Cellules d'indentation avant le libellé.
-              for (let k = 0; k < startOffset; k += 1) {
-                cells.push(
-                  emptyBodyCell(
-                    columnWidths[sectionColumnIndex + k] ??
-                      WORD_INDENT_COLUMN_WIDTH,
-                    theme.greenMuted
-                  )
-                )
-              }
+          // Colonnes de données avant la zone Activité (aucune dans les
+          // rapports actuels, l'Activité est en tête).
+          for (let colIndex = 0; colIndex < sectionColumnIndex; colIndex += 1) {
+            cells.push(
+              emptyBodyCell(columnWidths[colIndex] ?? 1800, theme.greenMuted)
+            )
+          }
 
-              cells.push(
-                new TableCell({
-                  width: {
-                    size: regionWidth(startOffset),
-                    type: WidthType.DXA,
-                  },
-                  columnSpan: spanCount > 1 ? spanCount : undefined,
-                  shading: {
-                    fill: theme.greenMuted,
-                    type: ShadingType.CLEAR,
-                    color: 'auto',
-                  },
-                  borders: dataCellBorders(false),
-                  margins: { top: 80, bottom: 80, left: 100, right: 100 },
-                  verticalAlign: VerticalAlignTable.CENTER,
-                  children: [
-                    sectionLabelParagraph(
-                      meta.label ?? '',
-                      indentColumnCount === 0 ? niveau : 0
-                    ),
-                  ],
-                })
-              )
-              return
-            }
-
+          // Cellules d'indentation avant le libellé.
+          for (let k = 0; k < startOffset; k += 1) {
             cells.push(
               emptyBodyCell(
-                columnWidths[toGridIndex(colIndex)] ?? 1800,
+                columnWidths[sectionColumnIndex + k] ??
+                  WORD_INDENT_COLUMN_WIDTH,
                 theme.greenMuted
               )
             )
-          })
+          }
+
+          const labelWidth = columnWidths
+            .slice(labelGridStart)
+            .reduce((sum, w) => sum + (w ?? 1800), 0)
+
+          cells.push(
+            new TableCell({
+              width: { size: labelWidth, type: WidthType.DXA },
+              columnSpan: spanCount > 1 ? spanCount : undefined,
+              shading: {
+                fill: theme.greenMuted,
+                type: ShadingType.CLEAR,
+                color: 'auto',
+              },
+              borders: dataCellBorders(false),
+              margins: { top: 80, bottom: 80, left: 100, right: 100 },
+              verticalAlign: VerticalAlignTable.CENTER,
+              children: [
+                sectionLabelParagraph(
+                  meta.label ?? '',
+                  indentColumnCount === 0 ? niveau : 0
+                ),
+              ],
+            })
+          )
 
           return new TableRow({ cantSplit: true, children: cells })
         }

@@ -80,10 +80,9 @@ type CadreSectionCellsProps = {
 }
 
 /**
- * Cellules d'une ligne de cadre analytique : le libellé reste dans la
- * colonne « Activité » (première colonne), indenté selon le niveau (code en
- * gras, repères de niveaux), et ne déborde jamais sur les colonnes
- * suivantes.
+ * Cellule d'une ligne de cadre analytique : indentée selon le niveau
+ * (code en gras, repères de niveaux), le libellé fusionne toutes les
+ * colonnes restantes à droite.
  */
 export function CadreSectionCells({
   label,
@@ -94,21 +93,17 @@ export function CadreSectionCells({
   const split = splitCellBoldPrefix(label, SECTION_LABEL_SEPARATOR)
 
   return (
-    <>
-      <TableCell
-        className={`${cellClassName()} relative`}
-        style={niveauIndentStyle(niveau)}
-      >
-        <IndentGuides niveau={niveau} />
-        {split ? (
-          <BoldPrefixLabel label={label} />
-        ) : (
-          <span className='font-bold'>{label}</span>
-        )}
-      </TableCell>
-      {Array.from({ length: Math.max(columnCount - 1, 0) }).map((_, index) => (
-        <TableCell key={index} className={cellClassName()} />
-      ))}
-    </>
+    <TableCell
+      colSpan={columnCount}
+      className={`${cellClassName()} relative`}
+      style={niveauIndentStyle(niveau)}
+    >
+      <IndentGuides niveau={niveau} />
+      {split ? (
+        <BoldPrefixLabel label={label} />
+      ) : (
+        <span className='font-bold'>{label}</span>
+      )}
+    </TableCell>
   )
 }

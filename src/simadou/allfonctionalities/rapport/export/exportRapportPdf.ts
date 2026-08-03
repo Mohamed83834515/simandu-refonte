@@ -388,21 +388,34 @@ export async function exportRapportPdf(payload: RapportExportPayload) {
 
       if (!meta) return
 
-      // SECTION CADRE ANALYTIQUE : libellé dans la colonne « Activité »,
-      // indenté selon le niveau — jamais sur les colonnes suivantes.
+      // SECTION CADRE ANALYTIQUE : libellé indenté selon le niveau puis
+      // fusionné sur toutes les colonnes restantes à droite.
       if (meta.type === 'section') {
-        if (data.column.index !== sectionColumnIndex) {
+        if (data.column.index < sectionColumnIndex) {
           data.cell.text = ['']
           return
         }
 
+        if (data.column.index > sectionColumnIndex) {
+          // Colonnes couvertes par la fusion du libellé.
+          data.cell.text = ['']
+          data.cell.styles.lineWidth = 0
+          return
+        }
+
+        // Largeur de la zone fusionnée : colonnes de données restantes +
+        // colonnes du Gantt.
+        const spanWidth =
+          (ganttStartIndex - sectionColumnIndex) * dataColWidth +
+          ganttColumnCount * ganttColWidth
+
         const niveau = meta.niveau ?? 0
-        // Retrait plafonné à la moitié de la colonne : un cadre très
-        // profond reste lisible au lieu de dégénérer en une lettre par
-        // ligne.
-        const indent = Math.min(niveau * SECTION_PDF_INDENT, dataColWidth / 2)
+        // Retrait plafonné : un cadre très profond reste lisible au lieu
+        // de dégénérer en une lettre par ligne.
+        const indent = Math.min(niveau * SECTION_PDF_INDENT, spanWidth / 2)
         const label = meta.label ?? ''
 
+        data.cell.colSpan = columns.length - sectionColumnIndex
         data.cell.styles.fontStyle = 'bold'
         data.cell.styles.halign = 'left'
         data.cell.styles.cellPadding = {
@@ -419,7 +432,7 @@ export async function exportRapportPdf(payload: RapportExportPayload) {
         }
 
         // Code en gras + reste en normal, dessinés dans didDrawCell.
-        const maxWidth = Math.max(dataColWidth - 4 - indent, 8)
+        const maxWidth = Math.max(spanWidth - 4 - indent, 8)
         const layout = layoutBoldPrefix(
           doc,
           split.prefix,
@@ -563,9 +576,16 @@ export async function exportRapportPdf(payload: RapportExportPayload) {
         data.column.index === sectionColumnIndex &&
         !cellMerges.covered.has(`${data.row.index}:${data.column.index}`)
       ) {
+        // Même plafond que le retrait : les sections fusionnent toutes
+        // les colonnes restantes, les activités restent dans leur zone.
+        const clampWidth =
+          cellMeta.type === 'section'
+            ? (ganttStartIndex - sectionColumnIndex) * dataColWidth +
+              ganttColumnCount * ganttColWidth
+            : dataColWidth
         const indent = Math.min(
           (cellMeta.niveau ?? 0) * SECTION_PDF_INDENT,
-          dataColWidth / 2
+          clampWidth / 2
         )
         const stepCount = Math.floor(indent / SECTION_PDF_INDENT)
 

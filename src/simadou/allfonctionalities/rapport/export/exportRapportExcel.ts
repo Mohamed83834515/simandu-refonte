@@ -508,15 +508,14 @@ export async function exportRapportExcel(payload: RapportExportPayload) {
       }
     }
 
-    // ── SECTION ROW (cadre analytique) : libellé dans la zone
-    // « Activité », indenté selon le niveau — jamais sur les colonnes
-    // suivantes.
+    // ── SECTION ROW (cadre analytique) : libellé indenté selon le
+    // niveau puis fusionné sur toutes les colonnes restantes à droite.
     if (rowMeta?.type === 'section') {
       const niveau = rowMeta.niveau ?? 0
       const label = rowMeta.label ?? ''
       const startOffset = Math.min(niveau, indentColumnCount)
       const labelStart = baseSectionIndex + startOffset
-      const labelEnd = baseSectionIndex + indentColumnCount
+      const labelEnd = totalColumnCount - 1
 
       for (let sheetCol = 0; sheetCol < totalColumnCount; sheetCol += 1) {
         if (sheetCol === labelStart) continue
