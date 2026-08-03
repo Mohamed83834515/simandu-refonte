@@ -21,7 +21,9 @@ import { usePtbaVersionSelection } from '@/simadou/allHooks/admin/versionHooks'
 import { useActiveProgrammeCode } from '@/hooks/use-active-programme'
 import { formatNumber } from '@/simadou/allSercices/montantFormater'
 import { type Projet } from '@/simadou/allTypes'
-import { BarChart3, DollarSign, Wallet, Calendar, Activity, TrendingUp } from 'lucide-react'
+import { BarChart3, DollarSign, Wallet, Calendar, Activity, TrendingUp, FileText } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import ProjetRapportOrDialog from './rapport/ProjetRapportOrDialog'
 import { Bar, BarChart, XAxis, YAxis, CartesianGrid, LabelList } from 'recharts'
 import { cn } from '@/lib/utils'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -591,6 +593,7 @@ export default function ProjetDashboard({ projet }: ProjetDashboardProps) {
 
   const defaultYear = availableYears[availableYears.length - 1] || new Date().getFullYear()
   const [selectedYear, setSelectedYear] = useState(defaultYear)
+  const [rapportOpen, setRapportOpen] = useState(false)
 
   useEffect(() => {
     setSelectedYear(defaultYear)
@@ -805,20 +808,32 @@ export default function ProjetDashboard({ projet }: ProjetDashboardProps) {
           <h2 className='text-xl font-bold tracking-tight text-foreground'>Tableau de bord</h2>
           <p className='mt-0.5 text-sm text-muted-foreground'>Vue d'ensemble — avancement et finances du projet</p>
         </div>
-        <div className='flex items-center gap-2 rounded-xl border bg-background px-3 py-2 shadow-sm'>
-          <Calendar className='h-4 w-4 flex-shrink-0 text-muted-foreground' />
-          <Select value={String(selectedYear)} onValueChange={(v) => setSelectedYear(Number(v))}>
-            <SelectTrigger className='h-auto w-[110px] border-0 bg-transparent p-0 shadow-none focus:ring-0'>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {availableYears.map((y) => (
-                <SelectItem key={y} value={String(y)}>PTBA {y}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className='flex flex-wrap items-center gap-2'>
+          <Button type='button' variant='outline' onClick={() => setRapportOpen(true)}>
+            <FileText className='h-4 w-4' />
+            Rapport
+          </Button>
+          <div className='flex items-center gap-2 rounded-xl border bg-background px-3 py-2 shadow-sm'>
+            <Calendar className='h-4 w-4 flex-shrink-0 text-muted-foreground' />
+            <Select value={String(selectedYear)} onValueChange={(v) => setSelectedYear(Number(v))}>
+              <SelectTrigger className='h-auto w-[110px] border-0 bg-transparent p-0 shadow-none focus:ring-0'>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {availableYears.map((y) => (
+                  <SelectItem key={y} value={String(y)}>PTBA {y}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
+
+      <ProjetRapportOrDialog
+        projet={projet}
+        open={rapportOpen}
+        onOpenChange={setRapportOpen}
+      />
 
       {/* ── 4 KPI Cards ── */}
       <div className='grid grid-cols-2 gap-3 lg:grid-cols-4'>
