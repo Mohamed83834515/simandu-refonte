@@ -113,8 +113,8 @@ function buildPreamble(projet: Projet): RapportExportPreambleBlock[] {
     resolvePersonnelLabel(projet.responsable_projet) || '—'
   const porteur = projet.partenaire_projet
     ? projet.partenaire_projet.intutile_ds ||
-      projet.partenaire_projet.code_ds ||
-      '—'
+    projet.partenaire_projet.code_ds ||
+    '—'
     : '—'
 
   return [
@@ -158,11 +158,11 @@ function buildOverviewRows(
     tauxGlobalData.length === 0
       ? 0
       : Math.round(
-          tauxGlobalData.reduce(
-            (s, v) => s + (Number(v.taux_an_activite) || 0),
-            0
-          ) / tauxGlobalData.length
-        )
+        tauxGlobalData.reduce(
+          (s, v) => s + (Number(v.taux_an_activite) || 0),
+          0
+        ) / tauxGlobalData.length
+      )
   const realisees = tauxGlobalData.filter(
     (v) => Number(v.taux_an_activite) >= 100
   ).length
@@ -177,9 +177,9 @@ function buildOverviewRows(
     nbPtba === 0
       ? 0
       : Math.round(
-          allPtbas.reduce((s, p) => s + (Number(p.taux_execution_ptba) || 0), 0) /
-            nbPtba
-        )
+        allPtbas.reduce((s, p) => s + (Number(p.taux_execution_ptba) || 0), 0) /
+        nbPtba
+      )
 
   pushSection(rows, metas, '1. Vue d’ensemble')
   pushData(rows, metas, [
