@@ -453,13 +453,13 @@ function ProjetAvancementAnnuelCard({ data, isLoading }: {
                 <BarChart accessibilityLayer data={cumulativeData} margin={{ top: 30, right: 10, left: -10, bottom: 0 }}>
                   <CartesianGrid vertical={false} strokeDasharray='3 3' className='stroke-muted/40' />
                   <XAxis dataKey='annee' tickLine={false} tickMargin={10} axisLine={false} className='fill-muted-foreground text-xs' />
-                  <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(v) => `${v.toFixed(2)}%`} className='fill-muted-foreground text-[10px]' />
-                  <ChartTooltip cursor={{ fill: 'rgba(0,0,0,0.05)' }} content={<ChartTooltipContent formatter={(v) => `${Number(v).toFixed(2)}%`} />} />
+                  <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(v) => `${v.toFixed(0)}%`} className='fill-muted-foreground text-[10px]' />
+                  <ChartTooltip cursor={{ fill: 'rgba(0,0,0,0.05)' }} content={<ChartTooltipContent formatter={(v) => `${Number(v).toFixed(0)}%`} />} />
                   <Bar dataKey='cible' fill='#FCD116' radius={[4, 4, 0, 0]}>
-                    <LabelList dataKey='cible' position='top' className='fill-muted-foreground text-[10px] font-bold' formatter={(v: any) => `${Number(v).toFixed(2)}%`} />
+                    <LabelList dataKey='cible' position='top' className='fill-muted-foreground text-[10px] font-bold' formatter={(v: any) => `${Number(v).toFixed(0)}%`} />
                   </Bar>
                   <Bar dataKey='realise' fill='#10b981' radius={[4, 4, 0, 0]}>
-                    <LabelList dataKey='realise' position='top' className='fill-muted-foreground text-[10px] font-bold' formatter={(v: any) => `${Number(v).toFixed(2)}%`} />
+                    <LabelList dataKey='realise' position='top' className='fill-muted-foreground text-[10px] font-bold' formatter={(v: any) => `${Number(v).toFixed(0)}%`} />
                   </Bar>
                 </BarChart>
               </ChartContainer>
