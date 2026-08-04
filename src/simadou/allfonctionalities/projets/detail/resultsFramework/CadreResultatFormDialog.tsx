@@ -68,9 +68,9 @@ export default function CadreResultatFormDialog({
       buildCadreParentOptions({
         cadres,
         parentId: parent?.id_ncr,
-        excludeCadreId: cadre?.id_cr,
+        excludeCadreId: cadre?.code_cr,
       }),
-    [cadres, parent?.id_ncr, cadre?.id_cr]
+    [cadres, parent?.id_ncr, cadre?.code_cr]
   )
   const showParent = niveau?.nombre_ncr > 1
 

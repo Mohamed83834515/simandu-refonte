@@ -38,7 +38,7 @@ export function buildCadreParentOptions({
 }: {
   cadres: CadreResultat[]
   parentId?: number
-  excludeCadreId?: number
+  excludeCadreId?: string
 }) {
   return cadres
     .filter((cadre) => {
@@ -50,11 +50,11 @@ export function buildCadreParentOptions({
       return (
         cadreNiveauId != null &&
         cadreNiveauId === parentId &&
-        cadre.id_cr !== excludeCadreId
+        cadre.code_cr !== excludeCadreId
       )
     })
     .map((cadre) => ({
-      value: cadre.id_cr,
+      value: cadre.code_cr,
       label: `${cadre.code_cr} - ${cadre.intutile_cr}`,
     }))
 }
