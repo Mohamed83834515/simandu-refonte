@@ -411,6 +411,23 @@ function DecaissementComparatifCard({ data, isLoading }: {
 function ProjetAvancementAnnuelCard({ data, isLoading }: {
   data: { annee: number; cible: number; realise: number }[]; isLoading: boolean
 }) {
+  const cumulativeData = useMemo(() => {
+    const sorted = [...data].sort((a, b) => a.annee - b.annee)
+
+    let cumulCible = 0
+    let cumulRealise = 0
+
+    return sorted.map((item) => {
+      cumulCible = Math.round((cumulCible + (item.cible ?? 0)) * 100) / 100
+      cumulRealise = Math.round((cumulRealise + (item.realise ?? 0)) * 100) / 100
+      return {
+        annee: item.annee,
+        cible: cumulCible,
+        realise: cumulRealise,
+      }
+    })
+  }, [data])
+
   return (
     <Card className='border-0 shadow-sm'>
       <CardHeader className='border-b pb-3'>
@@ -420,29 +437,29 @@ function ProjetAvancementAnnuelCard({ data, isLoading }: {
           </div>
           <div>
             <CardTitle className='text-sm font-semibold'>Avancement physique par année</CardTitle>
-            <CardDescription className='text-xs'>Taux réalisé vs cible (%) — toutes années</CardDescription>
+            <CardDescription className='text-xs'>Taux réalisé vs cible (%) — cumulé</CardDescription>
           </div>
         </div>
       </CardHeader>
       <CardContent className='pt-5'>
         {isLoading ? (
           <div className='flex h-[240px] items-center justify-center text-sm text-muted-foreground'>Chargement...</div>
-        ) : data.length === 0 ? (
+        ) : cumulativeData.length === 0 ? (
           <div className='flex h-[240px] items-center justify-center text-sm text-muted-foreground'>Aucune donnée</div>
         ) : (
           <div className='w-full overflow-x-auto'>
             <div style={{ minWidth: '300px' }}>
               <ChartContainer config={avancementChartConfig} className='h-[240px] w-full'>
-                <BarChart accessibilityLayer data={data} margin={{ top: 30, right: 10, left: -10, bottom: 0 }}>
+                <BarChart accessibilityLayer data={cumulativeData} margin={{ top: 30, right: 10, left: -10, bottom: 0 }}>
                   <CartesianGrid vertical={false} strokeDasharray='3 3' className='stroke-muted/40' />
                   <XAxis dataKey='annee' tickLine={false} tickMargin={10} axisLine={false} className='fill-muted-foreground text-xs' />
-                  <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(v) => `${v}%`} className='fill-muted-foreground text-[10px]' />
-                  <ChartTooltip cursor={{ fill: 'rgba(0,0,0,0.05)' }} content={<ChartTooltipContent formatter={(v) => `${v}%`} />} />
+                  <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(v) => `${v.toFixed(2)}%`} className='fill-muted-foreground text-[10px]' />
+                  <ChartTooltip cursor={{ fill: 'rgba(0,0,0,0.05)' }} content={<ChartTooltipContent formatter={(v) => `${Number(v).toFixed(2)}%`} />} />
                   <Bar dataKey='cible' fill='#FCD116' radius={[4, 4, 0, 0]}>
-                    <LabelList dataKey='cible' position='top' className='fill-muted-foreground text-[10px] font-bold' formatter={(v: any) => `${v}%`} />
+                    <LabelList dataKey='cible' position='top' className='fill-muted-foreground text-[10px] font-bold' formatter={(v: any) => `${Number(v).toFixed(2)}%`} />
                   </Bar>
                   <Bar dataKey='realise' fill='#10b981' radius={[4, 4, 0, 0]}>
-                    <LabelList dataKey='realise' position='top' className='fill-muted-foreground text-[10px] font-bold' formatter={(v: any) => `${v}%`} />
+                    <LabelList dataKey='realise' position='top' className='fill-muted-foreground text-[10px] font-bold' formatter={(v: any) => `${Number(v).toFixed(2)}%`} />
                   </Bar>
                 </BarChart>
               </ChartContainer>
