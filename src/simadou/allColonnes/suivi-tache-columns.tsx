@@ -7,6 +7,7 @@ import {
   findSuiviForTache,
   type SuiviTacheActivite,
 } from '@/simadou/allTypes/suiviTacheActivite'
+import { Badge } from '@/components/ui/badge'
 
 export type SuiviTacheTableRow = TacheActivitePtba
 
@@ -114,6 +115,30 @@ export function buildSuiviTacheColumns(
     enableSorting: false,
     enableHiding: false,
   }
+  const validationColumn: ColumnDef<SuiviTacheTableRow> = {
+    id: 'valide',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title='Valide' />
+    ),
+    cell: ({ row }) => {
+      const tache = row.original
+      const suivi = findSuiviForTache(suivis, tache.id_groupe_tache)
+      return (
+        <Badge
+          variant={suivi?.valide ? 'default' : 'destructive'}
+          className='capitalize'
+        >
+          {suivi?.valide ? 'Validé' : 'Non validé'}
+        </Badge>
+      )
+    },
+    meta: {
+      thClassName: 'min-w-[120px] text-center',
+      className: 'min-w-[120px] text-center',
+    },
+    enableSorting: false,
+    enableHiding: false,
+  }
 
   const suiviActionColumn: ColumnDef<SuiviTacheTableRow> = {
     id: 'suivi_action',
@@ -169,6 +194,7 @@ export function buildSuiviTacheColumns(
     lotColumn,
     proportionColumn,
     dateColumn,
+    validationColumn,
     suiviActionColumn,
     observationColumn,
   ]

@@ -634,7 +634,7 @@ export default function ProjetDashboard({ projet }: ProjetDashboardProps) {
     () => ptbas.filter((p) => p.version_info?.annee_ptba === selectedYear),
     [ptbas, selectedYear]
   )
-
+  console.log('ptbasFiltres', ptbasFiltres)
   const tauxRealisationMoyen = useMemo(() => {
     if (!ptbasFiltres.length) return 0
     return Math.round(
