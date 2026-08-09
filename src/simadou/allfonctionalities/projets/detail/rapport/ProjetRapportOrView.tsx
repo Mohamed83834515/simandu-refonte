@@ -4,6 +4,7 @@ import { PtbaVersionSelect } from '@/simadou/allfonctionalities/ptba/PtbaVersion
 import RapportExportButton from '@/simadou/allfonctionalities/rapport/RapportExportButton'
 import { RapportExportProvider } from '@/simadou/allfonctionalities/rapport/RapportExportContext'
 import { useRapportExportRegistration } from '@/simadou/allfonctionalities/rapport/useRapportExportRegistration'
+import { RAPPORT_EXPORT_THEME as theme } from '@/simadou/allfonctionalities/rapport/export/rapportExportTheme'
 import { formatNumber } from '@/simadou/allSercices/montantFormater'
 import type { Projet } from '@/simadou/allTypes'
 import {
@@ -15,84 +16,19 @@ import { formatDateFr } from '@/simadou/lib/projetUtils'
 import { resolvePersonnelLabel } from '@/simadou/lib/resolveApiRelation'
 import { buildProjetRapportOrExport } from './buildProjetRapportOrExport'
 import { useProjetRapportOrData } from './useProjetRapportOrData'
+import {
+  FicheNiveauTable,
+  FicheSection,
+  FicheSynthese,
+  FicheTable,
+  type FicheNiveauGroup,
+} from './fiche/FicheSynthese'
+import { useFicheGeneratedBy } from './fiche/useFicheGeneratedBy'
 import { cn } from '@/lib/utils'
-
-function Chapter({
-  title,
-  children,
-}: {
-  title: string
-  children: React.ReactNode
-}) {
-  return (
-    <section className='space-y-3'>
-      <h3 className='border-b pb-1 text-base font-semibold tracking-tight'>
-        {title}
-      </h3>
-      {children}
-    </section>
-  )
-}
-
-function SimpleTable({
-  headers,
-  rows,
-  empty,
-}: {
-  headers: string[]
-  rows: string[][]
-  empty?: string
-}) {
-  if (rows.length === 0) {
-    return (
-      <p className='text-sm text-muted-foreground'>{empty ?? 'Aucune donnée.'}</p>
-    )
-  }
-  return (
-    <div className='overflow-x-auto rounded-md border'>
-      <table className='w-full min-w-[640px] text-left text-sm'>
-        <thead className='bg-muted/50'>
-          <tr>
-            {headers.map((h) => (
-              <th key={h} className='px-3 py-2 font-medium'>
-                {h}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row, i) => (
-            <tr key={i} className='border-t'>
-              {row.map((cell, j) => (
-                <td key={j} className='px-3 py-1.5 align-top'>
-                  {cell}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  )
-}
-
-function MetaGrid({ items }: { items: { label: string; value: string }[] }) {
-  return (
-    <dl className='grid gap-3 sm:grid-cols-2'>
-      {items.map((item) => (
-        <div key={item.label} className='space-y-0.5'>
-          <dt className='text-xs font-medium uppercase tracking-wide text-muted-foreground'>
-            {item.label}
-          </dt>
-          <dd className='text-sm'>{item.value}</dd>
-        </div>
-      ))}
-    </dl>
-  )
-}
 
 function ProjetRapportOrBody({ projet }: { projet: Projet }) {
   const data = useProjetRapportOrData(projet)
+  const generatedBy = useFicheGeneratedBy()
 
   const exportInput = useMemo(
     () => ({
@@ -109,6 +45,7 @@ function ProjetRapportOrBody({ projet }: { projet: Projet }) {
       tachesByActivite: data.tachesByActivite,
       avancementByActivite: data.avancementByActivite,
       selectedVersion: data.selectedVersion,
+      generatedBy,
     }),
     [
       data.projet,
@@ -124,6 +61,7 @@ function ProjetRapportOrBody({ projet }: { projet: Projet }) {
       data.tachesByActivite,
       data.avancementByActivite,
       data.selectedVersion,
+      generatedBy,
     ]
   )
 
@@ -166,6 +104,43 @@ function ProjetRapportOrBody({ projet }: { projet: Projet }) {
     [data.niveauxCadre]
   )
 
+  const planAnalytiqueGroups = useMemo<FicheNiveauGroup[]>(
+    () =>
+      sortedNiveauxActivite.map((niveau) => ({
+        key: String(niveau.id_niveau_activite_projet),
+        label:
+          niveau.libelle_niveau_activite_projet?.trim() ||
+          `Niveau ${niveau.nombre_niveau_activite_projet}`,
+        items: data.activites
+          .filter(
+            (a) =>
+              Number(a.niveau_activite_projet) ===
+              niveau.id_niveau_activite_projet
+          )
+          .map((a) => ({
+            code: a.code_activite_projet || '—',
+            label: a.intitule_activite_projet || '—',
+          })),
+      })),
+    [sortedNiveauxActivite, data.activites]
+  )
+
+  const cadreGroups = useMemo<FicheNiveauGroup[]>(
+    () =>
+      sortedNiveauxCadre.map((niveau) => ({
+        key: String(niveau.id_ncr),
+        label: niveau.libelle_ncr?.trim() || `Niveau ${niveau.nombre_ncr}`,
+        items: data.cadres
+          .filter((c) => resolveNiveauCrId(c.niveau_cr) === niveau.id_ncr)
+          .map((c) => ({
+            code: c.code_cr || '—',
+            label: c.intutile_cr || '—',
+            extra: c.abgrege_cr || '',
+          })),
+      })),
+    [sortedNiveauxCadre, data.cadres]
+  )
+
   const tauxGlobal = useMemo(() => {
     if (!data.tauxGlobalData.length) return 0
     return Math.round(
@@ -185,6 +160,13 @@ function ProjetRapportOrBody({ projet }: { projet: Projet }) {
     [data.allPtbas]
   )
 
+  const budget = Number(projet.budget_projet) || 0
+  const budgetPct =
+    budget === 0 ? 0 : Math.round((budgetDecaisse / budget) * 100)
+  const realisees = data.tauxGlobalData.filter(
+    (v) => Number(v.taux_an_activite) >= 100
+  ).length
+
   const croiseRows = useMemo(() => {
     const byYear = new Map<number, typeof data.allPtbas>()
     for (const p of data.allPtbas) {
@@ -198,7 +180,7 @@ function ProjetRapportOrBody({ projet }: { projet: Projet }) {
       .sort((a, b) => a - b)
       .map((year) => {
         const items = byYear.get(year) ?? []
-        const realisees = items.filter(
+        const yearRealisees = items.filter(
           (p) => (Number(p.taux_execution_ptba) || 0) >= 100
         ).length
         const enCours = items.filter((p) => {
@@ -216,7 +198,7 @@ function ProjetRapportOrBody({ projet }: { projet: Projet }) {
         return [
           String(year),
           String(items.length),
-          String(realisees),
+          String(yearRealisees),
           String(enCours),
           formatNumber(cout),
           formatNumber(decaisse),
@@ -229,6 +211,9 @@ function ProjetRapportOrBody({ projet }: { projet: Projet }) {
       ? projet.type_projet.nom_type_projet || '—'
       : '—'
 
+  const green = `#${theme.green}`
+  const greenDark = `#${theme.greenDark}`
+
   if (data.isLoading) {
     return (
       <div className='flex justify-center py-16'>
@@ -238,16 +223,42 @@ function ProjetRapportOrBody({ projet }: { projet: Projet }) {
   }
 
   return (
-    <div className='space-y-8'>
-      <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
-        <div>
-          <h2 className='text-lg font-semibold'>
-            Rapport d&apos;or — {projet.sigle_projet}
-          </h2>
-          <p className='text-sm text-muted-foreground'>
-            Synthèse exportable du projet (PDF / Word)
-          </p>
-        </div>
+    <FicheSynthese
+      badge="Rapport d'or"
+      title={`${projet.sigle_projet || projet.code_projet} — ${projet.intitule_projet || ''}`}
+      generatedBy={generatedBy}
+      contextItems={[
+        { label: 'Code', value: projet.code_projet || '—' },
+        { label: 'Type', value: typeLabel },
+        {
+          label: 'Statut',
+          value: projet.is_cloture ? 'Clôturé' : 'En cours',
+        },
+      ]}
+      kpis={[
+        {
+          label: 'Exécution physique',
+          value: `${tauxGlobal} %`,
+          accent: green,
+        },
+        {
+          label: 'Budget décaissé',
+          value: `${formatNumber(budgetDecaisse)} GNF`,
+          accent: greenDark,
+        },
+        {
+          label: 'Part décaissée',
+          value: `${budgetPct} %`,
+          accent: green,
+        },
+        {
+          label: 'Activités PTBA',
+          value: String(data.allPtbas.length),
+          accent: greenDark,
+        },
+      ]}
+      narrative={`Le projet affiche un taux d’exécution physique de ${tauxGlobal} % (${realisees} activité(s) réalisée(s) sur ${data.tauxGlobalData.length} suivie(s)). Budget ${formatNumber(budget)} GNF, décaissement ${formatNumber(budgetDecaisse)} GNF (${budgetPct} %).`}
+      actions={
         <div className='flex flex-wrap items-center gap-2'>
           <PtbaVersionSelect
             value={data.selectedVersionId}
@@ -256,106 +267,80 @@ function ProjetRapportOrBody({ projet }: { projet: Projet }) {
           />
           <RapportExportButton formats={['word', 'pdf']} />
         </div>
-      </div>
-
-      <Chapter title='Identité du projet'>
-        <MetaGrid
-          items={[
-            { label: 'Intitulé', value: projet.intitule_projet || '—' },
-            { label: 'Code', value: projet.code_projet || '—' },
-            { label: 'Sigle', value: projet.sigle_projet || '—' },
-            { label: 'Type', value: typeLabel },
-            {
-              label: 'Porteur',
-              value:
-                projet.partenaire_projet?.intutile_ds ||
+      }
+    >
+      <FicheSection
+        title='Identité du projet'
+        narrative='Informations générales d’identification, de portage et de couverture du projet.'
+      >
+        <FicheTable
+          title='Fiche identité'
+          headers={['Rubrique', 'Valeur']}
+          rows={[
+            ['Intitulé', projet.intitule_projet || '—'],
+            ['Code', projet.code_projet || '—'],
+            ['Sigle', projet.sigle_projet || '—'],
+            ['Type', typeLabel],
+            [
+              'Porteur',
+              projet.partenaire_projet?.intutile_ds ||
                 projet.partenaire_projet?.code_ds ||
                 '—',
-            },
-            {
-              label: 'Responsable',
-              value: resolvePersonnelLabel(projet.responsable_projet) || '—',
-            },
-            {
-              label: 'Démarrage',
-              value: formatDateFr(projet.date_demarrage_projet),
-            },
-            {
-              label: 'Clôture',
-              value: formatDateFr(projet.date_cloture_projet),
-            },
-            {
-              label: 'Durée',
-              value: projet.duree_projet != null ? `${projet.duree_projet} mois` : '—',
-            },
-            {
-              label: 'Budget',
-              value: `${formatNumber(projet.budget_projet)} GNF`,
-            },
-            {
-              label: 'Signataires',
-              value:
-                (projet.signataires_projet ?? [])
-                  .map(
-                    (a) =>
-                      a.description_acteur || a.nom_acteur || a.code_acteur
-                  )
-                  .filter(Boolean)
-                  .join(' ; ') || '—',
-            },
-            {
-              label: "Partenaires d'exécution",
-              value:
-                (projet.partenaires_execution_projet ?? [])
-                  .map(
-                    (a) =>
-                      a.description_acteur || a.nom_acteur || a.code_acteur
-                  )
-                  .filter(Boolean)
-                  .join(' ; ') || '—',
-            },
-            {
-              label: 'Zones',
-              value:
-                (projet.zone_projet ?? [])
-                  .map((z) => z.intitule_loca || z.code_loca)
-                  .filter(Boolean)
-                  .join(' ; ') || '—',
-            },
-            {
-              label: 'Statut',
-              value: projet.is_cloture ? 'Clôturé' : 'En cours',
-            },
+            ],
+            [
+              'Responsable',
+              resolvePersonnelLabel(projet.responsable_projet) || '—',
+            ],
+            ['Démarrage', formatDateFr(projet.date_demarrage_projet)],
+            ['Clôture', formatDateFr(projet.date_cloture_projet)],
+            [
+              'Durée',
+              projet.duree_projet != null
+                ? `${projet.duree_projet} mois`
+                : '—',
+            ],
+            ['Budget', `${formatNumber(projet.budget_projet)} GNF`],
+            [
+              'Signataires',
+              (projet.signataires_projet ?? [])
+                .map(
+                  (a) =>
+                    a.description_acteur || a.nom_acteur || a.code_acteur
+                )
+                .filter(Boolean)
+                .join(' ; ') || '—',
+            ],
+            [
+              "Partenaires d'exécution",
+              (projet.partenaires_execution_projet ?? [])
+                .map(
+                  (a) =>
+                    a.description_acteur || a.nom_acteur || a.code_acteur
+                )
+                .filter(Boolean)
+                .join(' ; ') || '—',
+            ],
+            [
+              'Zones',
+              (projet.zone_projet ?? [])
+                .map((z) => z.intitule_loca || z.code_loca)
+                .filter(Boolean)
+                .join(' ; ') || '—',
+            ],
+            [
+              'Statut',
+              projet.is_cloture ? 'Clôturé' : 'En cours',
+            ],
           ]}
         />
-      </Chapter>
+      </FicheSection>
 
-      <Chapter title="1. Vue d'ensemble">
-        <div className='grid gap-3 sm:grid-cols-3'>
-          {[
-            { label: 'Exécution physique', value: `${tauxGlobal} %` },
-            {
-              label: 'Budget décaissé',
-              value: `${formatNumber(budgetDecaisse)} GNF`,
-            },
-            {
-              label: 'Activités PTBA',
-              value: String(data.allPtbas.length),
-            },
-          ].map((kpi) => (
-            <div
-              key={kpi.label}
-              className='rounded-lg border bg-muted/20 px-4 py-3'
-            >
-              <p className='text-xs text-muted-foreground'>{kpi.label}</p>
-              <p className='mt-1 text-xl font-semibold'>{kpi.value}</p>
-            </div>
-          ))}
-        </div>
-      </Chapter>
-
-      <Chapter title='2. Financement'>
-        <SimpleTable
+      <FicheSection
+        title='2. Financement'
+        narrative='Sources de financement du projet (type, bailleur, montants et dates d’accord).'
+      >
+        <FicheTable
+          title='Détail chiffré — financements'
           headers={[
             'Code',
             'Intitulé',
@@ -374,119 +359,82 @@ function ProjetRapportOrBody({ projet }: { projet: Projet }) {
           ])}
           empty='Aucun financement.'
         />
-      </Chapter>
+      </FicheSection>
 
-      <Chapter title='3. Plan analytique'>
-        {sortedNiveauxActivite.length === 0 ? (
-          <p className='text-sm text-muted-foreground'>Aucun niveau configuré.</p>
-        ) : (
-          <div className='space-y-5'>
-            {sortedNiveauxActivite.map((niveau) => {
-              const items = data.activites.filter(
-                (a) =>
-                  Number(a.niveau_activite_projet) ===
-                  niveau.id_niveau_activite_projet
-              )
-              return (
-                <div key={niveau.id_niveau_activite_projet} className='space-y-2'>
-                  <h4 className='text-sm font-medium'>
-                    Niveau {niveau.nombre_niveau_activite_projet} —{' '}
-                    {niveau.libelle_niveau_activite_projet}
-                    <span className='ml-2 text-muted-foreground'>
-                      ({items.length})
-                    </span>
-                  </h4>
-                  <SimpleTable
-                    headers={['Code', 'Intitulé']}
-                    rows={items.map((a) => [
-                      a.code_activite_projet || '—',
-                      a.intitule_activite_projet || '—',
-                    ])}
-                  />
-                </div>
-              )
-            })}
-          </div>
-        )}
-      </Chapter>
+      <FicheSection
+        title='3. Plan analytique'
+        narrative='Éléments du plan analytique regroupés par niveau (colonne de gauche fusionnée).'
+      >
+        <FicheNiveauTable
+          title='Détail par niveau'
+          groups={planAnalytiqueGroups}
+          empty='Aucun niveau configuré.'
+        />
+      </FicheSection>
 
-      <Chapter title='4. Cadre de résultats'>
-        {sortedNiveauxCadre.length === 0 ? (
-          <p className='text-sm text-muted-foreground'>Aucun niveau de cadre.</p>
-        ) : (
-          <div className='space-y-5'>
-            {sortedNiveauxCadre.map((niveau) => {
-              const items = data.cadres.filter(
-                (c) => resolveNiveauCrId(c.niveau_cr) === niveau.id_ncr
-              )
-              return (
-                <div key={niveau.id_ncr} className='space-y-2'>
-                  <h4 className='text-sm font-medium'>
-                    Niveau {niveau.nombre_ncr} — {niveau.libelle_ncr}
-                    <span className='ml-2 text-muted-foreground'>
-                      ({items.length})
-                    </span>
-                  </h4>
-                  <SimpleTable
-                    headers={['Code', 'Intitulé', 'Abrégé']}
-                    rows={items.map((c) => [
-                      c.code_cr || '—',
-                      c.intutile_cr || '—',
-                      c.abgrege_cr || '—',
-                    ])}
-                  />
-                </div>
-              )
-            })}
-          </div>
-        )}
-      </Chapter>
+      <FicheSection
+        title='4. Cadre de résultats'
+        narrative='Chaîne de résultats du projet, regroupée par niveau (colonne de gauche fusionnée).'
+      >
+        <FicheNiveauTable
+          title='Chaîne de résultats'
+          groups={cadreGroups}
+          empty='Aucun niveau de cadre.'
+          showExtra
+          extraHeader='Abrégé'
+        />
+      </FicheSection>
 
-      <Chapter title='5. PTBA'>
-        <div className='space-y-4'>
-          <div>
-            <h4 className='mb-2 text-sm font-medium'>Tableau croisé (années)</h4>
-            <SimpleTable
-              headers={[
-                'Année',
-                'Nb activités',
-                'Réalisées',
-                'En cours',
-                'Coût total',
-                'Décaissé',
-              ]}
-              rows={croiseRows}
-              empty='Aucun PTBA daté.'
-            />
-          </div>
-          <div>
-            <h4 className='mb-2 text-sm font-medium'>Détail des activités</h4>
-            <SimpleTable
-              headers={[
-                'Code',
-                'Intitulé',
-                'Année',
-                'Taux exéc. %',
-                'Coût',
-                'Décaissé',
-              ]}
-              rows={data.allPtbas.map((p) => [
-                p.code_activite_ptba || '—',
-                p.intitule_activite_ptba || '—',
-                p.version_info?.annee_ptba != null
-                  ? String(p.version_info.annee_ptba)
-                  : '—',
-                String(Number(p.taux_execution_ptba) || 0),
-                formatNumber(Number(p.cout_ptba ?? p.cout_total_ptba) || 0),
-                formatNumber(Number(p.montant_decaisse_ptba) || 0),
-              ])}
-            />
-          </div>
+      <FicheSection
+        title='5. PTBA'
+        narrative='Plan de travail budgétisé annuel — synthèse croisée par année et détail des activités.'
+      >
+        <div className='space-y-6'>
+          <FicheTable
+            title='Tableau croisé (années)'
+            description='Répartition des activités PTBA par année (volumes, coûts, décaissements).'
+            headers={[
+              'Année',
+              'Nb activités',
+              'Réalisées',
+              'En cours',
+              'Coût total',
+              'Décaissé',
+            ]}
+            rows={croiseRows}
+            empty='Aucun PTBA daté.'
+          />
+          <FicheTable
+            title='Détail des activités'
+            description='Liste détaillée des activités PTBA (code, taux, coût et décaissement).'
+            headers={[
+              'Code',
+              'Intitulé',
+              'Année',
+              'Taux exéc. %',
+              'Coût',
+              'Décaissé',
+            ]}
+            rows={data.allPtbas.map((p) => [
+              p.code_activite_ptba || '—',
+              p.intitule_activite_ptba || '—',
+              p.version_info?.annee_ptba != null
+                ? String(p.version_info.annee_ptba)
+                : '—',
+              String(Number(p.taux_execution_ptba) || 0),
+              formatNumber(Number(p.cout_ptba ?? p.cout_total_ptba) || 0),
+              formatNumber(Number(p.montant_decaisse_ptba) || 0),
+            ])}
+          />
         </div>
-      </Chapter>
+      </FicheSection>
 
-      <Chapter title='6. Suivi PTBA'>
-        <SimpleTable
+      <FicheSection
+        title='6. Suivi PTBA'
+        narrative='Suivi d’avancement des activités pour la version PTBA sélectionnée.'
+      >
+        <FicheTable
+          title='Avancement par activité'
           headers={[
             'Code',
             'Intitulé',
@@ -507,10 +455,14 @@ function ProjetRapportOrBody({ projet }: { projet: Projet }) {
           ])}
           empty='Aucune activité pour la version sélectionnée.'
         />
-      </Chapter>
+      </FicheSection>
 
-      <Chapter title='7. Documents'>
-        <SimpleTable
+      <FicheSection
+        title='7. Documents'
+        narrative='Inventaire des dossiers documentaires rattachés au projet.'
+      >
+        <FicheTable
+          title='Dossiers'
           headers={['Dossier', 'Description']}
           rows={data.dossiers.map((d) => [
             d.nom_dossier || '—',
@@ -518,8 +470,8 @@ function ProjetRapportOrBody({ projet }: { projet: Projet }) {
           ])}
           empty='Aucun dossier.'
         />
-      </Chapter>
-    </div>
+      </FicheSection>
+    </FicheSynthese>
   )
 }
 

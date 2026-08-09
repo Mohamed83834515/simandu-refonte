@@ -52,6 +52,54 @@ export type RapportExportPreambleBlock = {
   text: string
 }
 
+/** Tableau d’une fiche de synthèse (export PDF/Word dédié). */
+export type RapportExportFicheTable = {
+  title: string
+  description?: string
+  headers: string[]
+  rows: string[][]
+  totalRow?: string[]
+  /**
+   * Fusionne verticalement la 1re colonne quand des valeurs consécutives
+   * sont identiques (style « niveau | éléments »).
+   */
+  mergeFirstColumn?: boolean
+  /** Séparateur pour mettre le code en gras (ex. « : » → « O1 » gras). */
+  boldPrefixSeparator?: string
+}
+
+export type RapportExportFicheSection = {
+  title: string
+  narrative?: string
+  repartitionTitle?: string
+  repartition?: { label: string; value: string }[]
+  tables?: RapportExportFicheTable[]
+}
+
+/**
+ * Document « fiche de synthèse » : rendu portrait dédié (PDF/Word),
+ * distinct du tableau paysage générique.
+ */
+export type RapportExportFiche = {
+  orgTitle?: string
+  orgSubtitle?: string
+  /** Ex. « RAPPORT D'OR » ou « FICHE DE SYNTHÈSE ». */
+  badge?: string
+  title: string
+  generatedBy?: string
+  generatedAtLabel?: string
+  contextItems?: { label: string; value: string }[]
+  kpis?: { label: string; value: string; accent?: string }[]
+  narrative?: string
+  repartitionTitle?: string
+  repartition?: { label: string; value: string }[]
+  tables?: RapportExportFicheTable[]
+  /** Chapitres additionnels (titre + description + tableaux). */
+  sections?: RapportExportFicheSection[]
+  footerCode?: string
+  footerNote?: string
+}
+
 export type RapportExportTableData = {
   columns: RapportExportColumn[]
   rows: string[][]
@@ -63,6 +111,8 @@ export type RapportExportTableData = {
   headerGroups?: RapportExportHeaderGroup[]
   /** Texte affiché avant le tableau dans les exports. */
   preamble?: RapportExportPreambleBlock[]
+  /** Si présent, PDF/Word utilisent le rendu fiche de synthèse. */
+  fiche?: RapportExportFiche
 }
 
 export type RapportExportRegistration = {
@@ -81,6 +131,7 @@ export type RapportExportPayload = {
   gantt?: RapportExportGantt
   headerGroups?: RapportExportHeaderGroup[]
   preamble?: RapportExportPreambleBlock[]
+  fiche?: RapportExportFiche
 }
 
 export type RapportExportDocumentMeta = {
