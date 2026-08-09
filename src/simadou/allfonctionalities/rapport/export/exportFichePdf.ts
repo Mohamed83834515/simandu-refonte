@@ -95,7 +95,6 @@ function renderRepartition(
   items: { label: string; value: string }[],
   title: string | undefined,
   marginX: number,
-  contentWidth: number,
   pageWidth: number,
   pageHeight: number,
   state: YState
@@ -214,13 +213,13 @@ function renderTables(
           return
         }
         // Une seule ligne pleine largeur sous chaque groupe de niveau.
-        const docPdf = data.doc
-        const tableLeft = data.table.left
-        const tableWidth = data.table.width as number
         const y = data.cell.y + data.cell.height
-        docPdf.setDrawColor(...hexRgb(`#${theme.greenDark}`))
-        docPdf.setLineWidth(0.45)
-        docPdf.line(tableLeft, y, tableLeft + tableWidth, y)
+        if (!Number.isFinite(y)) return
+        const x1 = marginX
+        const x2 = marginX + contentWidth
+        data.doc.setDrawColor(...hexRgb(`#${theme.greenDark}`))
+        data.doc.setLineWidth(0.45)
+        data.doc.line(x1, y, x2, y)
       },
     })
 
@@ -276,7 +275,6 @@ function renderSection(
     section.repartition ?? [],
     section.repartitionTitle,
     marginX,
-    contentWidth,
     pageWidth,
     pageHeight,
     state
@@ -441,7 +439,6 @@ export async function exportFichePdf(payload: RapportExportPayload) {
     fiche.repartition ?? [],
     fiche.repartitionTitle,
     marginX,
-    contentWidth,
     pageWidth,
     pageHeight,
     state

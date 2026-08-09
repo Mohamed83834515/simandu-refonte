@@ -44,7 +44,7 @@ function noBorder() {
   }
 }
 
-function thinBorder(color = BORDER) {
+function thinBorder(color: string = BORDER) {
   return {
     top: { style: BorderStyle.SINGLE, size: 4, color },
     bottom: { style: BorderStyle.SINGLE, size: 4, color },
@@ -53,7 +53,7 @@ function thinBorder(color = BORDER) {
   }
 }
 
-function hBorderOnly(bottomSize = 4, bottomColor = BORDER) {
+function hBorderOnly(bottomSize = 4, bottomColor: string = BORDER) {
   return {
     top: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
     bottom: { style: BorderStyle.SINGLE, size: bottomSize, color: bottomColor },
