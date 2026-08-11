@@ -72,11 +72,8 @@ export const ppmService = {
   ): Promise<unknown> {
     const formData = new FormData()
     formData.append('file', file, file.name)
-    if (versionPpm != null && Number.isFinite(versionPpm)) {
-      formData.append('version_ppm', String(versionPpm))
-    }
 
-    return apiClient.request(`${ENDPOINT}import/`, {
+    return apiClient.request(`${ENDPOINT}import/?version_ppm=${versionPpm}`, {
       method: 'POST',
       data: formData,
     })
