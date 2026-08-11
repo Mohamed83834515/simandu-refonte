@@ -152,7 +152,7 @@ export const sidebarData: SidebarData = {
               icon: List,
             },
             {
-              title: 'Plan de Passation des Marchés',
+              title: 'Plan de passation des marchés',
               url: '/programmation/ppms',
               icon: FileStack,
             },
