@@ -1,18 +1,19 @@
 import { formatNumber } from '@/simadou/allSercices/montantFormater'
-import type { ActiviteProjet, NiveauActiviteProjet, Projet } from '@/simadou/allTypes'
+import type { ActiviteProjet, Projet } from '@/simadou/allTypes'
 import type { CadreResultat } from '@/simadou/allTypes/cadreResultat'
 import type { DossierProjet } from '@/simadou/allTypes/dossierProjet'
 import type { FinancementProjet } from '@/simadou/allTypes/financementProjet'
+import type { IndicateurPerformanceProjet } from '@/simadou/allTypes/indicateurPerformanceProjet'
 import type { NiveauCadreResultat } from '@/simadou/allTypes/niveauCadreResultat'
+import type { Personnel } from '@/simadou/allTypes/personnel'
 import type { PtbaProjet } from '@/simadou/allTypes/ptbaProjet'
-import type { TacheActivitePtba } from '@/simadou/allTypes/tacheActivitePtba'
-import type { VersionPtba } from '@/simadou/allTypes/versionPtba'
+import type { UniteIndicateur } from '@/simadou/allTypes/uniteIndicateur'
 import {
   formatTypeFinancementLabel,
   resolveBailleurLabel,
 } from '@/simadou/lib/financementProjetUtils'
 import { resolveNiveauCrId, sortNiveauxCadreResultat } from '@/simadou/lib/cadreResultatUtils'
-import { formatDateFr } from '@/simadou/lib/projetUtils'
+import { computeDateFin, formatDateFr } from '@/simadou/lib/projetUtils'
 import { resolvePersonnelLabel } from '@/simadou/lib/resolveApiRelation'
 import { RAPPORT_EXPORT_THEME as theme } from '@/simadou/allfonctionalities/rapport/export/rapportExportTheme'
 import type {
@@ -20,21 +21,20 @@ import type {
   RapportExportFicheTable,
   RapportExportTableData,
 } from '@/simadou/allfonctionalities/rapport/export/rapportExportTypes'
+import { buildPlanAnalytiqueArboTable } from './buildPlanAnalytiqueArborescence'
 
 export type ProjetRapportOrExportInput = {
   projet: Projet
   financements: FinancementProjet[]
-  niveauxActivite: NiveauActiviteProjet[]
   activites: ActiviteProjet[]
+  indicateursPerformance: IndicateurPerformanceProjet[]
+  unitesIndicateur: UniteIndicateur[]
   niveauxCadre: NiveauCadreResultat[]
   cadres: CadreResultat[]
   dossiers: DossierProjet[]
   allPtbas: PtbaProjet[]
-  ptbasVersion: PtbaProjet[]
   tauxGlobalData: { taux_an_activite?: number }[]
-  tachesByActivite: Map<number, TacheActivitePtba[]>
-  avancementByActivite: Map<number, number>
-  selectedVersion: VersionPtba | null | undefined
+  personnelsById?: Map<number, Personnel>
   generatedBy?: string
 }
 
@@ -55,14 +55,6 @@ function acteurLabel(acteur: {
 function formatMontant(value: number | null | undefined) {
   if (value == null || Number.isNaN(Number(value))) return '—'
   return formatNumber(value)
-}
-
-function resolveResponsablePtba(ptba: PtbaProjet): string {
-  return (
-    resolvePersonnelLabel(ptba.responsable_ptba) ||
-    resolvePersonnelLabel(ptba.responsable) ||
-    '—'
-  )
 }
 
 function ptbaAnnee(ptba: PtbaProjet): number | null {
@@ -86,54 +78,10 @@ function formatGeneratedAtLabel(date = new Date()) {
   }).format(date)
 }
 
-function sortedNiveauxActivite(niveaux: NiveauActiviteProjet[]) {
-  return [...niveaux]
-    .map((n) => ({
-      ...n,
-      id_niveau_activite_projet: Number(n.id_niveau_activite_projet),
-      nombre_niveau_activite_projet: Number(n.nombre_niveau_activite_projet),
-    }))
-    .filter((n) => Number.isFinite(n.id_niveau_activite_projet))
-    .sort(
-      (a, b) =>
-        a.nombre_niveau_activite_projet - b.nombre_niveau_activite_projet
-    )
-}
-
-function buildPlanAnalytiqueTable(
-  niveaux: NiveauActiviteProjet[],
-  activites: ActiviteProjet[]
-): RapportExportFicheTable {
-  const sorted = sortedNiveauxActivite(niveaux)
-  const rows: string[][] = []
-  for (const niveau of sorted) {
-    const niveauLabel =
-      niveau.libelle_niveau_activite_projet?.trim() ||
-      `Niveau ${niveau.nombre_niveau_activite_projet}`
-    const items = activites.filter(
-      (a) =>
-        Number(a.niveau_activite_projet) === niveau.id_niveau_activite_projet
-    )
-    if (items.length === 0) {
-      rows.push([niveauLabel, '— : Aucun élément'])
-      continue
-    }
-    for (const a of items) {
-      rows.push([
-        niveauLabel,
-        `${a.code_activite_projet || '—'} : ${a.intitule_activite_projet || '—'}`,
-      ])
-    }
-  }
-  return {
-    title: 'Détail par niveau',
-    description:
-      'Éléments du plan analytique regroupés par niveau (colonne de gauche fusionnée).',
-    headers: ['Niveau', 'Élément'],
-    rows: rows.length ? rows : [['—', 'Aucun niveau configuré']],
-    mergeFirstColumn: true,
-    boldPrefixSeparator: ' : ',
-  }
+function formatDateCloture(projet: Projet): string {
+  if (!projet.date_cloture_projet) return 'Non clôturé'
+  const formatted = formatDateFr(projet.date_cloture_projet)
+  return formatted === '—' ? 'Non clôturé' : formatted
 }
 
 function buildCadreTable(
@@ -181,36 +129,34 @@ export function buildProjetRapportOrExport(
   const {
     projet,
     financements,
-    niveauxActivite,
     activites,
+    indicateursPerformance,
+    unitesIndicateur,
     niveauxCadre,
     cadres,
     dossiers,
     allPtbas,
-    ptbasVersion,
     tauxGlobalData,
-    tachesByActivite,
-    avancementByActivite,
-    selectedVersion,
+    personnelsById,
     generatedBy,
   } = input
 
   const typeLabel =
     projet.type_projet && typeof projet.type_projet === 'object'
       ? projet.type_projet.nom_type_projet ||
-      projet.type_projet.code_type_projet ||
-      '—'
+        projet.type_projet.code_type_projet ||
+        '—'
       : '—'
 
   const tauxGlobal =
     tauxGlobalData.length === 0
       ? 0
       : Math.round(
-        tauxGlobalData.reduce(
-          (s, v) => s + (Number(v.taux_an_activite) || 0),
-          0
-        ) / tauxGlobalData.length
-      )
+          tauxGlobalData.reduce(
+            (s, v) => s + (Number(v.taux_an_activite) || 0),
+            0
+          ) / tauxGlobalData.length
+        )
   const realisees = tauxGlobalData.filter(
     (v) => Number(v.taux_an_activite) >= 100
   ).length
@@ -225,9 +171,8 @@ export function buildProjetRapportOrExport(
     (projet.signataires_projet ?? []).map((a) => [a.id_acteur, a])
   )
 
-  const versionLabel = selectedVersion
-    ? `${selectedVersion.annee_ptba}${selectedVersion.version_ptba ? ` — ${selectedVersion.version_ptba}` : ''}`
-    : '—'
+  const responsableLabel =
+    resolvePersonnelLabel(projet.responsable_projet, personnelsById) || '—'
 
   const byYear = new Map<number, PtbaProjet[]>()
   for (const p of allPtbas) {
@@ -256,6 +201,25 @@ export function buildProjetRapportOrExport(
         (s, p) => s + (Number(p.montant_decaisse_ptba) || 0),
         0
       )
+      // Moyenne des taux d'exécution PTBA (= taux d'avancement technique).
+      const tauxAvancementTechnique =
+        items.length === 0
+          ? 0
+          : Math.round(
+              items.reduce(
+                (s, p) => s + (Number(p.taux_execution_ptba) || 0),
+                0
+              ) / items.length
+            )
+      const tauxDecaissement =
+        items.length === 0
+          ? 0
+          : Math.round(
+              items.reduce(
+                (s, p) => s + (Number(p.taux_decaissement_ptba) || 0),
+                0
+              ) / items.length
+            )
       return [
         String(year),
         String(items.length),
@@ -263,6 +227,8 @@ export function buildProjetRapportOrExport(
         String(enCours),
         formatMontant(cout),
         formatMontant(yearDecaisse),
+        `${tauxAvancementTechnique} %`,
+        `${tauxDecaissement} %`,
       ]
     })
 
@@ -286,21 +252,16 @@ export function buildProjetRapportOrExport(
             [
               'Porteur',
               projet.partenaire_projet?.intutile_ds ||
-              projet.partenaire_projet?.code_ds ||
-              '—',
+                projet.partenaire_projet?.code_ds ||
+                '—',
             ],
+            ['Responsable', responsableLabel],
             [
-              'Responsable',
-              resolvePersonnelLabel(projet.responsable_projet) || '—',
+              'Date de démarrage',
+              formatDateFr(projet.date_demarrage_projet),
             ],
-            ['Démarrage', formatDateFr(projet.date_demarrage_projet)],
-            ['Clôture', formatDateFr(projet.date_cloture_projet)],
-            [
-              'Durée',
-              projet.duree_projet != null
-                ? `${projet.duree_projet} mois`
-                : '—',
-            ],
+            ['Date de fin', computeDateFin(projet)],
+            ['Date de clôture', formatDateCloture(projet)],
             ['Budget', `${formatMontant(projet.budget_projet)} GNF`],
             [
               'Signataires',
@@ -347,21 +308,27 @@ export function buildProjetRapportOrExport(
             financements.length === 0
               ? [['—', 'Aucun financement', '', '', '', '']]
               : financements.map((f) => [
-                f.code_type || '—',
-                f.intitule || '—',
-                formatTypeFinancementLabel(f.type_financement),
-                resolveBailleurLabel(f.bailleur, signatairesById),
-                formatMontant(f.montant),
-                formatDateFr(f.date_accord),
-              ]),
+                  f.code_type || '—',
+                  f.intitule || '—',
+                  formatTypeFinancementLabel(f.type_financement),
+                  resolveBailleurLabel(f.bailleur, signatairesById),
+                  formatMontant(f.montant),
+                  formatDateFr(f.date_accord),
+                ]),
         },
       ],
     },
     {
       title: '3. Plan analytique',
       narrative:
-        'Éléments du plan analytique regroupés par niveau (colonne de gauche fusionnée).',
-      tables: [buildPlanAnalytiqueTable(niveauxActivite, activites)],
+        'Arborescence des activités du plan analytique avec budget et indicateurs de performance.',
+      tables: [
+        buildPlanAnalytiqueArboTable(
+          activites,
+          indicateursPerformance,
+          unitesIndicateur
+        ),
+      ],
     },
     {
       title: '4. Cadre de résultats',
@@ -372,12 +339,12 @@ export function buildProjetRapportOrExport(
     {
       title: '5. PTBA',
       narrative:
-        'Plan de travail budgétisé annuel — synthèse croisée par année et détail des activités.',
+        'Synthèse croisée des activités PTBA par année (volumes, coûts, avancement et décaissement).',
       tables: [
         {
           title: 'Tableau croisé (années)',
           description:
-            'Répartition des activités PTBA par année (volumes, coûts, décaissements).',
+            'Répartition des activités PTBA par année, avec taux d’avancement technique et taux de décaissement.',
           headers: [
             'Année',
             'Nb activités',
@@ -385,76 +352,17 @@ export function buildProjetRapportOrExport(
             'En cours',
             'Coût total (GNF)',
             'Décaissé (GNF)',
+            "Taux d'avancement technique",
+            'Décaissement',
           ],
           rows: croiseRows.length
             ? croiseRows
-            : [['—', 'Aucun PTBA daté', '', '', '', '']],
-        },
-        {
-          title: 'Détail des activités PTBA',
-          description:
-            'Liste détaillée des activités PTBA (code, responsable, taux et coût).',
-          headers: [
-            'Code',
-            'Intitulé',
-            'Année',
-            'Responsable',
-            'Taux exéc. %',
-            'Coût (GNF)',
-          ],
-          rows:
-            allPtbas.length === 0
-              ? [['—', 'Aucune activité PTBA', '', '', '', '']]
-              : allPtbas.map((p) => [
-                p.code_activite_ptba || '—',
-                p.intitule_activite_ptba || '—',
-                ptbaAnnee(p) != null ? String(ptbaAnnee(p)) : '—',
-                resolveResponsablePtba(p),
-                String(Number(p.taux_execution_ptba) || 0),
-                formatMontant(
-                  Number(p.cout_ptba ?? p.cout_total_ptba) || 0
-                ),
-              ]),
+            : [['—', 'Aucun PTBA daté', '', '', '', '', '', '']],
         },
       ],
     },
     {
-      title: `6. Suivi PTBA (version ${versionLabel})`,
-      narrative:
-        'Suivi d’avancement des activités pour la version PTBA sélectionnée.',
-      tables: [
-        {
-          title: 'Avancement par activité',
-          headers: [
-            'Code',
-            'Intitulé',
-            'Nb tâches',
-            'Avancement %',
-            'Taux exéc. %',
-            'Décaissé (GNF)',
-          ],
-          rows:
-            ptbasVersion.length === 0
-              ? [['—', 'Aucune activité pour cette version', '', '', '', '']]
-              : ptbasVersion.map((p) => {
-                const taches = tachesByActivite.get(p.id_ptba) ?? []
-                const avancement = avancementByActivite.get(p.id_ptba)
-                return [
-                  p.code_activite_ptba || '—',
-                  p.intitule_activite_ptba || '—',
-                  String(taches.length),
-                  avancement != null
-                    ? String(Math.round(avancement))
-                    : '—',
-                  String(Number(p.taux_execution_ptba) || 0),
-                  formatMontant(Number(p.montant_decaisse_ptba) || 0),
-                ]
-              }),
-        },
-      ],
-    },
-    {
-      title: '7. Documents',
+      title: '6. Documents',
       narrative:
         'Inventaire des dossiers documentaires rattachés au projet.',
       tables: [
@@ -465,9 +373,9 @@ export function buildProjetRapportOrExport(
             dossiers.length === 0
               ? [['—', 'Aucun dossier']]
               : dossiers.map((d) => [
-                d.nom_dossier || '—',
-                d.description_dossier || '—',
-              ]),
+                  d.nom_dossier || '—',
+                  d.description_dossier || '—',
+                ]),
         },
       ],
     },

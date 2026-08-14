@@ -1,6 +1,5 @@
 import { useCallback, useMemo } from 'react'
 import { Loader2 } from 'lucide-react'
-import { PtbaVersionSelect } from '@/simadou/allfonctionalities/ptba/PtbaVersionSelect'
 import RapportExportButton from '@/simadou/allfonctionalities/rapport/RapportExportButton'
 import { RapportExportProvider } from '@/simadou/allfonctionalities/rapport/RapportExportContext'
 import { useRapportExportRegistration } from '@/simadou/allfonctionalities/rapport/useRapportExportRegistration'
@@ -12,9 +11,10 @@ import {
   resolveBailleurLabel,
 } from '@/simadou/lib/financementProjetUtils'
 import { resolveNiveauCrId, sortNiveauxCadreResultat } from '@/simadou/lib/cadreResultatUtils'
-import { formatDateFr } from '@/simadou/lib/projetUtils'
+import { computeDateFin, formatDateFr } from '@/simadou/lib/projetUtils'
 import { resolvePersonnelLabel } from '@/simadou/lib/resolveApiRelation'
 import { buildProjetRapportOrExport } from './buildProjetRapportOrExport'
+import { buildPlanAnalytiqueArboRows } from './buildPlanAnalytiqueArborescence'
 import { useProjetRapportOrData } from './useProjetRapportOrData'
 import {
   FicheNiveauTable,
@@ -34,33 +34,29 @@ function ProjetRapportOrBody({ projet }: { projet: Projet }) {
     () => ({
       projet: data.projet,
       financements: data.financements,
-      niveauxActivite: data.niveauxActivite,
       activites: data.activites,
+      indicateursPerformance: data.indicateursPerformance,
+      unitesIndicateur: data.unitesIndicateur,
       niveauxCadre: data.niveauxCadre,
       cadres: data.cadres,
       dossiers: data.dossiers,
       allPtbas: data.allPtbas,
-      ptbasVersion: data.ptbasVersion,
       tauxGlobalData: data.tauxGlobalData,
-      tachesByActivite: data.tachesByActivite,
-      avancementByActivite: data.avancementByActivite,
-      selectedVersion: data.selectedVersion,
+      personnelsById: data.personnelsById,
       generatedBy,
     }),
     [
       data.projet,
       data.financements,
-      data.niveauxActivite,
       data.activites,
+      data.indicateursPerformance,
+      data.unitesIndicateur,
       data.niveauxCadre,
       data.cadres,
       data.dossiers,
       data.allPtbas,
-      data.ptbasVersion,
       data.tauxGlobalData,
-      data.tachesByActivite,
-      data.avancementByActivite,
-      data.selectedVersion,
+      data.personnelsById,
       generatedBy,
     ]
   )
@@ -83,46 +79,9 @@ function ProjetRapportOrBody({ projet }: { projet: Projet }) {
     [projet.signataires_projet]
   )
 
-  const sortedNiveauxActivite = useMemo(
-    () =>
-      [...data.niveauxActivite]
-        .map((n) => ({
-          ...n,
-          id_niveau_activite_projet: Number(n.id_niveau_activite_projet),
-          nombre_niveau_activite_projet: Number(n.nombre_niveau_activite_projet),
-        }))
-        .filter((n) => Number.isFinite(n.id_niveau_activite_projet))
-        .sort(
-          (a, b) =>
-            a.nombre_niveau_activite_projet - b.nombre_niveau_activite_projet
-        ),
-    [data.niveauxActivite]
-  )
-
   const sortedNiveauxCadre = useMemo(
     () => sortNiveauxCadreResultat(data.niveauxCadre),
     [data.niveauxCadre]
-  )
-
-  const planAnalytiqueGroups = useMemo<FicheNiveauGroup[]>(
-    () =>
-      sortedNiveauxActivite.map((niveau) => ({
-        key: String(niveau.id_niveau_activite_projet),
-        label:
-          niveau.libelle_niveau_activite_projet?.trim() ||
-          `Niveau ${niveau.nombre_niveau_activite_projet}`,
-        items: data.activites
-          .filter(
-            (a) =>
-              Number(a.niveau_activite_projet) ===
-              niveau.id_niveau_activite_projet
-          )
-          .map((a) => ({
-            code: a.code_activite_projet || '—',
-            label: a.intitule_activite_projet || '—',
-          })),
-      })),
-    [sortedNiveauxActivite, data.activites]
   )
 
   const cadreGroups = useMemo<FicheNiveauGroup[]>(
@@ -139,6 +98,16 @@ function ProjetRapportOrBody({ projet }: { projet: Projet }) {
           })),
       })),
     [sortedNiveauxCadre, data.cadres]
+  )
+
+  const planAnalytiqueRows = useMemo(
+    () =>
+      buildPlanAnalytiqueArboRows(
+        data.activites,
+        data.indicateursPerformance,
+        data.unitesIndicateur
+      ),
+    [data.activites, data.indicateursPerformance, data.unitesIndicateur]
   )
 
   const tauxGlobal = useMemo(() => {
@@ -195,6 +164,24 @@ function ProjetRapportOrBody({ projet }: { projet: Projet }) {
           (s, p) => s + (Number(p.montant_decaisse_ptba) || 0),
           0
         )
+        const tauxAvancementTechnique =
+          items.length === 0
+            ? 0
+            : Math.round(
+                items.reduce(
+                  (s, p) => s + (Number(p.taux_execution_ptba) || 0),
+                  0
+                ) / items.length
+              )
+        const tauxDecaissement =
+          items.length === 0
+            ? 0
+            : Math.round(
+                items.reduce(
+                  (s, p) => s + (Number(p.taux_decaissement_ptba) || 0),
+                  0
+                ) / items.length
+              )
         return [
           String(year),
           String(items.length),
@@ -202,6 +189,8 @@ function ProjetRapportOrBody({ projet }: { projet: Projet }) {
           String(enCours),
           formatNumber(cout),
           formatNumber(decaisse),
+          `${tauxAvancementTechnique} %`,
+          `${tauxDecaissement} %`,
         ]
       })
   }, [data.allPtbas])
@@ -213,6 +202,14 @@ function ProjetRapportOrBody({ projet }: { projet: Projet }) {
 
   const green = `#${theme.green}`
   const greenDark = `#${theme.greenDark}`
+
+  const responsableLabel =
+    resolvePersonnelLabel(projet.responsable_projet, data.personnelsById) ||
+    '—'
+
+  const dateCloture = projet.date_cloture_projet
+    ? formatDateFr(projet.date_cloture_projet)
+    : 'Non clôturé'
 
   if (data.isLoading) {
     return (
@@ -258,16 +255,7 @@ function ProjetRapportOrBody({ projet }: { projet: Projet }) {
         },
       ]}
       narrative={`Le projet affiche un taux d’exécution physique de ${tauxGlobal} % (${realisees} activité(s) réalisée(s) sur ${data.tauxGlobalData.length} suivie(s)). Budget ${formatNumber(budget)} GNF, décaissement ${formatNumber(budgetDecaisse)} GNF (${budgetPct} %).`}
-      actions={
-        <div className='flex flex-wrap items-center gap-2'>
-          <PtbaVersionSelect
-            value={data.selectedVersionId}
-            onChange={data.handleChangeVersion}
-            options={data.filteredVersionOptions}
-          />
-          <RapportExportButton formats={['word', 'pdf']} />
-        </div>
-      }
+      actions={<RapportExportButton formats={['word', 'pdf']} />}
     >
       <FicheSection
         title='Identité du projet'
@@ -287,17 +275,15 @@ function ProjetRapportOrBody({ projet }: { projet: Projet }) {
                 projet.partenaire_projet?.code_ds ||
                 '—',
             ],
+            ['Responsable', responsableLabel],
             [
-              'Responsable',
-              resolvePersonnelLabel(projet.responsable_projet) || '—',
+              'Date de démarrage',
+              formatDateFr(projet.date_demarrage_projet),
             ],
-            ['Démarrage', formatDateFr(projet.date_demarrage_projet)],
-            ['Clôture', formatDateFr(projet.date_cloture_projet)],
+            ['Date de fin', computeDateFin(projet)],
             [
-              'Durée',
-              projet.duree_projet != null
-                ? `${projet.duree_projet} mois`
-                : '—',
+              'Date de clôture',
+              dateCloture === '—' ? 'Non clôturé' : dateCloture,
             ],
             ['Budget', `${formatNumber(projet.budget_projet)} GNF`],
             [
@@ -327,10 +313,7 @@ function ProjetRapportOrBody({ projet }: { projet: Projet }) {
                 .filter(Boolean)
                 .join(' ; ') || '—',
             ],
-            [
-              'Statut',
-              projet.is_cloture ? 'Clôturé' : 'En cours',
-            ],
+            ['Statut', projet.is_cloture ? 'Clôturé' : 'En cours'],
           ]}
         />
       </FicheSection>
@@ -363,12 +346,27 @@ function ProjetRapportOrBody({ projet }: { projet: Projet }) {
 
       <FicheSection
         title='3. Plan analytique'
-        narrative='Éléments du plan analytique regroupés par niveau (colonne de gauche fusionnée).'
+        narrative='Arborescence des activités du plan analytique avec budget et indicateurs de performance.'
       >
-        <FicheNiveauTable
-          title='Détail par niveau'
-          groups={planAnalytiqueGroups}
-          empty='Aucun niveau configuré.'
+        <FicheTable
+          title='Plan analytique (arborescence)'
+          headers={[
+            'Activité',
+            'Budget (GNF)',
+            'Intitulé indicateur',
+            'Unité',
+            'Valeur cible',
+            'Somme des cibles',
+          ]}
+          rows={planAnalytiqueRows.map((r) => [
+            r.activite,
+            r.budget,
+            r.indicateur,
+            r.unite,
+            r.valeurCible,
+            r.sommeCibles,
+          ])}
+          empty='Aucune activité configurée.'
         />
       </FicheSection>
 
@@ -387,78 +385,28 @@ function ProjetRapportOrBody({ projet }: { projet: Projet }) {
 
       <FicheSection
         title='5. PTBA'
-        narrative='Plan de travail budgétisé annuel — synthèse croisée par année et détail des activités.'
-      >
-        <div className='space-y-6'>
-          <FicheTable
-            title='Tableau croisé (années)'
-            description='Répartition des activités PTBA par année (volumes, coûts, décaissements).'
-            headers={[
-              'Année',
-              'Nb activités',
-              'Réalisées',
-              'En cours',
-              'Coût total',
-              'Décaissé',
-            ]}
-            rows={croiseRows}
-            empty='Aucun PTBA daté.'
-          />
-          <FicheTable
-            title='Détail des activités'
-            description='Liste détaillée des activités PTBA (code, taux, coût et décaissement).'
-            headers={[
-              'Code',
-              'Intitulé',
-              'Année',
-              'Taux exéc. %',
-              'Coût',
-              'Décaissé',
-            ]}
-            rows={data.allPtbas.map((p) => [
-              p.code_activite_ptba || '—',
-              p.intitule_activite_ptba || '—',
-              p.version_info?.annee_ptba != null
-                ? String(p.version_info.annee_ptba)
-                : '—',
-              String(Number(p.taux_execution_ptba) || 0),
-              formatNumber(Number(p.cout_ptba ?? p.cout_total_ptba) || 0),
-              formatNumber(Number(p.montant_decaisse_ptba) || 0),
-            ])}
-          />
-        </div>
-      </FicheSection>
-
-      <FicheSection
-        title='6. Suivi PTBA'
-        narrative='Suivi d’avancement des activités pour la version PTBA sélectionnée.'
+        narrative='Synthèse croisée des activités PTBA par année (volumes, coûts, avancement et décaissement).'
       >
         <FicheTable
-          title='Avancement par activité'
+          title='Tableau croisé (années)'
+          description='Répartition des activités PTBA par année, avec taux d’avancement technique et taux de décaissement.'
           headers={[
-            'Code',
-            'Intitulé',
-            'Nb tâches',
-            'Avancement %',
-            'Taux exéc. %',
+            'Année',
+            'Nb activités',
+            'Réalisées',
+            'En cours',
+            'Coût total',
             'Décaissé',
+            "Taux d'avancement technique",
+            'Décaissement',
           ]}
-          rows={data.ptbasVersion.map((p) => [
-            p.code_activite_ptba || '—',
-            p.intitule_activite_ptba || '—',
-            String((data.tachesByActivite.get(p.id_ptba) ?? []).length),
-            data.avancementByActivite.has(p.id_ptba)
-              ? String(Math.round(data.avancementByActivite.get(p.id_ptba)!))
-              : '—',
-            String(Number(p.taux_execution_ptba) || 0),
-            formatNumber(Number(p.montant_decaisse_ptba) || 0),
-          ])}
-          empty='Aucune activité pour la version sélectionnée.'
+          rows={croiseRows}
+          empty='Aucun PTBA daté.'
         />
       </FicheSection>
 
       <FicheSection
-        title='7. Documents'
+        title='6. Documents'
         narrative='Inventaire des dossiers documentaires rattachés au projet.'
       >
         <FicheTable
