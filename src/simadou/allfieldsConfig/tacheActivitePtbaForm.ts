@@ -3,9 +3,11 @@ import type { FormConfig, SelectOption } from '../../Global/types/formConfig'
 export function getTacheActivitePtbaFormConfigForDialog({
   personnelOptions,
   isLoadingPersonnels,
+  responsableAsText = false,
 }: {
   personnelOptions: SelectOption[]
   isLoadingPersonnels?: boolean
+  responsableAsText?: boolean
 }): FormConfig {
   return {
   fields: [
@@ -70,11 +72,17 @@ export function getTacheActivitePtbaFormConfigForDialog({
     {
       name: 'responsable_gt',
       label: 'Responsable',
-      type: 'select',
-      placeholder: 'Sélectionner un responsable (optionnel)',
+      type: responsableAsText ? 'text' : 'select',
+      placeholder: responsableAsText
+        ? 'Nom du responsable'
+        : 'Sélectionner un responsable (optionnel)',
       required: false,
-      options: personnelOptions,
-      isLoading: isLoadingPersonnels,
+      ...(responsableAsText
+        ? { maxLength: 100 }
+        : {
+            options: personnelOptions,
+            isLoading: isLoadingPersonnels,
+          }),
       gridCols: 2,
     },
   ],

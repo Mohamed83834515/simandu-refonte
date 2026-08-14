@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { AlertTriangle, Clock, RefreshCw } from 'lucide-react'
 import { Progress } from '@/components/ui/progress'
 import { ConfirmDialog } from '@/components/others/confirm-dialog'
+import { useGeneralParamsQuery } from '@/simadou/allHooks/generalParams/queries'
 
 type GenericDeleteDialogProps<T = any> = {
   open: boolean
@@ -23,13 +24,13 @@ export function GenericDeleteDialog<T>({
   destructive = true,
 }: GenericDeleteDialogProps<T>) {
   const [showTimer, setShowTimer] = useState(false)
-  const [timer, setTimer] = useState(5)
-
+  const { data: config } = useGeneralParamsQuery()
+  const [timer, setTimer] = useState(config?.deleteOrUpdateDelaySeconds ?? 5)
   // Réinitialiser quand le dialogue se ferme
   useEffect(() => {
     if (!open) {
       setShowTimer(false)
-      setTimer(5)
+      setTimer(config?.deleteOrUpdateDelaySeconds ?? 5)
     }
   }, [open])
 
@@ -47,7 +48,7 @@ export function GenericDeleteDialog<T>({
       }
       onOpenChange(false)
       setShowTimer(false)
-      setTimer(5)
+      setTimer(config?.deleteOrUpdateDelaySeconds ?? 5)
     }
     return () => {
       if (interval) clearInterval(interval)
@@ -57,7 +58,7 @@ export function GenericDeleteDialog<T>({
   const handleConfirm = () => {
     // Premier clic : afficher le timer
     setShowTimer(true)
-    setTimer(5)
+    setTimer(config?.deleteOrUpdateDelaySeconds ?? 5)
   }
 
   const handleConfirmNow = () => {
@@ -73,7 +74,7 @@ export function GenericDeleteDialog<T>({
   const handleCancel = () => {
     onOpenChange(false)
     setShowTimer(false)
-    setTimer(5)
+    setTimer(config?.deleteOrUpdateDelaySeconds ?? 5)
   }
 
   // Si le timer est actif, afficher la vue avec compte à rebours
@@ -107,9 +108,9 @@ export function GenericDeleteDialog<T>({
             <div className="space-y-1.5">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-muted-foreground">Suppression automatique</span>
-                <span className="font-mono font-semibold text-destructive">{timer}s</span>
+                <span className="font-mono font-semibold text-destructive">{config?.deleteOrUpdateDelaySeconds ?? 5}s</span>
               </div>
-              <Progress value={(timer / 5) * 100} className="h-1.5" />
+              <Progress value={(timer / (config?.deleteOrUpdateDelaySeconds ?? 5)) * 100} className="h-1.5" />
               <button
                 type="button"
                 onClick={handleCancel}

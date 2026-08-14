@@ -1,4 +1,5 @@
 import { type ColumnDef } from '@tanstack/react-table'
+import { ClipboardList } from 'lucide-react'
 import { DataTableColumnHeader } from '@/components/data-table'
 import { LongText } from '@/components/others/long-text'
 import { Button } from '@/components/ui/button'
@@ -38,24 +39,74 @@ function resolveReferentielLabel(value: unknown): string {
   return String(value)
 }
 
+function resolveResultatFieldLabel(value: unknown): string {
+  if (value != null && typeof value === 'object') {
+    const record = value as Record<string, unknown>
+    const niveau = record.niveau_cr ?? record.niveau
+    if (niveau && typeof niveau === 'object' && 'libelle_ncr' in niveau) {
+      const libelle = (niveau as { libelle_ncr?: string }).libelle_ncr
+      if (libelle) return libelle
+    }
+  }
+  return 'Résultat'
+}
+
 export function buildIndicateurCmrColumns<T extends IndicateurCmrTableRow>({
   onView,
   onEdit,
   onDeleteRequest,
   onOpenCibles,
+  onSuivi,
   hideReferentielColumn = false,
 }: {
   onView?: (row: T) => void
-  onEdit: (row: T) => void
-  onDeleteRequest: (row: T) => void
+  onEdit?: (row: T) => void
+  onDeleteRequest?: (row: T) => void
   onOpenCibles?: (row: T) => void
+  onSuivi?: (row: T) => void
   hideReferentielColumn?: boolean
 }): ColumnDef<T>[] {
-  const actionsColumn = buildEditDeleteActionsColumn({
-    onView,
-    onEdit,
-    onDeleteRequest,
-  })
+  const actionsColumn =
+    onView || onEdit || onDeleteRequest
+      ? buildEditDeleteActionsColumn({
+          onView,
+          onEdit,
+          onDeleteRequest,
+        })
+      : null
+
+  const suiviColumn: ColumnDef<T> | null = onSuivi
+    ? {
+        id: 'suivi',
+        header: ({ column }) => (
+          <DataTableColumnHeader
+            column={column}
+            title='Suivi'
+            className='text-center'
+          />
+        ),
+        cell: ({ row }) => (
+          <div className='flex justify-center'>
+            <Button
+              type='button'
+              variant='outline'
+              size='sm'
+              className='gap-2 border-yellow-200 bg-yellow-50 text-yellow-700 transition-all duration-200 hover:bg-yellow-100 hover:text-yellow-800 dark:border-yellow-800 dark:bg-yellow-950/30 dark:text-yellow-400 dark:hover:bg-yellow-950/50'
+              onClick={() => onSuivi(row.original)}
+              aria-label='Ouvrir le suivi'
+              title="Suivi de l'indicateur"
+            >
+              <ClipboardList className='h-4 w-4' />
+              <span className='text-xs font-medium'>Suivre</span>
+            </Button>
+          </div>
+        ),
+        meta: { thClassName: 'text-center', className: 'text-center' },
+        size: 100,
+        enableSorting: false,
+        enableHiding: false,
+      }
+    : null
 
   return [
     {
@@ -83,7 +134,8 @@ export function buildIndicateurCmrColumns<T extends IndicateurCmrTableRow>({
               className='mt-1 truncate text-xs text-muted-foreground'
               title={resolveResultatCmrLabel(row.original.resultat_cmr)}
             >
-              Résultat: {resolveResultatCmrLabel(row.original.resultat_cmr)}
+              {resolveResultatFieldLabel(row.original.resultat_cmr)}:{' '}
+              {resolveResultatCmrLabel(row.original.resultat_cmr)}
             </p>
           ) : null}
         </div>
@@ -125,7 +177,7 @@ export function buildIndicateurCmrColumns<T extends IndicateurCmrTableRow>({
           id: 'cible_cmr',
           accessorKey: 'cible_cmr',
           header: ({ column }) => (
-            <DataTableColumnHeader column={column} title='Cible' />
+            <DataTableColumnHeader column={column} title='Valeur Cible' />
           ),
           cell: ({ row }) => (
             <span className='text-sm'>{displayValue(row.original.cible_cmr)}</span>
@@ -138,7 +190,7 @@ export function buildIndicateurCmrColumns<T extends IndicateurCmrTableRow>({
       id: 'reference_cmr',
       accessorKey: 'reference_cmr',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title='Référence' />
+        <DataTableColumnHeader column={column} title='Valeur Ref.' />
       ),
       cell: ({ row }) => (
         <LongText className='max-w-xs text-sm'>
@@ -154,7 +206,7 @@ export function buildIndicateurCmrColumns<T extends IndicateurCmrTableRow>({
           header: ({ column }) => (
             <DataTableColumnHeader
               column={column}
-              title='Cibles'
+              title='Valeur Cibles'
               className='flex w-full justify-center'
             />
           ),
@@ -195,6 +247,7 @@ export function buildIndicateurCmrColumns<T extends IndicateurCmrTableRow>({
         </LongText>
       ),
     },
-    actionsColumn,
+    ...(suiviColumn ? [suiviColumn] : []),
+    ...(actionsColumn ? [actionsColumn] : []),
   ]
 }

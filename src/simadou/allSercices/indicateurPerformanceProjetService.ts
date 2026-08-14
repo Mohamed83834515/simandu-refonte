@@ -41,11 +41,11 @@ const indicateurPerformanceProjetService = {
    * Récupère les indicateurs par activité projet
    */
   async getByActiviteProjet(
-    codeActivite: string,
+    idActivite: number,
   ): Promise<IndicateurPerformanceProjet[]> {
     return apiClient.request(prefix, {
       method: "GET",
-      params: { code_activite_projet: codeActivite },
+      params: { activite_projet: idActivite },
     });
   },
 

@@ -35,15 +35,14 @@ function mapSuiviDecaissementPtbaProjetFromApi(
     observation: String(raw.observation ?? ''),
     date_enregistrement: toDateInput(raw.date_enregistrement) || null,
     date_modification: toDateInput(raw.date_modification) || null,
+    region:
+      resolveRelationId(raw.region, 'id_loca') ??
+      resolveRelationId(raw.region, 'id'),
+    type_part:
+      resolveRelationId(raw.type_part, 'id_part') ??
+      resolveRelationId(raw.type_part, 'id'),
     activite_ptba_projet: resolveActivitePtbaProjetId(raw.activite_ptba_projet),
   }
-}
-
-function filterSuivisDecaissementProjetByActivite(
-  items: SuiviDecaissementPtbaProjet[],
-  idActivite: number
-): SuiviDecaissementPtbaProjet[] {
-  return items.filter((item) => item.activite_ptba_projet === idActivite)
 }
 
 function toApiPayload(
@@ -60,6 +59,8 @@ function toApiPayload(
     date_suivi_dec: data.date_suivi_dec,
     observation: data.observation,
     montant_decaisse: data.montant_decaisse,
+    region: data.region,
+    type_part: data.type_part,
     activite_ptba_projet: idActivite,
     periode_suivi_dec: existing?.periode_suivi_dec?.trim() || today,
     taux_dollars_jour: existing?.taux_dollars_jour ?? 0,
@@ -71,12 +72,13 @@ const suiviDecaissementPtbaProjetService = {
     idActivite: number
   ): Promise<SuiviDecaissementPtbaProjet[]> {
     const response = await apiClient.request<unknown>(ENDPOINT, {
-      method: 'GET',
-    })
+          method: 'GET',
+          params: { activite_ptba_projet: idActivite },
+        })
     const items = normalizeApiList<Record<string, unknown>>(response).map(
       mapSuiviDecaissementPtbaProjetFromApi
     )
-    return filterSuivisDecaissementProjetByActivite(items, idActivite)
+    return items
   },
 
   async create(

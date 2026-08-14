@@ -37,8 +37,8 @@ export default function ListeSuiviPtba() {
   const [showObservationModal, setShowObservationModal] = useState(false)
   const [observationActivite, setObservationActivite] = useState<Ptba | null>(null)
 
-  const { data: ptbas = [] } = useGetPtbas()
-
+  const { data: ptbas = [] } = useGetPtbas(Number(selectedVersionId))
+ 
   const filteredPtbas = useMemo(() => {
     if (!selectedVersionId) return ptbas
     return ptbas.filter(
@@ -169,7 +169,12 @@ export default function ListeSuiviPtba() {
                 {
                   value: 'decaissement',
                   label: 'Suivi décaissement',
-                  content: <SuiviDecaissementPtbaManager activite={suiviActivite} />,
+                  content: (
+                    <SuiviDecaissementPtbaManager
+                      key={suiviActivite.id_ptba}
+                      activite={suiviActivite}
+                    />
+                  ),
                 },
                 {
                   value: 'avancement-contrat',

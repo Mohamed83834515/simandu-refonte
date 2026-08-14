@@ -11,7 +11,22 @@ import {
 } from '@/Global/Detail/DetailFields'
 import { useGetIndicateurCmrProjet } from '@/simadou/allHooks/admin/indicateurCmrHooks'
 import { resolveRelationCode } from '@/simadou/lib/resolveApiRelation'
-import { resolveResultatCmrProjetLabel } from './indicateurCmrProjetFormUtils'
+import {
+  resolveIndicateurIopLabel,
+  resolveResultatCmrProjetLabel,
+} from './indicateurCmrProjetFormUtils'
+
+function resolveResultatFieldLabel(value: unknown): string {
+  if (value != null && typeof value === 'object') {
+    const niveau = (value as { niveau_cr?: unknown; niveau?: unknown }).niveau_cr
+      ?? (value as { niveau?: { libelle_ncr?: string } }).niveau
+    if (niveau && typeof niveau === 'object' && 'libelle_ncr' in niveau) {
+      const libelle = (niveau as { libelle_ncr?: string }).libelle_ncr
+      if (libelle) return libelle
+    }
+  }
+  return 'Cadre de résultat'
+}
 
 function formatReferentiel(value: unknown): string {
   if (value == null) return ''
@@ -56,8 +71,16 @@ export default function IndicateurCmrProjetDetailView({
       />
 
       {indicateur.resultat_cmr != null ? (
-        <DetailHighlight label='Résultat CMR'>
+        <DetailHighlight
+          label={resolveResultatFieldLabel(indicateur.resultat_cmr)}
+        >
           {resolveResultatCmrProjetLabel(indicateur.resultat_cmr)}
+        </DetailHighlight>
+      ) : null}
+
+      {indicateur.indicateur_iop != null ? (
+        <DetailHighlight label='Indicateur'>
+          {resolveIndicateurIopLabel(indicateur.indicateur_iop)}
         </DetailHighlight>
       ) : null}
 

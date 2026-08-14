@@ -1,11 +1,8 @@
-import { Link, useSearch } from '@tanstack/react-router'
+import {  useSearch } from '@tanstack/react-router'
 import { AuthLayout } from '../auth-layout'
 import { UserAuthForm } from './components/user-auth-form'
 import { Logo } from '@/assets/logo'
 import pilier1Img from '@/assets/images/pilier1_simandou.png'
-
-
-import {ArrowRight, KeyRound } from 'lucide-react'
 
 
 
@@ -163,7 +160,7 @@ export function SignIn() {
                 </h1>
               </div>
 
-              <div className="flex gap-3 rounded-xl border border-amber-200 bg-amber-50 p-3.5
+              {/* <div className="flex gap-3 rounded-xl border border-amber-200 bg-amber-50 p-3.5
                       dark:border-amber-800 dark:bg-amber-950">
                 <KeyRound
                   className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400"
@@ -187,7 +184,7 @@ export function SignIn() {
                     <ArrowRight className="size-3" aria-hidden />
                   </Link>
                 </div>
-              </div>
+              </div> */}
             </div>
 
             {/* Formulaire — logique inchangée */}

@@ -41,10 +41,10 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   };
 
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
       {/* Titre */}
       <div className="flex items-center gap-3">
-        <div 
+        <div
           className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors"
           style={{ backgroundColor: stroke }}
         >
@@ -57,7 +57,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           <p className="text-sm text-gray-500 dark:text-gray-400">
             Vue d'ensemble — Exécution PTBA
             {nomProgramme && (
-              <span 
+              <span
                 className="ml-1 font-medium transition-colors"
                 style={{ color: stroke }}
               >
@@ -128,9 +128,8 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                   notifications.map((n) => (
                     <div
                       key={n.id}
-                      className={`flex items-start gap-3 px-4 py-3 border-b border-gray-50 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition ${
-                        !n.lu ? "bg-blue-50/30 dark:bg-blue-900/20" : ""
-                      }`}
+                      className={`flex items-start gap-3 px-4 py-3 border-b border-gray-50 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition ${!n.lu ? "bg-blue-50/30 dark:bg-blue-900/20" : ""
+                        }`}
                     >
                       <div
                         className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${notifDot[n.type]}`}
@@ -144,7 +143,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                 )}
               </div>
               <div className="px-4 py-2.5 border-t border-gray-100 dark:border-gray-700">
-                <button 
+                <button
                   className="text-xs font-medium hover:underline transition-colors"
                   style={{ color: stroke }}
                 >

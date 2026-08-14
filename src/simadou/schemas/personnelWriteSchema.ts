@@ -24,6 +24,7 @@ function optionalPositiveInt() {
 export const NIVEAU_ACCES_OPTIONS = [
   { value: 1, label: 'Éditeur' },
   { value: 2, label: 'Visiteur' },
+  { value: 3, label: 'Point focal Projet' },
 ] as const
 
 export const personnelWriteSchema = z.object({

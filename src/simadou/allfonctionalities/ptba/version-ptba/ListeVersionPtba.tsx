@@ -127,13 +127,13 @@ export default function ListeVersionPtba({ onAdd, onEdit }: ListeVersionPtbaProp
                     <TabsList className="grid w-full grid-cols-2">
                         <TabsTrigger value="toutes">
                             Toutes
-                            <span className='ml-2 rounded-full bg-muted px-1.5 py-0.5 text-xs text-black'>
+                            <span className='rounded-full bg-muted px-1.5 py-0.5 text-xs text-black'>
                                 ({counts.total})
                             </span>
                         </TabsTrigger>
                         <TabsTrigger value="archive">
                             Archivées
-                            <span className='ml-2 rounded-full bg-muted px-1.5 py-0.5 text-xs text-black'>
+                            <span className='rounded-full bg-muted px-1.5 py-0.5 text-xs text-black'>
                                 ({counts.archive})
                             </span>
                         </TabsTrigger>

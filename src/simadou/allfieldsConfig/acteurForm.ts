@@ -58,15 +58,15 @@ export const getActeurFormConfig = (): FormConfig => ({
             gridCols: 2,
         },
         // select - Catégorie acteur (relation)
-        // {
-        //     name: "categorie_acteur",
-        //     label: "Catégorie acteur",
-        //     type: "select",
-        //     placeholder: "Sélectionner une catégorie",
-        //     required: true,
-        //     options: [], 
-        //     gridCols: 1,
-        // },
+        {
+            name: "categorie_acteur",
+            label: "Catégorie acteur",
+            type: "select",
+            placeholder: "Sélectionner une catégorie",
+            required: true,
+            options: [], 
+            gridCols: 1,
+        },
     ]
 
 })

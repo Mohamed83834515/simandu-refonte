@@ -4,10 +4,9 @@ import { useAuthStore } from '@/stores/auth-store'
 import { useSessionStore } from '@/stores/others/session.store'
 import { getConfigDuration } from '@/lib/session-config'
 
-// En dev : URL relative → proxy Vite redirige vers localhost:8000 (pas de CORS)
-// En prod : VITE_API_BASE_URL doit pointer vers https://api.ruche-sectoriel.net/api/
 const BASE_URL =
-  (import.meta.env.VITE_API_BASE_URL as string) || '/api/'
+  (import.meta.env.VITE_API_BASE_URL as string) ||
+  'https://api.ruche-sectoriel.net/api/'
 
 export const api = axios.create({
   baseURL: BASE_URL,
@@ -31,6 +30,14 @@ export const publicApi = axios.create({
 const EXCLUDED = ['/auth/login']
 
 const isExcluded = (url?: string) => EXCLUDED.some((e) => url?.includes(e))
+
+// Request interceptor — let the browser set multipart boundary for FormData
+api.interceptors.request.use((config) => {
+  if (config.data instanceof FormData) {
+    delete config.headers['Content-Type']
+  }
+  return config
+})
 
 // Response interceptor
 

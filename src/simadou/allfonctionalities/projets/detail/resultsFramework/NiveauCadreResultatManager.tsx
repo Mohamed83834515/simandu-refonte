@@ -65,12 +65,12 @@ function createEmptyRow(existingRows: NiveauRow[]): NiveauRow {
   }
 }
 
-export default function NiveauCadreResultatManager() {
-  const { data: niveaux = [], isLoading } = useGetNiveauxCadreResultat()
+export default function NiveauCadreResultatManager({idProjet}:{idProjet:number}) {
+  const { data: niveaux = [], isLoading } = useGetNiveauxCadreResultat(idProjet)
   const createMutation = useCreateNiveauCadreResultat()
   const updateMutation = useUpdateNiveauCadreResultat()
   const deleteMutation = useDeleteNiveauCadreResultat()
-
+  console.log("codeProjet", idProjet)
   const sorted = useMemo(
     () => [...niveaux].sort((a, b) => a.nombre_ncr - b.nombre_ncr),
     [niveaux]
@@ -117,6 +117,7 @@ export default function NiveauCadreResultatManager() {
           libelle_ncr: row.libelle.trim(),
           code_number_ncr: Number(row.codeNumber),
           type_niveau: row.typeNiveau,
+          projet_ncr: idProjet,
         }
 
         if (row.isNew) {

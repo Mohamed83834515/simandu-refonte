@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
 import suiviTacheActiviteProjetService from '@/simadou/allSercices/suiviTacheActiviteProjetService'
 import suiviIndicateurTacheProjetService from '@/simadou/allSercices/suiviIndicateurTacheProjetService'
@@ -42,6 +43,7 @@ export const useGetSuiviTachesProjetByActivite = (idActivite: number) =>
   })
 
 export function useSuiviTachesProjetByActiviteIds(activiteIds: number[]) {
+  const activiteIdsKey = activiteIds.join(',')
   const queries = useQueries({
     queries: activiteIds.map((id) => ({
       queryKey: suiviPtbaProjetQueryKeys.suiviTache(id),
@@ -50,10 +52,16 @@ export function useSuiviTachesProjetByActiviteIds(activiteIds: number[]) {
     })),
   })
 
-  const suivisByActivite = new Map<number, SuiviTacheActivite[]>()
-  activiteIds.forEach((id, index) => {
-    suivisByActivite.set(id, queries[index]?.data ?? [])
-  })
+  const dataUpdatedAtKey = queries.map((q) => q.dataUpdatedAt).join(',')
+  const suivisByActivite = useMemo(() => {
+    const map = new Map<number, SuiviTacheActivite[]>()
+    activiteIds.forEach((id, index) => {
+      map.set(id, queries[index]?.data ?? [])
+    })
+    return map
+    // dataUpdatedAtKey tracks query result identity without depending on the queries array ref
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activiteIdsKey, dataUpdatedAtKey])
 
   return {
     queries,
@@ -63,30 +71,40 @@ export function useSuiviTachesProjetByActiviteIds(activiteIds: number[]) {
 }
 
 export function useSuiviPtbaProjetActivitesProgress(activiteIds: number[]) {
-  const activiteIdSet = new Set(activiteIds)
+  const activiteIdsKey = activiteIds.join(',')
+  const activiteIdSet = useMemo(
+    () => new Set(activiteIds),
+    [activiteIdsKey]
+  )
   const { data: allTaches = [], isLoading: tachesLoading } =
     useGetAllTachesActiviteProjet(activiteIds.length > 0)
   const { suivisByActivite, isLoading: suivisLoading } =
     useSuiviTachesProjetByActiviteIds(activiteIds)
 
-  const tachesByActivite = new Map<number, TacheActivitePtba[]>()
-  for (const id of activiteIds) {
-    tachesByActivite.set(id, [])
-  }
-  for (const tache of allTaches) {
-    const activiteId = resolveIdActivite(tache)
-    if (activiteId == null || !activiteIdSet.has(activiteId)) continue
-    const list = tachesByActivite.get(activiteId) ?? []
-    list.push(tache)
-    tachesByActivite.set(activiteId, list)
-  }
+  const tachesByActivite = useMemo(() => {
+    const map = new Map<number, TacheActivitePtba[]>()
+    for (const id of activiteIds) {
+      map.set(id, [])
+    }
+    for (const tache of allTaches) {
+      const activiteId = resolveIdActivite(tache)
+      if (activiteId == null || !activiteIdSet.has(activiteId)) continue
+      const list = map.get(activiteId) ?? []
+      list.push(tache)
+      map.set(activiteId, list)
+    }
+    return map
+  }, [activiteIdsKey, allTaches, activiteIdSet])
 
-  const avancementByActivite = new Map<number, number>()
-  for (const id of activiteIds) {
-    const taches = tachesByActivite.get(id) ?? []
-    const suivis = suivisByActivite.get(id) ?? []
-    avancementByActivite.set(id, tauxAvancementGlobalTaches(taches, suivis))
-  }
+  const avancementByActivite = useMemo(() => {
+    const map = new Map<number, number>()
+    for (const id of activiteIds) {
+      const taches = tachesByActivite.get(id) ?? []
+      const suivis = suivisByActivite.get(id) ?? []
+      map.set(id, tauxAvancementGlobalTaches(taches, suivis))
+    }
+    return map
+  }, [activiteIdsKey, tachesByActivite, suivisByActivite])
 
   return {
     tachesByActivite,

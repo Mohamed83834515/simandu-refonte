@@ -1,9 +1,17 @@
 import { useMemo, useState } from 'react'
 import { Loader2 } from 'lucide-react'
+import type { Projet } from '@/simadou/allTypes'
 import type { Ptba } from '@/simadou/allTypes'
 import type { SuiviDecaissementPtbaProjet } from '@/simadou/allTypes/suiviDecaissementPtbaProjet'
 import { sumSuiviDecaissementMontant } from '@/simadou/allColonnes/suivi-decaissement-ptba-projet-columns'
 import { useGetSuiviDecaissementProjetByActivite } from '@/simadou/allHooks/admin/suiviPtbaProjetHooks'
+import { useGetFinancementsProjet } from '@/simadou/allHooks/admin/financementProjetHooks'
+import {
+  buildSuiviDecaissementRegionOptions,
+  buildSuiviDecaissementTypePartOptions,
+  toRegionLabelMap,
+  toTypePartLabelMap,
+} from '@/simadou/lib/suiviDecaissementPtbaProjetUtils'
 import {
   ActiviteTabbedSubViewHeader,
   useActiviteTabbedSubView,
@@ -13,6 +21,7 @@ import SuiviDecaissementPtbaProjetForm from './SuiviDecaissementPtbaProjetForm'
 import SuiviDecaissementPtbaProjetList from './SuiviDecaissementPtbaProjetList'
 
 type Props = {
+  projet: Projet
   activite: Ptba
 }
 
@@ -23,14 +32,27 @@ function formatTotalMontant(value: number): string {
   }).format(value)
 }
 
-export default function SuiviDecaissementPtbaProjetManager({ activite }: Props) {
+export default function SuiviDecaissementPtbaProjetManager({
+  projet,
+  activite,
+}: Props) {
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState<SuiviDecaissementPtbaProjet | undefined>()
 
   useActiviteTabbedSubView(showForm)
 
+  const { data: financements = [] } = useGetFinancementsProjet(projet.id_projet)
   const { data: suivis = [], isLoading } = useGetSuiviDecaissementProjetByActivite(
     activite.id_ptba
+  )
+
+  const regionLabelById = useMemo(
+    () => toRegionLabelMap(buildSuiviDecaissementRegionOptions(projet.zone_projet)),
+    [projet.zone_projet]
+  )
+  const financementLabelById = useMemo(
+    () => toTypePartLabelMap(buildSuiviDecaissementTypePartOptions(financements)),
+    [financements]
   )
 
   const totalMontant = useMemo(() => sumSuiviDecaissementMontant(suivis), [suivis])
@@ -70,6 +92,7 @@ export default function SuiviDecaissementPtbaProjetManager({ activite }: Props) 
           }
         >
           <SuiviDecaissementPtbaProjetForm
+            projet={projet}
             idActivite={activite.id_ptba}
             suivi={editing}
             onClose={handleCloseForm}
@@ -81,6 +104,8 @@ export default function SuiviDecaissementPtbaProjetManager({ activite }: Props) 
           <SuiviDecaissementPtbaProjetList
             suivis={suivis}
             idActivite={activite.id_ptba}
+            regionLabelById={regionLabelById}
+            financementLabelById={financementLabelById}
             onEdit={handleEdit}
             onAdd={handleAdd}
           />

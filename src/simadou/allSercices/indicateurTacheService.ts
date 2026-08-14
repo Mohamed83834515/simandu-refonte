@@ -12,9 +12,8 @@ class IndicateurTacheService {
     );
     return response;
   }
-
   async getByActivite(url: string, idActivite: number): Promise<IndicateurTache[]> {
-    const response = await apiClient.request<IndicateurTache[]>(url);
+    const response = await apiClient.request<IndicateurTache[]>(`${url}?id_activite=${idActivite}`);
     return filterIndicateursByActivite(response, idActivite);
   }
 

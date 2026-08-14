@@ -60,7 +60,6 @@ export default function SuiviIndicateurProjetManager({
         >
           <SuiviIndicateurInlineManager
             key={selectedIndicateur.id_indicateur_tache}
-            activite={activite}
             indicateur={selectedIndicateur}
             onClose={handleCloseForm}
           />

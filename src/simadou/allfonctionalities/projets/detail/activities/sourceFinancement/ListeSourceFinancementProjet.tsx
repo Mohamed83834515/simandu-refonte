@@ -51,7 +51,7 @@ export default function ListeSourceFinancement({
 
   return (
     <>
-      <div className="space-y-4">
+      <div className='flex min-h-0 w-full min-w-0 flex-1 flex-col'>
         <GenericTable<SourFinancementProjet>
           data={sources}
           columns={columns}
@@ -72,14 +72,12 @@ export default function ListeSourceFinancement({
             },
           ]}
           toolbarEndSlot={
-            <DataTableToolbarOutlineButton
-              className='ms-auto'
-              onClick={onAdd}
-            >
+            <DataTableToolbarOutlineButton className='ms-auto shrink-0' onClick={onAdd}>
               Ajouter
             </DataTableToolbarOutlineButton>
           }
           defaultPageSize={5}
+          compactPagination
           showViewOptions={false}
           showPagination={true}
           showSearch={true}

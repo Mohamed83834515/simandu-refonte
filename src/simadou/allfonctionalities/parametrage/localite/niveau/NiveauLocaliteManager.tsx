@@ -137,12 +137,12 @@ export default function NiveauLocaliteManager({ onSuccess }: Props) {
   }
 
   if (isLoading && !initialized) {
-    return <div className='py-6 text-sm text-muted-foreground'>Chargement…</div>
+    return <div className='py-3 text-sm text-muted-foreground'>Chargement…</div>
   }
 
   return (
-    <div className='space-y-4'>
-      <div className='flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between'>
+    <div className='space-y-2'>
+      <div className='flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between'>
         <div>
           <h3 className='text-base font-semibold'>Configuration des niveaux</h3>
           <p className='text-sm text-muted-foreground'>
@@ -150,7 +150,7 @@ export default function NiveauLocaliteManager({ onSuccess }: Props) {
             automatiquement.
           </p>
         </div>
-        <div className='flex flex-col gap-2 sm:flex-row'>
+        <div className='flex flex-col gap-1 sm:flex-row'>
           <Button type='button' variant='outline' onClick={onAddRow}>
             <Plus className='h-4 w-4' />
             Ajouter un niveau

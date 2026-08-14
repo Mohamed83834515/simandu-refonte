@@ -8,19 +8,19 @@ export const indicateurTacheSchema = z.object({
     .max(200, "L'intitulé ne peut pas dépasser 200 caractères"),
 
   trimestre_1: z
-    .string()
+    .number()
     .optional(),
 
   trimestre_2: z
-    .string()
+    .number()
     .optional(),
 
   trimestre_3: z
-    .string()
+    .number()
     .optional(),
 
   trimestre_4: z
-    .string()
+    .number()
     .optional(),
 
   unite_ind_tache: z

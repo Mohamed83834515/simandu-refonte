@@ -5,6 +5,7 @@ import type { Personnel } from '@/simadou/allTypes'
 import { useGetFonctions } from '@/simadou/allHooks/admin/fonctionHooks'
 import {
   useCreatePersonnel,
+  useGetPersonnel,
   useUpdatePersonnel,
 } from '@/simadou/allHooks/admin/personnelHooks'
 import { useGetPlanSites } from '@/simadou/allHooks/admin/planSiteHooks'
@@ -33,6 +34,16 @@ export default function UtilisateurFormPanel({
   const { data: regions = [], isLoading: isLoadingRegions } = useGetLocalites()
   const { data: structures = [], isLoading: isLoadingStructures } = useGetActeurs()
 
+  // Appel conditionnel avec React Query
+  // Récupérer l'id
+  const personnelId = personnel?.n_personnel
+
+  // Appel conditionnel avec React Query
+  const { data: currentRowData } = useGetPersonnel(
+    personnelId || undefined // undefined désactive la requête
+  )
+
+  const currentRow = { data: currentRowData }
   const formConfig = useMemo(
     () =>
       getPersonnelFormConfigForDialog({
@@ -62,8 +73,12 @@ export default function UtilisateurFormPanel({
   )
 
   const defaultValues = useMemo(
-    () => personnelToFormValues(personnel),
-    [personnel]
+    () => {
+      if (isEditing && currentRowData) {
+        return personnelToFormValues(currentRowData)
+      }
+    },
+    [currentRow.data]
   )
 
   const createMutation = useCreatePersonnel()

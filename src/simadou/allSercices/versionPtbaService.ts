@@ -1,8 +1,9 @@
 import { apiClient } from "@/axios/api";
 import type { VersionPtba } from "../allTypes";
+import type { VersionPtbasProjetsResponse } from "../allTypes/ptbaProjet";
 import type { VersionPtbaFormData } from "../schemas/ptbaSchemas";
 
-const ENDPOINT = "/version_ptba/";
+const ENDPOINT = "/versions-ptbas/";
 
 const versionPtbaService = {
   async getAll(): Promise<VersionPtba[]> {
@@ -11,6 +12,21 @@ const versionPtbaService = {
 
   async getById(id: number): Promise<VersionPtba> {
     return apiClient.request(`${ENDPOINT}${id}/`, { method: "GET" });
+  },
+
+  async getPtbasProjets(
+    idVersion: number,
+    codeProjet?: string,
+  ): Promise<VersionPtbasProjetsResponse> {
+    const params =
+      codeProjet?.trim()
+        ? { code_projet: codeProjet.trim() }
+        : undefined
+
+    return apiClient.request(`${ENDPOINT}${idVersion}/ptbas-projets/`, {
+      method: "GET",
+      params,
+    });
   },
 
   async create(data: VersionPtbaFormData, file?: File): Promise<VersionPtba> {
@@ -50,7 +66,7 @@ const versionPtbaService = {
     data: Partial<VersionPtbaFormData>,
     file?: File,
   ): Promise<VersionPtba> {
-    if (file) {
+    if (typeof file !== 'string'&& file instanceof File) {
       // Si un fichier est fourni, utiliser FormData
       const formData = new FormData();
 

@@ -1,4 +1,4 @@
-import { Programme } from "./programme";
+import { type Programme } from "./programme";
 
 export interface NiveauCadreStrategique extends Record<string, unknown> {
   id_nsc: number;

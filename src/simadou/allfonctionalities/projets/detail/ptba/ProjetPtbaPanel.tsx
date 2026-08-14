@@ -5,66 +5,47 @@ import { GenericDialogs } from '@/Global/Generic/Genericdialogs'
 import { GenericTable } from '@/Global/Generic/Generictable'
 import { GenericDeleteDialog } from '@/Global/Tableaux/GenericDeleteDialog'
 import useDialogState from '@/hooks/use-dialog-state'
-import { useActiveProgrammeCode } from '@/hooks/use-active-programme'
 import { useEmbeddedTableState } from '@/hooks/use-embedded-table-state'
 import type { Projet } from '@/simadou/allTypes'
 import type { PtbaProjet } from '@/simadou/allTypes/ptbaProjet'
-import { buildPtbasColumns } from '@/simadou/allColonnes/ptbas-columns'
 import {
   useDeletePtbaProjet,
-  useGetPtbasProjet,
+  useGetPtbasProjetsByVersion,
 } from '@/simadou/allHooks/admin/ptbaProjetHooks'
-import { useGetPersonnels } from '@/simadou/allHooks/admin/personnelHooks'
-import { usePtbaVersionSelection } from '@/simadou/allHooks/admin/versionHooks'
-import { resolvePersonnelLabel } from '@/simadou/lib/resolveApiRelation'
+import { useProjetPtbaVersionSelection } from '@/simadou/allHooks/admin/versionHooks'
 import ActiviteTabbedDialog from '@/simadou/allfonctionalities/ptba/ActiviteTabbedDialog'
 import { PtbaVersionSelect } from '@/simadou/allfonctionalities/ptba/PtbaVersionSelect'
 import AddPtbaProjet from './AddPtbaProjet'
 import TacheActiviteProjetManager from './tache-activite-projet/TacheActiviteManager'
 import IndicateurTacheProjetManager from './indicateur-tache-projet/IndicateurTacheManager'
+import CoutActivitePtbaGridPanel from './cout-activite/CoutActivitePtbaGridPanel'
 import { useGeneralParamsQuery } from '@/simadou/allHooks/generalParams/queries'
+import { buildPtbasProjetColumns } from '@/simadou/allColonnes/ptbas-projet-columns'
 
 type ProjetPtbaPanelProps = {
   projet: Projet
 }
 
+const EMPTY_PTBAS: PtbaProjet[] = []
+
 export default function ProjetPtbaPanel({ projet }: ProjetPtbaPanelProps) {
   const codeProjet = projet.code_projet
-  const activeProgrammeCode = useActiveProgrammeCode()
-  const codeProgramme =
-    typeof projet.programme_projet === 'object' &&
-      projet.programme_projet?.code_programme
-      ? projet.programme_projet.code_programme
-      : activeProgrammeCode
-  const { selectedVersionId, handleChangeVersion, versionOptions } =
-    usePtbaVersionSelection(codeProgramme)
+  const {
+    selectedVersionId,
+    handleChangeVersion,
+    filteredVersionOptions,
+    selectedVersionPtbaId,
+    selectedVersion,
+  } = useProjetPtbaVersionSelection(projet)
+
   const { search, navigate } = useEmbeddedTableState()
-  const { data: ptbas = [] } = useGetPtbasProjet(codeProjet)
-  const { data: personnels = [] } = useGetPersonnels()
   const deleteMutation = useDeletePtbaProjet(codeProjet)
 
-  const personnelsById = useMemo(
-    () =>
-      new Map(
-        personnels
-          .filter((p) => p.n_personnel != null)
-          .map((p) => [p.n_personnel!, p])
-      ),
-    [personnels]
+  const { data: ptbasByVersion } = useGetPtbasProjetsByVersion(
+    selectedVersionPtbaId > 0 ? selectedVersionPtbaId : undefined,
+    codeProjet
   )
-
-  const getResponsableLabel = useCallback(
-    (ptba: PtbaProjet) =>
-      resolvePersonnelLabel(ptba.responsable_ptba, personnelsById),
-    [personnelsById]
-  )
-
-  const filteredPtbas = useMemo(() => {
-    if (!selectedVersionId) return ptbas
-    return ptbas.filter(
-      (ptba) => ptba.version_ptba?.toString() === selectedVersionId
-    )
-  }, [ptbas, selectedVersionId])
+  const ptbas = ptbasByVersion?.ptbas_projets ?? EMPTY_PTBAS
 
   const [planifierActivite, setPlanifierActivite] = useState<PtbaProjet | null>(
     null
@@ -83,13 +64,13 @@ export default function ProjetPtbaPanel({ projet }: ProjetPtbaPanelProps) {
 
   const columns = useMemo(
     () =>
-      buildPtbasColumns(
+      buildPtbasProjetColumns(
         setOpen,
         setCurrentRow,
         onOpenPlanification,
         currencyCode
       ),
-    [setOpen, setCurrentRow, onOpenPlanification, getResponsableLabel, currencyCode]
+    [setOpen, setCurrentRow, onOpenPlanification, currencyCode]
   )
 
   return (
@@ -105,7 +86,7 @@ export default function ProjetPtbaPanel({ projet }: ProjetPtbaPanelProps) {
       </div>
 
       <GenericTable<PtbaProjet>
-        data={filteredPtbas}
+        data={ptbas}
         columns={columns}
         search={search}
         navigate={navigate}
@@ -119,11 +100,13 @@ export default function ProjetPtbaPanel({ projet }: ProjetPtbaPanelProps) {
           },
         ]}
         toolbarEndSlot={
-          <PtbaVersionSelect
-            options={versionOptions}
-            value={selectedVersionId}
-            onChange={handleChangeVersion}
-          />
+          filteredVersionOptions.length > 0 ? (
+            <PtbaVersionSelect
+              options={filteredVersionOptions}
+              value={selectedVersionId}
+              onChange={handleChangeVersion}
+            />
+          ) : null
         }
         showViewOptions={false}
         initialState={{
@@ -145,21 +128,36 @@ export default function ProjetPtbaPanel({ projet }: ProjetPtbaPanelProps) {
         tabs={
           planifierActivite
             ? [
-              {
-                value: 'taches',
-                label: 'Planification des tâches',
-                content: (
-                  <TacheActiviteProjetManager activite={planifierActivite} />
-                ),
-              },
-              {
-                value: 'indicateurs',
-                label: 'Planification des indicateurs',
-                content: (
-                  <IndicateurTacheProjetManager activite={planifierActivite} />
-                ),
-              },
-            ]
+                {
+                  value: 'taches',
+                  label: 'Planification des tâches',
+                  content: (
+                    <TacheActiviteProjetManager activite={planifierActivite} />
+                  ),
+                },
+                {
+                  value: 'indicateurs',
+                  label: 'Planification des indicateurs',
+                  content: (
+                    <IndicateurTacheProjetManager activite={planifierActivite} />
+                  ),
+                },
+                {
+                  value: 'cout-activite',
+                  label: 'Coût activité PTBA',
+                  content: (
+                    <CoutActivitePtbaGridPanel
+                      activite={planifierActivite}
+                      projet={projet}
+                      versionPtbaId={
+                        Number(planifierActivite.version_ptba) ||
+                        selectedVersionPtbaId
+                      }
+                      anneePtbaYear={selectedVersion?.annee_ptba}
+                    />
+                  ),
+                },
+              ]
             : []
         }
       />

@@ -20,10 +20,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import type { SuiviIndicateurActivite } from '@/simadou/allTypes'
-import type { Ptba } from '@/simadou/allTypes'
+import type { SuiviIndicateurTache } from '@/simadou/allTypes/suiviIndicateurTacheProjet'
 import { IndicateurTache } from '@/simadou/allTypes/indicateurTache'
-import type { SuiviIndicateurActiviteFormData } from '@/simadou/schemas/suiviIndicateurSchemas'
+import type { SuiviIndicateurTachePayload } from '@/simadou/schemas/suiviIndicateurTacheProjetSchemas'
 import {
   useCreateSuiviIndicateur,
   useDeleteSuiviIndicateur,
@@ -32,78 +31,67 @@ import {
   useUpdateSuiviIndicateur,
   suiviPtbaQueryKeys,
 } from '@/simadou/allHooks/admin/suiviPtbaHooks'
-import { ensureIndicateurActivitePtbaCode } from './suiviIndicateurUtils'
 
 type SuiviRow = {
   id?: number
-  localite: string
-  date_suivi_indicateur: string
-  valeur_suivi_indicateur: string
+  commune_sit: number | null
+  date_suivi_sit: string
+  valeur_suivi_sit: string
   isNew: boolean
 }
 
-function toRow(suivi: SuiviIndicateurActivite): SuiviRow {
+function toRow(suivi: SuiviIndicateurTache): SuiviRow {
   return {
-    id: suivi.id_suivi_indicateur,
-    localite:
-      typeof suivi.localite === 'object' && suivi.localite
-        ? suivi.localite.code_loca
-        : typeof suivi.localite === 'string'
-          ? suivi.localite
-          : '',
-    date_suivi_indicateur: suivi.date_suivi_indicateur
-      ? new Date(suivi.date_suivi_indicateur).toISOString().split('T')[0]
+    id: suivi.id_suivi_sit,
+    commune_sit: suivi.commune_sit ?? null,
+    date_suivi_sit: suivi.date_suivi_sit
+      ? new Date(suivi.date_suivi_sit).toISOString().split('T')[0]
       : new Date().toISOString().split('T')[0],
-    valeur_suivi_indicateur: String(suivi.valeur_suivi_indicateur ?? ''),
+    valeur_suivi_sit: String(suivi.valeur_suivi_sit ?? ''),
     isNew: false,
   }
 }
 
 function createEmptyRow(): SuiviRow {
   return {
-    localite: '',
-    date_suivi_indicateur: new Date().toISOString().split('T')[0],
-    valeur_suivi_indicateur: '',
+    commune_sit: null,
+    date_suivi_sit: new Date().toISOString().split('T')[0],
+    valeur_suivi_sit: '',
     isNew: true,
   }
 }
 
 function rowHasData(row: SuiviRow): boolean {
-  return (
-    !!row.localite.trim() ||
-    !!row.valeur_suivi_indicateur.trim()
-  )
+  return row.commune_sit != null || !!row.valeur_suivi_sit.trim()
 }
 
 type SuiviIndicateurInlineManagerProps = {
-  activite: Ptba
   indicateur: IndicateurTache
   onClose: () => void
 }
 
-function syncRowsFromSuivis(suivis: SuiviIndicateurActivite[]): SuiviRow[] {
+function syncRowsFromSuivis(suivis: SuiviIndicateurTache[]): SuiviRow[] {
   return suivis.length === 0
     ? [createEmptyRow()]
     : [...suivis.map(toRow), createEmptyRow()]
 }
 
 export default function SuiviIndicateurInlineManager({
-  activite,
   indicateur,
   onClose,
 }: SuiviIndicateurInlineManagerProps) {
   const queryClient = useQueryClient()
-  const codeIndicateur = indicateur.code_indicateur_ptba
+  const idIndicateur = indicateur.id_indicateur_tache
   const {
     data: suivis = [],
     isLoading,
     isFetching,
     refetch,
-  } = useGetSuivisIndicateurByIndicateur(codeIndicateur, true)
+  } = useGetSuivisIndicateurByIndicateur(idIndicateur, true)
   const { data: localites = [] } = useGetLocalites()
-  const createMutation = useCreateSuiviIndicateur(codeIndicateur)
-  const updateMutation = useUpdateSuiviIndicateur(codeIndicateur)
-  const deleteMutation = useDeleteSuiviIndicateur(codeIndicateur)
+  const createMutation = useCreateSuiviIndicateur(idIndicateur)
+  const updateMutation = useUpdateSuiviIndicateur(idIndicateur)
+  const deleteMutation = useDeleteSuiviIndicateur(idIndicateur)
 
   const [rows, setRows] = useState<SuiviRow[]>([createEmptyRow()])
   const [initialized, setInitialized] = useState(false)
@@ -161,16 +149,21 @@ export default function SuiviIndicateurInlineManager({
       return
     }
 
+    if (!Number.isFinite(idIndicateur) || idIndicateur <= 0) {
+      toast.error('Indicateur manquant')
+      return
+    }
+
     for (const row of rowsToSave) {
-      if (!row.localite.trim()) {
+      if (row.commune_sit == null) {
         toast.error('La commune est requise sur chaque ligne')
         return
       }
-      if (!row.date_suivi_indicateur.trim()) {
+      if (!row.date_suivi_sit.trim()) {
         toast.error('La date est requise sur chaque ligne')
         return
       }
-      const valeur = Number(row.valeur_suivi_indicateur.replace(',', '.'))
+      const valeur = Number(row.valeur_suivi_sit.replace(',', '.'))
       if (!Number.isFinite(valeur)) {
         toast.error('La valeur doit être un nombre')
         return
@@ -179,19 +172,14 @@ export default function SuiviIndicateurInlineManager({
 
     setIsSaving(true)
     try {
-      const indicateurActiviteCode = await ensureIndicateurActivitePtbaCode(
-        activite,
-        indicateur
-      )
-
       for (const row of rowsToSave) {
-        const payload: SuiviIndicateurActiviteFormData = {
-          localite: row.localite,
-          date_suivi_indicateur: row.date_suivi_indicateur,
-          valeur_suivi_indicateur: Number(
-            row.valeur_suivi_indicateur.replace(',', '.')
+        const payload: SuiviIndicateurTachePayload = {
+          commune_sit: row.commune_sit!,
+          date_suivi_sit: row.date_suivi_sit,
+          valeur_suivi_sit: Math.trunc(
+            Number(row.valeur_suivi_sit.replace(',', '.'))
           ),
-          indicateur_activite: indicateurActiviteCode,
+          indicateur_sit: idIndicateur,
         }
 
         if (row.isNew) {
@@ -263,11 +251,17 @@ export default function SuiviIndicateurInlineManager({
               <TableRow key={row.id ?? `new-${index}`}>
                 <TableCell className='align-top'>
                   <Select
-                    value={row.localite || undefined}
+                    value={
+                      row.commune_sit != null
+                        ? String(row.commune_sit)
+                        : ''
+                    }
                     onValueChange={(value) =>
                       setRows((prev) =>
                         prev.map((r, i) =>
-                          i === index ? { ...r, localite: value } : r
+                          i === index
+                            ? { ...r, commune_sit: Number(value) }
+                            : r
                         )
                       )
                     }
@@ -277,7 +271,10 @@ export default function SuiviIndicateurInlineManager({
                     </SelectTrigger>
                     <SelectContent>
                       {localites.map((loc) => (
-                        <SelectItem key={loc.id_loca} value={loc.code_loca}>
+                        <SelectItem
+                          key={loc.id_loca}
+                          value={String(loc.id_loca)}
+                        >
                           {loc.intitule_loca || loc.code_loca}
                         </SelectItem>
                       ))}
@@ -287,12 +284,12 @@ export default function SuiviIndicateurInlineManager({
                 <TableCell className='align-top'>
                   <Input
                     type='date'
-                    value={row.date_suivi_indicateur}
+                    value={row.date_suivi_sit}
                     onChange={(e) =>
                       setRows((prev) =>
                         prev.map((r, i) =>
                           i === index
-                            ? { ...r, date_suivi_indicateur: e.target.value }
+                            ? { ...r, date_suivi_sit: e.target.value }
                             : r
                         )
                       )
@@ -303,14 +300,14 @@ export default function SuiviIndicateurInlineManager({
                   <Input
                     type='number'
                     min={0}
-                    step='any'
+                    step={1}
                     placeholder='0'
-                    value={row.valeur_suivi_indicateur}
+                    value={row.valeur_suivi_sit}
                     onChange={(e) =>
                       setRows((prev) =>
                         prev.map((r, i) =>
                           i === index
-                            ? { ...r, valeur_suivi_indicateur: e.target.value }
+                            ? { ...r, valeur_suivi_sit: e.target.value }
                             : r
                         )
                       )

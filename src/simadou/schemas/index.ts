@@ -16,7 +16,8 @@ export {
   type IndicateurPerformanceProjetFormData,
 } from "./activiteProjetSchemas";
 
-// Schémas Suivi indicateur tâche projet
+// Schémas Suivi indicateur tâche (programme + projet)
 export {
+  type SuiviIndicateurTachePayload,
   type SuiviIndicateurTacheProjetPayload,
 } from './suiviIndicateurTacheProjetSchemas'

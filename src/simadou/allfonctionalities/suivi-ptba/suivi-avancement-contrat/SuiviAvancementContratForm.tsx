@@ -5,6 +5,7 @@ import { DynamicForm } from '@/Global/Forms/DynamicForm'
 import { getApiErrorMessage } from '@/lib/api-error-message'
 import { getSuiviAvancementContratFormConfigForSuivi } from '@/simadou/allfieldsConfig/suiviAvancementContratForm'
 import {
+  statutActiviteOptions,
   suiviAvancementContratSuiviPtbaSchema,
   type SuiviAvancementContratSuiviPtbaFormData,
 } from '@/simadou/schemas/suiviAvancementContratSchemas'
@@ -93,11 +94,32 @@ export default function SuiviAvancementContratForm({
         .filter((url): url is string => typeof url === 'string' && !!url.trim()),
     [sources]
   )
+  // Dans votre composant ou hook
+  const formConfig = useMemo(() => {
+    const config = getSuiviAvancementContratFormConfigForSuivi();
+    const taux = activite?.taux_execution_ptba || 0;
+    // Trouver l'index du champ statut_activite
+    const statutIndex = config.fields.findIndex(
+      field => field.name === 'statut_activite'
+    );
 
-  const formConfig = useMemo(
-    () => getSuiviAvancementContratFormConfigForSuivi(),
-    []
-  )
+    if (statutIndex !== -1 && taux < 100) {
+      // Modifier directement le champ existant
+      const field = config.fields[statutIndex];
+
+      // Filtrer les options
+      const filteredOptions = statutActiviteOptions.filter(
+        option => option.value !== 'réalisé'
+      );
+
+      config.fields[statutIndex] = {
+        ...field,
+        options: filteredOptions,
+      };
+    }
+
+    return config;
+  }, [activite?.taux_execution_ptba, activite?.statut_activite]);
 
   const defaultValues = useMemo(
     () => buildSuiviAvancementDefaultValues(suivi, documentUrls),

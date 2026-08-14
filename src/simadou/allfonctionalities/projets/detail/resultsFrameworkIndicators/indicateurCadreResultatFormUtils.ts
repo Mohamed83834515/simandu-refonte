@@ -17,20 +17,14 @@ export function resolveFixedCodeCrFromCadre(cadre: CadreResultat): string {
 
 export function resolveNiveauIopFromCadre(
   cadre: CadreResultat,
-  niveaux: NiveauCadreResultat[]
+  _niveaux: NiveauCadreResultat[] = []
 ): number | null {
-  const populated = cadre.niveau?.nombre_ncr
-  if (populated != null && Number.isFinite(Number(populated))) {
-    return Number(populated)
+  const populatedId = cadre.niveau?.id_ncr
+  if (populatedId != null && Number.isFinite(Number(populatedId))) {
+    return Number(populatedId)
   }
 
-  const niveauId = resolveNiveauCrId(cadre.niveau_cr)
-  if (niveauId == null) return null
-
-  const niveau = niveaux.find((n) => n.id_ncr === niveauId)
-  if (niveau?.nombre_ncr == null) return null
-
-  return Number(niveau.nombre_ncr)
+  return resolveNiveauCrId(cadre.niveau_cr)
 }
 
 export function resolveNiveauCrLabel(
@@ -93,14 +87,16 @@ export function resolveResponsableIopLabel(
 
 export function indicateurCadreResultatToFormValues({
   indicateur,
-  codeProjet,
+  idProjet,
   fixedCadreCrCode,
   fixedNiveauIop,
+  id_personnel,
 }: {
   indicateur?: IndicateurCadreResultat | null
-  codeProjet: string
+  idProjet: number
   fixedCadreCrCode?: string | null
   fixedNiveauIop?: number | null
+  id_personnel: string
 }): Partial<IndicateurCadreResultatCreateData> {
   return {
     niveau_iop:
@@ -115,25 +111,24 @@ export function indicateurCadreResultatToFormValues({
     intitule_indicateur_cr_iop: indicateur?.intitule_indicateur_cr_iop ?? '',
     periodicite_iop: indicateur?.periodicite_iop ?? '',
     source_iop: indicateur?.source_iop ?? '',
-    responsable_iop: resolveResponsableIopForForm(indicateur),
+    responsable_iop: id_personnel, 
     description_iop: indicateur?.description_iop ?? '',
     structure_iop:
       resolveRelationId(indicateur?.structure_iop, 'id_acteur')?.toString() ||
       undefined,
     projet_iop:
       resolveRelationCode(indicateur?.projet_iop, 'code_projet') ??
-      (indicateur ? undefined : codeProjet),
+      (indicateur ? undefined : String(idProjet)),
   }
 }
-
 export function buildIndicateurCadreResultatPayload({
   data,
-  codeProjet,
+  idProjet,
   fixedCadreCrCode,
   fixedNiveauIop,
 }: {
   data: IndicateurCadreResultatCreateData
-  codeProjet: string
+  idProjet: number
   fixedCadreCrCode?: string | null
   fixedNiveauIop?: number | null
 }): IndicateurCadreResultatCreateData {
@@ -141,7 +136,7 @@ export function buildIndicateurCadreResultatPayload({
     ...data,
     niveau_iop: fixedNiveauIop ?? data.niveau_iop,
     code_cr_iop: fixedCadreCrCode ?? data.code_cr_iop,
-    projet_iop: codeProjet,
+    projet_iop: String(idProjet),
     responsable_iop: String(data.responsable_iop),
     structure_iop: data.structure_iop || undefined,
   }

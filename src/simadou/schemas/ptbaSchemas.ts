@@ -9,7 +9,7 @@ export const typeActiviteSchema = z.object({
   intutile_type: z
     .string()
     .min(1, "L'intitulé est requis")
-    .max(200, "L'intitulé ne peut pas dépasser 200 caractères"),
+    .max(1000, "L'intitulé ne peut pas dépasser 1000 caractères"),
   description: z
     .string()
    .optional(),
@@ -19,7 +19,7 @@ export const typeActiviteSchema = z.object({
 export const versionPtbaSchema = z.object({
   annee_ptba: z
     .number()
-    .min(2020, "L'année doit être supérieure à 2020")
+    .min(2000, "L'année doit être supérieure à 2020")
     .max(2050, "L'année doit être inférieure à 2050"),
   version_ptba: z
     .string()

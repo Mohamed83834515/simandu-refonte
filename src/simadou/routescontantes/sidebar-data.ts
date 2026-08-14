@@ -12,13 +12,18 @@ import {
   User,
   SlidersHorizontal,
   Handshake,
-  Briefcase,
   MapPin,
   FileStack,
   BarChart2,
   Target,
+  FileSignature,
   LineChart,
   TrendingUp,
+  FileBarChart,
+  ListChecks,
+  Wallet,
+  ClipboardCheck,
+  List,
 } from 'lucide-react'
 import { type SidebarData } from '../../components/layout/others/types'
 
@@ -41,22 +46,10 @@ export const sidebarData: SidebarData = {
       title: 'General',
       items: [
         {
-          title: 'Dashboard',
+          title: 'Tableau de bord',
           url: '/',
           icon: LayoutDashboard,
         },
-        // {
-        //   title: 'Apps',
-        //   url: '/apps',
-        //   icon: Package,
-        // },
-        // {
-        //   title: 'Users',
-        //   url: '/users',
-        //   icon: Users,
-        // },
-
-        // ── Paramétrage ──────────────────────────────────────
         {
           title: 'Paramétrage',
           icon: Settings,
@@ -66,11 +59,7 @@ export const sidebarData: SidebarData = {
               url: '/parametrage/localites',
               icon: MapPin,
             },
-            {
-              title: 'Unités de gestion',
-              url: '/parametrage/unites-de-gestion',
-              icon: LayoutGrid,
-            },
+
             {
               title: 'Acteurs',
               url: '/parametrage/acteurs',
@@ -82,28 +71,17 @@ export const sidebarData: SidebarData = {
               icon: UserCog,
             },
             {
-              title: 'Fonctions',
-              url: '/parametrage/fonctions',
-              icon: Briefcase
-              ,
-            },
-            {
               title: 'Partenaire Financier',
               url: '/parametrage/partenaire-financier',
               icon: Handshake,
             },
             {
-              title: 'Zone de Collecte',
+              title: 'Zones agroécologiques',
               url: '/parametrage/zone-de-collecte',
               icon: MapPin,
-            },
-            // {
-            //   title: 'Conventions',
-            //   url: '/parametrage/conventions',
-            //   icon: FileText,
-            // },
+            }, 
             {
-              title: 'Plans de Site',
+              title: 'Cadre Organique du MMAFP',
               url: '/parametrage/plans-de-site',
               icon: ClipboardList,
             },
@@ -122,7 +100,7 @@ export const sidebarData: SidebarData = {
 
         // ── Politique ─────────────────────────────────────────
         {
-          title: 'Politique',
+          title: 'Plans Stratégiques',
           icon: FileStack,
           items: [
             {
@@ -158,20 +136,94 @@ export const sidebarData: SidebarData = {
           title: 'Programmation',
           icon: CalendarDays,
           items: [
+
             {
-              title: 'Liste des projets',
-              url: '/programmation/projets',
-              icon: FolderOpen,
-            },
-            {
-              title: 'PTBA',
+              title: 'PAO',
               url: '/programmation/ptba',
               icon: ClipboardList,
             },
             {
-              title: 'Suivi du PTBA',
+              title: 'Contrats de performance',
+              url: '/programmation/contrat-performance',
+              icon: FileSignature,
+            },
+            {
+              title: 'Suivi du PAO',
               url: '/programmation/suivi-ptba',
               icon: Eye,
+            },
+            {
+              title: 'Parametrage des marches',
+              url: '/programmation/parametrage-marches',
+              icon: List,
+            },
+            {
+              title: 'PPMS',
+              url: '/programmation/ppms',
+              icon: FileStack,
+            },
+          ],
+        },
+        // ── Projet ─────────────────────────────────────
+        {
+          title: 'Projets / Programmes',
+          icon: CalendarDays,
+          items: [
+            {
+              title: 'Liste des projets',
+              url: '/projet-programme/projets',
+              icon: FolderOpen,
+            },
+            {
+              title: 'Unités de gestion',
+              url: '/projet-programme/unites-de-gestion',
+              icon: LayoutGrid,
+            },
+          ],
+        },
+
+        // ── Suivi des résultats ───────────────────────────────
+        {
+          title: 'Suivi des résultats',
+          icon: ClipboardCheck,
+          items: [
+            {
+              title: 'Suivi des indicateurs',
+              url: '/suivi-resultats/suivi-indicateurs',
+              icon: LineChart,
+            },
+            {
+              title: 'Cartographie',
+              url: 'https://guinee.sygcip.com/',
+              icon: MapPin,
+            },
+          ],
+        },
+
+        // ── Rapport ───────────────────────────────────────────
+        {
+          title: 'Etats et Rapports',
+          icon: FileBarChart,
+          items: [
+            {
+              title: 'PAO',
+              url: '/rapport/ptba',
+              icon: ClipboardList,
+            },
+            {
+              title: 'État des activités',
+              url: '/rapport/etat-des-activites',
+              icon: ListChecks,
+            },
+            {
+              title: 'Décaissement',
+              url: '/rapport/decaissement',
+              icon: Wallet,
+            },
+            {
+              title: 'Indicateurs',
+              url: '/rapport/indicateurs',
+              icon: LineChart,
             },
           ],
         },

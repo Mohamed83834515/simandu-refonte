@@ -23,9 +23,11 @@ import {
   buildIndicateurCadreResultatPayload,
   indicateurCadreResultatToFormValues,
 } from './indicateurCadreResultatFormUtils'
+import { useMe } from '@/simadou/allHooks/auth/authHooks'
 
 export default function IndicateurCadreResultatFormDialog({
   codeProjet,
+  idProjet,
   fixedCadreCrCode,
   fixedNiveauIop,
   indicateur,
@@ -33,6 +35,7 @@ export default function IndicateurCadreResultatFormDialog({
   onSuccess,
 }: {
   codeProjet: string
+  idProjet: number
   fixedCadreCrCode?: string | null
   fixedNiveauIop?: number | null
   indicateur?: IndicateurCadreResultat | null
@@ -44,12 +47,13 @@ export default function IndicateurCadreResultatFormDialog({
   const hideNiveauField = fixedNiveauIop != null
   const createMutation = useCreateIndicateurCadreResultat(codeProjet)
   const updateMutation = useUpdateIndicateurCadreResultat()
-  const { data: cadres = [], isLoading: isLoadingCadres } = useGetCadresResultat()
+  const { data: cadres = [], isLoading: isLoadingCadres } = useGetCadresResultat(codeProjet)
   const { data: niveaux = [], isLoading: isLoadingNiveaux } =
-    useGetNiveauxCadreResultat()
+    useGetNiveauxCadreResultat(idProjet)
   const { data: acteurs = [], isLoading: isLoadingActeurs } = useGetActeurs()
   const { data: personnels = [], isLoading: isLoadingPersonnels } = useGetPersonnels()
-
+  const { data: user } = useMe()
+ const id_personnel =  user?.id_personnel_perso || 'admin'
   const cadreOptions = useMemo(
     () =>
       cadres.map((c) => ({
@@ -62,7 +66,7 @@ export default function IndicateurCadreResultatFormDialog({
   const niveauOptions = useMemo(
     () =>
       sortNiveauxCadreResultat(niveaux).map((n) => ({
-        value: n.nombre_ncr,
+        value: n.id_ncr,
         label: `${n.nombre_ncr} - ${n.libelle_ncr}`,
       })),
     [niveaux]
@@ -121,17 +125,17 @@ export default function IndicateurCadreResultatFormDialog({
     () =>
       indicateurCadreResultatToFormValues({
         indicateur,
-        codeProjet,
+        idProjet,
         fixedCadreCrCode,
         fixedNiveauIop,
+        id_personnel,
       }),
-    [codeProjet, indicateur, fixedCadreCrCode, fixedNiveauIop]
+    [idProjet, indicateur, fixedCadreCrCode, fixedNiveauIop, id_personnel]
   )
-
   const onSubmit = (data: IndicateurCadreResultatCreateData) => {
     const payload = buildIndicateurCadreResultatPayload({
       data,
-      codeProjet,
+      idProjet,
       fixedCadreCrCode,
       fixedNiveauIop,
     })

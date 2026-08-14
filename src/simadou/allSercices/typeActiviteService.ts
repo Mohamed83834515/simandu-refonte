@@ -2,7 +2,7 @@ import { apiClient } from "@/axios/api";
 import { TypeActiviteFormData } from "../schemas/ptbaSchemas";
 import type { TypeActivite } from "../allTypes";
 
-const ENDPOINT = "/type_activite/";
+const ENDPOINT = "/types-activites/";
 
 const typeActiviteService = {
   async getAll(): Promise<TypeActivite[]> {

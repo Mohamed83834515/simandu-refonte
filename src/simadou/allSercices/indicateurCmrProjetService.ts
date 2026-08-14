@@ -9,10 +9,26 @@ import { normalizeApiList } from './apiListUtils'
 function toIndicateurCmrProjetApiPayload(
   data: Partial<IndicateurCmrProjetFormData>
 ): Record<string, unknown> {
-  const { resultat_cmr, referentiel_cmr, code_projet, ...rest } = data
+  const {
+    resultat_cmr: cadreCrId,
+    indicateur_iop,
+    referentiel_cmr,
+    code_projet,
+    ...rest
+  } = data
+
+  // API: resultat_cmr → FK IndicateurCadreResultat (id_indicateur_cr_iop).
+  // Le formulaire utilise resultat_cmr pour le cadre (UI) et indicateur_iop pour l'indicateur.
+  const indicateurCrId = indicateur_iop ?? cadreCrId
+
   return {
     ...rest,
-    ...(resultat_cmr !== undefined ? { resultat_cmr } : {}),
+    ...(indicateurCrId !== undefined && indicateurCrId !== 0
+      ? { resultat_cmr: indicateurCrId }
+      : {}),
+    ...(indicateur_iop !== undefined && indicateur_iop !== 0
+      ? { indicateur_iop }
+      : {}),
     ...(referentiel_cmr !== undefined
       ? { referentiel_cmr: referentiel_cmr ?? null }
       : {}),
@@ -22,7 +38,7 @@ function toIndicateurCmrProjetApiPayload(
 
 export const indicateurCmrProjetService = {
   getAll: async (): Promise<IndicateurCmrProjet[]> => {
-    const response = await apiClient.request<unknown>('/indicateur_cmr_projet/')
+    const response = await apiClient.request<unknown>('/indicateurs-cmr-projets/')
     return normalizeApiList<Record<string, unknown>>(response).map(
       normalizeIndicateurCmrProjetFromApi
     )
@@ -30,7 +46,7 @@ export const indicateurCmrProjetService = {
 
   getByProjet: async (codeProjet: string): Promise<IndicateurCmrProjet[]> => {
     const response = await apiClient.request<unknown>(
-      `/indicateur_cmr_projet/?code_projet=${encodeURIComponent(codeProjet)}`
+      `/indicateurs-cmr-projets/?code_projet=${encodeURIComponent(codeProjet)}`
     )
     return normalizeApiList<Record<string, unknown>>(response).map(
       normalizeIndicateurCmrProjetFromApi
@@ -39,7 +55,7 @@ export const indicateurCmrProjetService = {
 
   getById: async (id: number): Promise<IndicateurCmrProjet> => {
     const response = await apiClient.request<Record<string, unknown>>(
-      `/indicateur_cmr_projet/${id}/`
+      `/indicateurs-cmr-projets/${id}/`
     )
     return normalizeIndicateurCmrProjetFromApi(response)
   },
@@ -48,7 +64,7 @@ export const indicateurCmrProjetService = {
     data: IndicateurCmrProjetFormData
   ): Promise<IndicateurCmrProjet> => {
     const response = await apiClient.request<Record<string, unknown>>(
-      '/indicateur_cmr_projet/',
+      '/indicateurs-cmr-projets/',
       {
         method: 'POST',
         data: toIndicateurCmrProjetApiPayload(data),
@@ -62,7 +78,7 @@ export const indicateurCmrProjetService = {
     data: Partial<IndicateurCmrProjetFormData>
   ): Promise<IndicateurCmrProjet> => {
     const response = await apiClient.request<Record<string, unknown>>(
-      `/indicateur_cmr_projet/${id}/`,
+      `/indicateurs-cmr-projets/${id}/`,
       {
         method: 'PUT',
         data: toIndicateurCmrProjetApiPayload(data),
@@ -72,7 +88,7 @@ export const indicateurCmrProjetService = {
   },
 
   delete: async (id: number): Promise<void> => {
-    await apiClient.request<void>(`/indicateur_cmr_projet/${id}/`, {
+    await apiClient.request<void>(`/indicateurs-cmr-projets/${id}/`, {
       method: 'DELETE',
     })
   },

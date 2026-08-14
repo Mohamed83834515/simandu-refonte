@@ -3,13 +3,13 @@ import { toast } from 'sonner'
 import ptbaService from '@/simadou/allSercices/ptbaService'
 import { useActiveProgrammeCode } from '@/hooks/use-active-programme'
 
-export const useGetPtbas = () => {
+export const useGetPtbas = (idVersionPtba: number) => {
   const codeProgramme = useActiveProgrammeCode()
 
   return useQuery({
-    queryKey: ['ptba-activites-all', codeProgramme],
-    queryFn: () => ptbaService.getAll(codeProgramme!),
-    enabled: !!codeProgramme,
+    queryKey: ['ptba-activites-all', codeProgramme, idVersionPtba], 
+    queryFn: () => ptbaService.getAll(codeProgramme, idVersionPtba),
+    enabled: !!codeProgramme && !!idVersionPtba, 
   })
 }
 

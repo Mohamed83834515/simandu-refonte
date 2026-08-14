@@ -1,8 +1,15 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useActiveProgrammeCode } from '@/hooks/use-active-programme'
 import type { Programme } from '@/simadou/allTypes/programme'
-import type { VersionPtba } from '@/simadou/allTypes'
+import type { Projet, VersionPtba } from '@/simadou/allTypes'
 import versionPtbaService from '@/simadou/allSercices/versionPtbaService'
+import {
+  filterVersionOptionsByProjetYears,
+  getProjetPtbaYears,
+  resolveActiveVersionOption,
+  resolveVersionIdNumber,
+} from '@/simadou/lib/ptbaVersionUtils'
 
 import { toast } from 'sonner'
 export const useGetVersions = () => {
@@ -24,8 +31,8 @@ export const useSaveVersion = (
 
   return useMutation({
     mutationFn: ({ data, file }: { data: any; file?: File }) =>
-      isEdit && currentRow?.id_version  // ✅ Utiliser id_version au lieu de id_type
-        ? versionPtbaService.update(currentRow.id_version, data, file)
+      isEdit && currentRow?.id_version_ptba  // ✅ Utiliser id_version au lieu de id_type
+        ? versionPtbaService.update(currentRow.id_version_ptba, data, file)
         : versionPtbaService.create(data, file),
 
     onSuccess: async () => {
@@ -42,6 +49,7 @@ export const useSaveVersion = (
       onSuccess?.()
     },
 
+      // Ajouter tous les champs du formulaire
     onError: (error: any) => {
       console.error("Erreur version PTBA:", error)
       toast.error(
@@ -135,16 +143,24 @@ export function versionBelongsToProgramme(
 
 const SELECTED_VERSION_STORAGE_KEY = 'selectedVersionId'
 
-/** Version PTBA + filtre programme pour les listes PTBA / suivi PTBA. */
-export function usePtbaVersionSelection(codeProgramme: string | undefined) {
+function getLatestVersion(versions: VersionPtba[]): VersionPtba {
+  const validatedVersions = versions.filter((v) => v.date_validation)
+  if (validatedVersions.length > 0) {
+    return [...validatedVersions].sort(
+      (a, b) =>
+        new Date(b.date_validation!).getTime() -
+        new Date(a.date_validation!).getTime()
+    )[0]
+  }
+  return versions[0]
+}
+
+/** Version PTBA pour les listes PTBA / suivi PTBA (toutes les versions, sans filtre programme). */
+export function usePtbaVersionSelection(_codeProgramme?: string) {
   const { data: versions = [] } = useGetVersions()
   const [selectedVersionId, setSelectedVersionId] = useState<string | null>(null)
-  console.log(codeProgramme);
-  // Plus de filtrage par programme - on retourne toutes les versions
-  const versionsForProgramme = useMemo(
-    () => versions, // Retourne toutes les versions sans filtre
-    [versions]
-  )
+
+  const versionsForProgramme = useMemo(() => versions, [versions])
 
   const versionOptions = useMemo(
     () =>
@@ -161,49 +177,43 @@ export function usePtbaVersionSelection(codeProgramme: string | undefined) {
       return
     }
 
-    // Vérifier le localStorage
-    const stored = localStorage.getItem(SELECTED_VERSION_STORAGE_KEY)
-    if (
-      stored &&
-      versionsForProgramme.some(
-        (v) => v.id_version_ptba.toString() === stored
-      )
-    ) {
-      setSelectedVersionId(stored)
-      return
-    }
-
-    // Sélectionner par date de validation la plus récente
-    const getLatestVersion = (versions: VersionPtba[]): VersionPtba => {
-      // Filtrer les versions avec une date de validation valide
-      const validatedVersions = versions.filter(v => v.date_validation)
-
-      if (validatedVersions.length > 0) {
-        // Trier par date décroissante et prendre la première
-        return [...validatedVersions].sort((a, b) =>
-          new Date(b.date_validation!).getTime() - new Date(a.date_validation!).getTime()
-        )[0]
+    // Ne pas écraser un choix utilisateur déjà valide (évite les boucles avec le filtre projet).
+    setSelectedVersionId((current) => {
+      if (
+        current &&
+        versionsForProgramme.some(
+          (v) => v.id_version_ptba.toString() === current
+        )
+      ) {
+        return current
       }
 
-      // Fallback : retourner la première version
-      return versions[0]
-    }
+      const stored = localStorage.getItem(SELECTED_VERSION_STORAGE_KEY)
+      if (
+        stored &&
+        versionsForProgramme.some(
+          (v) => v.id_version_ptba.toString() === stored
+        )
+      ) {
+        return stored
+      }
 
-    const preferred = getLatestVersion(versionsForProgramme)
-    const preferredId = preferred.id_version_ptba.toString()
-
-    setSelectedVersionId(preferredId)
-    localStorage.setItem(SELECTED_VERSION_STORAGE_KEY, preferredId)
+      const preferredId = getLatestVersion(
+        versionsForProgramme
+      ).id_version_ptba.toString()
+      localStorage.setItem(SELECTED_VERSION_STORAGE_KEY, preferredId)
+      return preferredId
+    })
   }, [versionsForProgramme])
 
-  const handleChangeVersion = (versionId: string | null) => {
+  const handleChangeVersion = useCallback((versionId: string | null) => {
     setSelectedVersionId(versionId)
     if (versionId) {
       localStorage.setItem(SELECTED_VERSION_STORAGE_KEY, versionId)
     } else {
       localStorage.removeItem(SELECTED_VERSION_STORAGE_KEY)
     }
-  }
+  }, [])
 
   return {
     selectedVersionId,
@@ -211,5 +221,61 @@ export function usePtbaVersionSelection(codeProgramme: string | undefined) {
     handleChangeVersion,
     versionOptions,
     versionsForProgramme,
+  }
+}
+
+/**
+ * Version PTBA pour les onglets projet (PTBA / Suivi PTBA) :
+ * options limitées à la durée du projet, version active dérivée (pas d'effet de reset).
+ */
+export function useProjetPtbaVersionSelection(projet: Projet) {
+  const fallbackProgrammeCode = useActiveProgrammeCode()
+  const codeProgramme =
+    typeof projet.programme_projet === 'object' &&
+    projet.programme_projet?.code_programme
+      ? projet.programme_projet.code_programme
+      : fallbackProgrammeCode
+
+  const {
+    selectedVersionId,
+    handleChangeVersion,
+    versionOptions,
+    versionsForProgramme,
+  } = usePtbaVersionSelection(codeProgramme)
+
+  const projectYears = useMemo(
+    () => getProjetPtbaYears(projet),
+    [projet.date_demarrage_projet, projet.duree_projet]
+  )
+
+  const filteredVersionOptions = useMemo(
+    () => filterVersionOptionsByProjetYears(versionOptions, projectYears),
+    [versionOptions, projectYears]
+  )
+
+  const activeVersionOption = useMemo(
+    () =>
+      resolveActiveVersionOption(filteredVersionOptions, selectedVersionId),
+    [filteredVersionOptions, selectedVersionId]
+  )
+
+  const activeVersionId = activeVersionOption?.value ?? null
+  const selectedVersionPtbaId = resolveVersionIdNumber(activeVersionId)
+
+  const selectedVersion = useMemo(() => {
+    if (!activeVersionId) return null
+    return (
+      versionsForProgramme.find(
+        (v) => v.id_version_ptba.toString() === activeVersionId
+      ) ?? null
+    )
+  }, [activeVersionId, versionsForProgramme])
+
+  return {
+    selectedVersionId: activeVersionId,
+    handleChangeVersion,
+    filteredVersionOptions,
+    selectedVersionPtbaId,
+    selectedVersion,
   }
 }

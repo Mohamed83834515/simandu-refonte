@@ -35,16 +35,31 @@ export default function AddActeur({
         return preselectedCategorieId ?? null
     }, [isEdit, currentRow, preselectedCategorieId])
 
-    // On cache le champ categorie_acteur : imposé par l'onglet
+    // Configuration du formulaire - ON GARDE le champ categorie_acteur
     const formConfig = useMemo(() => {
         const config = getActeurFormConfig()
-        return {
-            fields: config.fields.filter(
-                (field) => field.name !== 'categorie_acteur'
-            ),
-        }
-    }, [])
 
+        // On garde tous les champs, y compris categorie_acteur
+        return {
+            fields: config.fields.map((field) => {
+                // Si c'est le champ categorie_acteur, on ajoute les options
+                if (field.name === 'categorie_acteur') {
+                    return {
+                        ...field,
+                        options: categorie_acteurs.map((categorie) => ({
+                            label: categorie.nom_categorie || categorie.code_cat,
+                            value: categorie.id_categorie
+                        })),
+                        // Optionnel : ajouter une valeur par défaut
+                        defaultValue: resolvedCategorieId
+                    }
+                }
+                return field
+            })
+        }
+    }, [categorie_acteurs, resolvedCategorieId]) // Ajouter les dépendances
+
+    // Valeurs par défaut du formulaire
     const defaultValues = useMemo(() => {
         if (isEdit && currentRow) {
             return {
@@ -54,7 +69,7 @@ export default function AddActeur({
                 personne_responsable: currentRow.personne_responsable || '',
                 contact: currentRow.contact || '',
                 adresse_email: currentRow.adresse_email || '',
-                categorie_acteur: resolvedCategorieId,  // injecté, pas affiché
+                categorie_acteur: resolvedCategorieId, // Pré-rempli
             }
         }
         return {
@@ -64,7 +79,7 @@ export default function AddActeur({
             personne_responsable: '',
             contact: '',
             adresse_email: '',
-            categorie_acteur: resolvedCategorieId,  // injecté, pas affiché
+            categorie_acteur: resolvedCategorieId, // Valeur par défaut
         }
     }, [currentRow, isEdit, resolvedCategorieId])
 

@@ -2,6 +2,10 @@ import { type ColumnDef } from '@tanstack/react-table'
 import { DataTableColumnHeader } from '@/components/data-table'
 import { buildEditDeleteActionsColumn } from '@/Global/Tableaux/buildEditDeleteActionsColumn'
 import type { SuiviDecaissementPtbaProjet } from '@/simadou/allTypes/suiviDecaissementPtbaProjet'
+import {
+  resolveSuiviDecaissementRegionLabel,
+  resolveSuiviDecaissementTypePartLabel,
+} from '@/simadou/lib/suiviDecaissementPtbaProjetUtils'
 
 function formatDate(value: string | null | undefined): string {
   if (!value) return '—'
@@ -25,9 +29,13 @@ function formatMontant(value: number | null | undefined): string {
 export function buildSuiviDecaissementPtbaProjetColumns({
   onEdit,
   onDeleteRequest,
+  regionLabelById,
+  financementLabelById,
 }: {
   onEdit: (row: SuiviDecaissementPtbaProjet) => void
   onDeleteRequest: (row: SuiviDecaissementPtbaProjet) => void
+  regionLabelById?: Map<number, string>
+  financementLabelById?: Map<number, string>
 }): ColumnDef<SuiviDecaissementPtbaProjet>[] {
   const actionsColumn = buildEditDeleteActionsColumn({
     onEdit,
@@ -44,6 +52,35 @@ export function buildSuiviDecaissementPtbaProjetColumns({
       cell: ({ row }) => (
         <span className='text-sm'>
           {formatDate(row.original.date_suivi_dec)}
+        </span>
+      ),
+      enableHiding: false,
+    },
+    {
+      id: 'region',
+      accessorKey: 'region',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title='Zone' />
+      ),
+      cell: ({ row }) => (
+        <span className='text-sm'>
+          {resolveSuiviDecaissementRegionLabel(row.original, regionLabelById)}
+        </span>
+      ),
+      enableHiding: false,
+    },
+    {
+      id: 'type_part',
+      accessorKey: 'type_part',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title='Financement' />
+      ),
+      cell: ({ row }) => (
+        <span className='text-sm'>
+          {resolveSuiviDecaissementTypePartLabel(
+            row.original,
+            financementLabelById
+          )}
         </span>
       ),
       enableHiding: false,

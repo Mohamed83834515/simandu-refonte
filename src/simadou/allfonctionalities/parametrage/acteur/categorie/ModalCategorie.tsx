@@ -61,13 +61,13 @@ export default function CategorieActeurDialog({
         )}
         aria-describedby={undefined}
       >
-        <DialogHeader className="shrink-0 border-b px-6 py-4 pr-12">
+        <DialogHeader className="shrink-0 border-b px-4 py-3 pr-12">
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
 
         <div
           className={cn(
-            "flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden px-6 py-4",
+            "flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden px-4 py-3",
             mode !== "list" && "overflow-y-auto"
           )}
         >

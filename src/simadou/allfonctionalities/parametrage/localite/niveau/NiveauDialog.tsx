@@ -111,12 +111,12 @@ export default function NiveauLocaliteDialog({ open, onOpenChange, onSuccess }: 
                         <DialogTitle>Configuration des niveaux de localité</DialogTitle>
                     </DialogHeader>
 
-                    <div className="space-y-4">
+                    <div className="space-y-2">
 
 
                         {/* Formulaire d'ajout de nouveaux niveaux (inline) */}
-                        <div className="border-t pt-4">
-                            <div className="flex items-center justify-between mb-3">
+                        <div className="border-t pt-2">
+                            <div className="flex items-center justify-between mb-2">
                                 <h4 className="font-medium">Ajouter de nouveaux niveaux</h4>
                                 <Button onClick={addFormRow} variant="outline" size="sm">
                                     <PlusIcon className="mr-1 h-4 w-4" />
@@ -124,9 +124,9 @@ export default function NiveauLocaliteDialog({ open, onOpenChange, onSuccess }: 
                                 </Button>
                             </div>
 
-                            <div className="space-y-3">
+                            <div className="space-y-2">
                                 {newNiveaux.map((niveau, idx) => (
-                                    <div key={idx} className="flex gap-3 items-end">
+                                    <div key={idx} className="flex gap-2 items-end">
                                         <div className="flex-1">
                                             <Label className="text-xs text-muted-foreground mb-1 block">
                                                 Libellé
@@ -164,7 +164,7 @@ export default function NiveauLocaliteDialog({ open, onOpenChange, onSuccess }: 
                             </div>
 
                             {newNiveaux.some(n => n.libelle_nlc?.trim() && n.Code_number_nlc && n.Code_number_nlc > 0) && (
-                                <div className="flex justify-end mt-4">
+                                <div className="flex justify-end mt-2">
                                     <Button onClick={handleSaveAll} disabled={saveMutation.isPending}>
                                         {saveMutation.isPending ? 'Enregistrement...' : `Enregistrer (${newNiveaux.filter(n => n.libelle_nlc?.trim() && n.Code_number_nlc).length})`}
                                     </Button>

@@ -4,7 +4,6 @@ import type {
   STATUT_ACTIVITE_VALUES,
 } from "../schemas/suiviAvancementContratSchemas";
 import {
-  filterSuivisAvancementByActivite,
   SuiviAvancementContrat,
 } from "../allTypes";
 
@@ -123,9 +122,9 @@ function toMultipartBody(
 
 const suiviAvancementContratService = {
   async getByActivite(idActivite: number): Promise<SuiviAvancementContrat[]> {
-    const response = await apiClient.request<SuiviAvancementContrat[]>(ENDPOINT);
+    const response = await apiClient.request<SuiviAvancementContrat[]>(`${ENDPOINT}?activite_ptba=${idActivite}`);
     const items = Array.isArray(response) ? response : [];
-    return filterSuivisAvancementByActivite(items, idActivite);
+    return items;
   },
 
   async createWithSources(

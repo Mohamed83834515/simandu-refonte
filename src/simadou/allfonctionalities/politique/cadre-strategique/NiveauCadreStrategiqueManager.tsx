@@ -1,7 +1,18 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
+import {
+  niveauCadreStrategiqueQueryKeys,
+  useCreateNiveauCadreStrategique,
+  useDeleteNiveauCadreStrategique,
+  useGetNiveauxCadreStrategique,
+  useUpdateNiveauCadreStrategique,
+} from '@/simadou/allHooks/admin/cadreStrategiqueHooks'
+import { niveauCadreStrategiqueService } from '@/simadou/allSercices/niveauCadreStrategiqueService'
+import type { NiveauCadreStrategique } from '@/simadou/allTypes/niveauCadreStrategique'
+import { typeNiveauOptions } from '@/simadou/schemas/niveauCadreStrategiqueSchema'
 import { Plus, Save, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
+import { useActiveProgrammeCode } from '@/hooks/use-active-programme'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -19,24 +30,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import {
-  useActiveProgrammeCode,
-  useActiveProgrammeId,
-} from '@/hooks/use-active-programme'
-import type { NiveauCadreStrategique } from '@/simadou/allTypes/niveauCadreStrategique'
-import {
-  niveauCadreStrategiqueQueryKeys,
-  useCreateNiveauCadreStrategique,
-  useDeleteNiveauCadreStrategique,
-  useGetNiveauxCadreStrategique,
-  useUpdateNiveauCadreStrategique,
-} from '@/simadou/allHooks/admin/cadreStrategiqueHooks'
-import { niveauCadreStrategiqueService } from '@/simadou/allSercices/niveauCadreStrategiqueService'
-import { typeNiveauOptions } from '@/simadou/schemas/niveauCadreStrategiqueSchema'
-import {
-  filterNiveauxByProgramme,
-  sortNiveauxCadreStrategique,
-} from '@/simadou/lib/cadreStrategiqueUtils'
 
 type NiveauRow = {
   id?: number
@@ -50,7 +43,7 @@ function toRow(n: NiveauCadreStrategique): NiveauRow {
   return {
     id: n.id_nsc,
     libelle: n.libelle_nsc,
-    codeLength: Number(n.nombre_nsc) || 2,
+    codeLength: Number(n.code_number_nsc) || 2,
     typeNiveau: Number(n.type_niveau) || 1,
     isNew: false,
   }
@@ -67,19 +60,10 @@ function rowsFromNiveaux(niveaux: NiveauCadreStrategique[]): NiveauRow[] {
 export default function NiveauCadreStrategiqueManager() {
   const queryClient = useQueryClient()
   const codeProgramme = useActiveProgrammeCode()
-  const programmeId = useActiveProgrammeId()
   const { data: niveaux = [], isLoading } = useGetNiveauxCadreStrategique()
   const createMutation = useCreateNiveauCadreStrategique()
   const updateMutation = useUpdateNiveauCadreStrategique()
   const deleteMutation = useDeleteNiveauCadreStrategique()
-
-  const niveauxProgramme = useMemo(
-    () =>
-      sortNiveauxCadreStrategique(
-        filterNiveauxByProgramme(niveaux, codeProgramme, programmeId)
-      ),
-    [niveaux, codeProgramme, programmeId]
-  )
 
   const [rows, setRows] = useState<NiveauRow[]>([createEmptyRow()])
   const [isDirty, setIsDirty] = useState(false)
@@ -87,9 +71,9 @@ export default function NiveauCadreStrategiqueManager() {
   const skipSyncRef = useRef(false)
 
   const syncRowsFromQuery = useCallback(() => {
-    setRows(rowsFromNiveaux(niveauxProgramme))
+    setRows(rowsFromNiveaux(niveaux))
     setIsDirty(false)
-  }, [niveauxProgramme])
+  }, [niveaux])
 
   useEffect(() => {
     setIsDirty(false)
@@ -132,8 +116,8 @@ export default function NiveauCadreStrategiqueManager() {
         order += 1
         const data = {
           libelle_nsc: row.libelle.trim(),
-          code_number_nsc: order,
-          nombre_nsc: Number(row.codeLength) || 2,
+          nombre_nsc: order,
+          code_number_nsc: Number(row.codeLength) || 2,
           type_niveau: Number(row.typeNiveau) || 1,
           programme: codeProgramme,
         }
@@ -146,14 +130,11 @@ export default function NiveauCadreStrategiqueManager() {
       }
 
       const fresh = await queryClient.fetchQuery({
-        queryKey: niveauCadreStrategiqueQueryKeys.all,
-        queryFn: () => niveauCadreStrategiqueService.getAll(),
+        queryKey: [niveauCadreStrategiqueQueryKeys.all, codeProgramme],
+        queryFn: () => niveauCadreStrategiqueService.getAll(codeProgramme),
       })
-      const synced = sortNiveauxCadreStrategique(
-        filterNiveauxByProgramme(fresh, codeProgramme, programmeId)
-      )
       skipSyncRef.current = true
-      setRows(rowsFromNiveaux(synced))
+      setRows(rowsFromNiveaux(fresh))
       setIsDirty(false)
       toast.success('Niveaux sauvegardés avec succès')
     } catch {
@@ -172,14 +153,11 @@ export default function NiveauCadreStrategiqueManager() {
       try {
         await deleteMutation.mutateAsync(row.id)
         const fresh = await queryClient.fetchQuery({
-          queryKey: niveauCadreStrategiqueQueryKeys.all,
-          queryFn: () => niveauCadreStrategiqueService.getAll(),
+          queryKey: [niveauCadreStrategiqueQueryKeys.all, codeProgramme],
+          queryFn: () => niveauCadreStrategiqueService.getAll(codeProgramme),
         })
-        const synced = sortNiveauxCadreStrategique(
-          filterNiveauxByProgramme(fresh, codeProgramme, programmeId)
-        )
         skipSyncRef.current = true
-        setRows(rowsFromNiveaux(synced))
+        setRows(rowsFromNiveaux(fresh))
         setIsDirty(false)
         toast.success('Niveau supprimé')
       } catch {
@@ -195,7 +173,8 @@ export default function NiveauCadreStrategiqueManager() {
   if (!codeProgramme) {
     return (
       <p className='py-4 text-sm text-muted-foreground'>
-        Sélectionnez un programme dans l&apos;en-tête pour configurer les niveaux.
+        Sélectionnez un programme dans l&apos;en-tête pour configurer les
+        niveaux.
       </p>
     )
   }
@@ -211,7 +190,12 @@ export default function NiveauCadreStrategiqueManager() {
           Définissez les niveaux du cadre stratégique pour le programme actif.
         </p>
         <div className='flex flex-col gap-2 sm:flex-row'>
-          <Button type='button' variant='outline' onClick={onAddRow} disabled={isSaving}>
+          <Button
+            type='button'
+            variant='outline'
+            onClick={onAddRow}
+            disabled={isSaving}
+          >
             <Plus className='h-4 w-4' />
             Ajouter un niveau
           </Button>

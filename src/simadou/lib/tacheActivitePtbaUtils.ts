@@ -1,6 +1,9 @@
 import type { TacheActivitePtba } from '@/simadou/allTypes/tacheActivitePtba'
 import { resolveIdActivite } from '@/simadou/allTypes/tacheActivitePtba'
-import type { TacheActivitePtbaFormData } from '@/simadou/schemas/tacheActivitePtbaSchemas'
+import type {
+  TacheActivitePtbaFormData,
+  TacheActivitePtbaProjetFormData,
+} from '@/simadou/schemas/tacheActivitePtbaSchemas'
 import { resolveRelationId } from '@/simadou/lib/resolveApiRelation'
 
 export type TacheActivitePtbaApiPayload = {
@@ -12,7 +15,7 @@ export type TacheActivitePtbaApiPayload = {
   n_lot_gt: number
   observation_gt?: string
   id_personnel_gt?: number
-  responsable_gt?: number
+  responsable_gt?: number | string
   id_activite: number
 }
 
@@ -32,6 +35,12 @@ export function normalizeTacheActivitePtba(
     n_lot_gt: Number(raw.n_lot_gt) || 1,
     observation_gt: raw.observation_gt ?? '',
     id_activite: idActivite,
+    responsable_gt:
+      typeof raw.responsable_gt === 'string' ||
+      typeof raw.responsable_gt === 'number' ||
+      (typeof raw.responsable_gt === 'object' && raw.responsable_gt !== null)
+        ? raw.responsable_gt
+        : undefined,
   }
 }
 
@@ -51,8 +60,18 @@ export function resolvePersonnelFormValue(
   return id != null && id > 0 ? id : undefined
 }
 
+export function resolveResponsableTextFormValue(value: unknown): string {
+  if (value == null) return ''
+  if (typeof value === 'string') return value
+  if (typeof value === 'object') {
+    const personnel = value as { prenom_perso?: string; nom_perso?: string }
+    return `${personnel.prenom_perso ?? ''} ${personnel.nom_perso ?? ''}`.trim()
+  }
+  return ''
+}
+
 export function buildTacheActivitePtbaPayload(
-  data: TacheActivitePtbaFormData,
+  data: TacheActivitePtbaFormData | TacheActivitePtbaProjetFormData,
   idActivite: number
 ): TacheActivitePtbaApiPayload {
   const payload: TacheActivitePtbaApiPayload = {
@@ -71,9 +90,67 @@ export function buildTacheActivitePtbaPayload(
   if (data.id_personnel_gt != null && data.id_personnel_gt > 0) {
     payload.id_personnel_gt = data.id_personnel_gt
   }
-  if (data.responsable_gt != null && data.responsable_gt > 0) {
-    payload.responsable_gt = data.responsable_gt
+  const responsable = data.responsable_gt
+  if (typeof responsable === 'string' && responsable.trim()) {
+    payload.responsable_gt = responsable.trim()
+  } else if (typeof responsable === 'number' && responsable > 0) {
+    payload.responsable_gt = responsable
   }
 
   return payload
+}
+
+export function buildTacheActivitePtbaProjetPayload(
+  data: TacheActivitePtbaProjetFormData,
+  idActivite: number
+): TacheActivitePtbaApiPayload {
+  const payload = buildTacheActivitePtbaPayload(data, idActivite)
+  const responsable = data.responsable_gt?.trim()
+  if (responsable) {
+    payload.responsable_gt = responsable
+  } else {
+    delete payload.responsable_gt
+  }
+  return payload
+}
+
+function upsertTacheActiviteInList(
+  current: TacheActivitePtba[] = [],
+  tache: TacheActivitePtba,
+  idActivite: number
+): TacheActivitePtba[] {
+  const normalized = normalizeTacheActivitePtba(tache)
+  if (normalized.id_activite !== idActivite) return current
+
+  const index = current.findIndex(
+    (item) => item.id_groupe_tache === normalized.id_groupe_tache
+  )
+
+  if (index >= 0) {
+    const next = [...current]
+    next[index] = { ...current[index], ...normalized }
+    return next
+  }
+
+  return [...current, normalized]
+}
+
+export function mergeTacheActivitePtbaInCache(
+  current: TacheActivitePtba[] | undefined,
+  tache: TacheActivitePtba,
+  idActivite: number,
+  fallback?: Partial<TacheActivitePtbaApiPayload>
+): TacheActivitePtba[] {
+  const existing = current?.find(
+    (item) => item.id_groupe_tache === tache.id_groupe_tache
+  )
+  const merged: TacheActivitePtba = {
+    ...(existing ?? tache),
+    ...tache,
+    ...(fallback?.responsable_gt != null && fallback.responsable_gt !== ''
+      ? { responsable_gt: fallback.responsable_gt }
+      : {}),
+  }
+
+  return upsertTacheActiviteInList(current, merged, idActivite)
 }

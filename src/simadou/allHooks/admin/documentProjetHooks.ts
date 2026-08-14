@@ -6,17 +6,18 @@ import type { DocumentProjetApiPayload } from '@/simadou/lib/documentProjetUtils
 
 export const documentProjetQueryKeys = {
   all: ['documents-projets'] as const,
-  byProjet: (idProjet: number) => ['documents-projets', idProjet] as const,
+  byDossier: (idDossier: number) =>
+    ['documents-projets', 'dossier', idDossier] as const,
 }
 
-export const useGetDocumentsProjet = (idProjet?: number) =>
+export const useGetDocumentsDossier = (idDossier?: number) =>
   useQuery({
-    queryKey: documentProjetQueryKeys.byProjet(idProjet ?? 0),
-    queryFn: () => documentProjetService.getByProjet(idProjet!),
-    enabled: idProjet != null && idProjet > 0,
+    queryKey: documentProjetQueryKeys.byDossier(idDossier ?? 0),
+    queryFn: () => documentProjetService.getByDossier(idDossier!),
+    enabled: idDossier != null && idDossier > 0,
   })
 
-export const useCreateDocumentProjet = (idProjet: number) => {
+export const useCreateDocumentProjet = (idDossier: number) => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: ({
@@ -30,7 +31,7 @@ export const useCreateDocumentProjet = (idProjet: number) => {
     onSuccess: () => {
       toast.success('Document ajouté avec succès')
       queryClient.invalidateQueries({
-        queryKey: documentProjetQueryKeys.byProjet(idProjet),
+        queryKey: documentProjetQueryKeys.byDossier(idDossier),
       })
       queryClient.invalidateQueries({ queryKey: documentProjetQueryKeys.all })
     },
@@ -42,7 +43,7 @@ export const useCreateDocumentProjet = (idProjet: number) => {
   })
 }
 
-export const useUpdateDocumentProjet = (idProjet: number) => {
+export const useUpdateDocumentProjet = (idDossier: number) => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: ({
@@ -58,7 +59,7 @@ export const useUpdateDocumentProjet = (idProjet: number) => {
     onSuccess: () => {
       toast.success('Document modifié avec succès')
       queryClient.invalidateQueries({
-        queryKey: documentProjetQueryKeys.byProjet(idProjet),
+        queryKey: documentProjetQueryKeys.byDossier(idDossier),
       })
       queryClient.invalidateQueries({ queryKey: documentProjetQueryKeys.all })
     },
@@ -70,7 +71,7 @@ export const useUpdateDocumentProjet = (idProjet: number) => {
   })
 }
 
-export const useDeleteDocumentProjet = (idProjet: number) => {
+export const useDeleteDocumentProjet = (idDossier: number) => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (id: number) => documentProjetService.delete(id),
@@ -78,7 +79,7 @@ export const useDeleteDocumentProjet = (idProjet: number) => {
     onSuccess: () => {
       toast.success('Document supprimé avec succès')
       queryClient.invalidateQueries({
-        queryKey: documentProjetQueryKeys.byProjet(idProjet),
+        queryKey: documentProjetQueryKeys.byDossier(idDossier),
       })
     },
     onError: (error) => {

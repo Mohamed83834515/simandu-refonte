@@ -1,5 +1,4 @@
 import { type ColumnDef } from '@tanstack/react-table'
-import { Badge } from '@/components/ui/badge'
 import { DataTableColumnHeader } from '@/components/data-table'
 import { LongText } from '@/components/others/long-text'
 import { buildEditDeleteActionsColumn } from '@/Global/Tableaux/buildEditDeleteActionsColumn'
@@ -19,12 +18,10 @@ export function buildIndicateurCadreResultatColumns({
   onEdit,
   onDeleteRequest,
   hideCadreColumn = false,
-  getResponsableLabel,
 }: {
   onEdit: (row: IndicateurCadreResultat) => void
   onDeleteRequest: (row: IndicateurCadreResultat) => void
   hideCadreColumn?: boolean
-  getResponsableLabel?: (row: IndicateurCadreResultat) => string
 }): ColumnDef<IndicateurCadreResultat>[] {
   const actionsColumn = buildEditDeleteActionsColumn({
     onEdit,
@@ -84,24 +81,6 @@ export function buildIndicateurCadreResultatColumns({
       enableHiding: false,
     },
     {
-      id: 'niveau_iop',
-      accessorKey: 'niveau_iop',
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title='Niveau IOP' />
-      ),
-      cell: ({ row }) => {
-        const niveau = row.original.niveau_iop
-        if (niveau == null) return <span>—</span>
-        return (
-          <Badge variant='outline' className='font-normal'>
-            Niveau {niveau}
-          </Badge>
-        )
-      },
-      enableSorting: false,
-      enableHiding: false,
-    },
-    {
       id: 'periodicite_iop',
       accessorKey: 'periodicite_iop',
       header: ({ column }) => (
@@ -112,22 +91,7 @@ export function buildIndicateurCadreResultatColumns({
       ),
       enableHiding: false,
     },
-    {
-      id: 'responsable_iop',
-      accessorKey: 'responsable_iop',
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title='Responsable' />
-      ),
-      cell: ({ row }) => (
-        <LongText className='max-w-xs text-sm'>
-          {getResponsableLabel
-            ? getResponsableLabel(row.original)
-            : displayValue(row.original.responsable_iop)}
-        </LongText>
-      ),
-      enableSorting: false,
-      enableHiding: false,
-    },
+    
     {
       id: 'source_iop',
       accessorKey: 'source_iop',

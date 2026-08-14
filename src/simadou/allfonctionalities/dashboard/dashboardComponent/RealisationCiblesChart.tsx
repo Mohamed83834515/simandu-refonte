@@ -48,7 +48,7 @@ const RealisationCiblesChart: React.FC<RealisationCiblesChartProps> = ({
   const { stroke } = CHART_COLORS[color];
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-5">
+    <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-3">
       <div className="mb-4">
         <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">{title}</h3>
         <p className="text-xs text-gray-400 dark:text-gray-500">{subtitle}</p>

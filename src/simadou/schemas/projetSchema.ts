@@ -5,16 +5,20 @@ export const projectCreateSchema = z.object({
   code_projet: z.string().min(1, "Code requis"),
   sigle_projet: z.string().min(1, "Sigle requis"),
   intitule_projet: z.string().min(1, "Intitulé requis"),
+  type_projet: z.number().min(1, "Type requis"),
+  programme_projet: z.number().min(1, "Programme requis"),
   duree_projet: z.coerce.number().min(1, "Durée requise"),
   date_signature_projet: z.string().min(1, "Date de signature requise"),
   date_demarrage_projet: z.string().min(1, "Date de démarrage requise"),
-  mps: z.boolean().optional().default(false),
 
   // Étape 2
   partenaire_projet: z.number("ONG/OPA requise").min(1, "ONG/OPA requise"),
   structure_projet: z
     .number("Unité de gestion requise")
     .min(1, "Unité de gestion requise"),
+  responsable_projet: z
+    .number("Responsable de projet est requise")
+    .min(1, "Responsable de projet est requise"),
   signataires_projet: z.array(z.number()).min(1, "Partenaire Financier requise"),
   partenaires_execution_projet: z
     .array(z.number())
@@ -22,6 +26,12 @@ export const projectCreateSchema = z.object({
   zone_projet: z.array(z.number()).min(1, "Zones requises"),
 });
 
+export const projetClotureSchema = z.object({
+  date_cloture_projet: z.string().min(1, 'La date de clôture est requise'),
+  is_cloture: z.boolean().default(false),
+})
+
+export type ProjetClotureFormData = z.infer<typeof projetClotureSchema>
 export const projectCreateStep1Schema = projectCreateSchema.pick({
   code_projet: true,
   sigle_projet: true,
@@ -42,9 +52,3 @@ export const projectCreateStep2Schema = projectCreateSchema.pick({
 export type ProjectCreateData = z.infer<typeof projectCreateSchema>;
 export type ProjectCreateStep1Data = z.infer<typeof projectCreateStep1Schema>;
 export type ProjectCreateStep2Data = z.infer<typeof projectCreateStep2Schema>;
-export type ProjectCreateSubmitData = Omit<
-  ProjectCreateData,
-  "structure_projet"
-> & {
-  structure_projet: number[];
-};

@@ -6,7 +6,7 @@ import type {
   ProgrammeSelectOption,
 } from "../allTypes/programme";
 
-const endpoint = "/programme/";
+const endpoint = "/programmes/";
 
 export const programmeService = {
   // Récupérer tous les programmes

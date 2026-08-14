@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { invalidateAndRefetch } from '@/simadou/allHooks/admin/queryInvalidation'
 import { cadreAnalytiqueService } from '@/simadou/allSercices/cadreAnalytiqueService'
 import {
   niveauCadreAnalytiqueService,
@@ -9,7 +10,10 @@ import type {
   CadreAnalytiqueWriteData,
   NiveauCadreAnalytiqueWriteData,
 } from '@/simadou/schemas/cadreAnalytiqueSchemas'
-import { invalidateAndRefetch } from '@/simadou/allHooks/admin/queryInvalidation'
+import {
+  useActiveProgrammeCode,
+  useActiveProgrammeId,
+} from '@/hooks/use-active-programme'
 
 export const niveauCadreAnalytiqueQueryKeys = {
   all: ['niveaux-cadre-analytique'] as const,
@@ -22,9 +26,10 @@ export const cadreAnalytiqueQueryKeys = {
 } as const
 
 export function useGetNiveauxCadreAnalytique() {
+  const codeProgramme = useActiveProgrammeCode()
   return useQuery({
-    queryKey: niveauCadreAnalytiqueQueryKeys.all,
-    queryFn: () => niveauCadreAnalytiqueService.getAll(),
+    queryKey: [niveauCadreAnalytiqueQueryKeys.all, codeProgramme],
+    queryFn: () => niveauCadreAnalytiqueService.getAll(codeProgramme),
   })
 }
 
@@ -32,10 +37,15 @@ export function useCreateNiveauCadreAnalytique() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (data: NiveauCadreAnalytiqueWriteData) =>
-      niveauCadreAnalytiqueService.create(data as NiveauCadreAnalytiqueFormData),
+      niveauCadreAnalytiqueService.create(
+        data as NiveauCadreAnalytiqueFormData
+      ),
     meta: { suppressGlobalErrorToast: true },
     onSuccess: async () => {
-      await invalidateAndRefetch(queryClient, niveauCadreAnalytiqueQueryKeys.all)
+      await invalidateAndRefetch(
+        queryClient,
+        niveauCadreAnalytiqueQueryKeys.all
+      )
     },
   })
 }
@@ -56,7 +66,10 @@ export function useUpdateNiveauCadreAnalytique() {
       ),
     meta: { suppressGlobalErrorToast: true },
     onSuccess: async () => {
-      await invalidateAndRefetch(queryClient, niveauCadreAnalytiqueQueryKeys.all)
+      await invalidateAndRefetch(
+        queryClient,
+        niveauCadreAnalytiqueQueryKeys.all
+      )
     },
   })
 }
@@ -67,12 +80,16 @@ export function useDeleteNiveauCadreAnalytique() {
     mutationFn: (id: number) => niveauCadreAnalytiqueService.delete(id),
     meta: { suppressGlobalErrorToast: true },
     onSuccess: async () => {
-      await invalidateAndRefetch(queryClient, niveauCadreAnalytiqueQueryKeys.all)
+      await invalidateAndRefetch(
+        queryClient,
+        niveauCadreAnalytiqueQueryKeys.all
+      )
     },
   })
 }
 
-export function useGetCadresAnalytique(programmeId: number | undefined) {
+export function useGetCadresAnalytique() {
+  const programmeId = useActiveProgrammeId()
   return useQuery({
     queryKey: cadreAnalytiqueQueryKeys.byProgramme(programmeId ?? 0),
     queryFn: () => cadreAnalytiqueService.getAll(programmeId),
@@ -113,7 +130,8 @@ export function useUpdateCadreAnalytique(programmeId: number | undefined) {
   })
 }
 
-export function useDeleteCadreAnalytique(programmeId: number | undefined) {
+export function useDeleteCadreAnalytique() {
+  const programmeId = useActiveProgrammeId()
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (id: number) => cadreAnalytiqueService.delete(id),

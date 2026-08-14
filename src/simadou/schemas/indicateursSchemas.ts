@@ -75,9 +75,11 @@ export type IndicateurCadreResultatUpdateData = z.infer<
 export const indicateurCmrSchema = z.object({
   id_ref_ind_cmr: z.number(),
   code_ref_ind: z.string().min(1, "Le code est requis").max(50),
-  resultat_cmr: z.coerce
-    .number()
-    .min(1, "Le résultat est requis"),
+  resultat_cmr: z.preprocess(
+    (value) =>
+      value === "" || value == null || value === 0 ? undefined : value,
+    z.coerce.number().min(1, "Le résultat est requis")
+  ),
   intitule_ref_ind: z.string().min(1, "L'intitulé est requis").max(200),
   reference_cmr: z.string().min(1, "La référence est requise").max(200),
   annee_reference: z.coerce

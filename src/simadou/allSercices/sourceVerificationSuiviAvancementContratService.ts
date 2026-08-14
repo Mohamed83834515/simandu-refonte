@@ -1,7 +1,7 @@
 import { apiClient } from "@/axios/api";
 import type { SourceVerificationSuiviAvancementContrat } from "../allTypes";
 
-const ENDPOINT = "/source_verification_suivi_avancement_contrat/";
+const ENDPOINT = "/sources-verification-suivi-avancement-contrat/";
 
 const sourceVerificationSuiviAvancementContratService = {
   async getBySuivi(

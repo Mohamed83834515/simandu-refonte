@@ -26,6 +26,8 @@ import {
   useGetActivitesProjet,
   useGetNiveauxActiviteProjet,
 } from '@/simadou/allHooks/admin/activiteProjetHooks'
+import { useGetAllIndicateursPerformanceProjet } from '@/simadou/allHooks/admin/indicateurPerformanceProjetHooks'
+import { buildIndicateurCountByActiviteCode } from '@/simadou/lib/indicateurPerformanceUtils'
 import ActiviteProjetFormDialog from './ActiviteProjetFormDialog'
 import NiveauActiviteProjetManager from './NiveauActiviteProjetManager'
 import SourceFinancementManager from './sourceFinancement/SourceFinancementProjetDialog'
@@ -34,8 +36,7 @@ import IndicateurPerformanceActiviteManager from './indicateurActivite/ProjetAct
 type ModalState = 'form' | 'niveaux'
 
 function ActiviteProjetNiveauTable({
-  niveauNum,
-  showParent,
+  niveauId,
   activites,
   allActivites,
   niveaux,
@@ -43,9 +44,9 @@ function ActiviteProjetNiveauTable({
   onEdit,
   onDeleteRequest,
   isLastLevel,
+  indicateurCountByActiviteCode,
 }: {
-  niveauNum: number
-  showParent: boolean
+  niveauId: number
   activites: ActiviteProjet[]
   allActivites: ActiviteProjet[]
   niveaux: NiveauActiviteProjet[]
@@ -53,11 +54,20 @@ function ActiviteProjetNiveauTable({
   onEdit: (row: ActiviteProjet) => void
   onDeleteRequest: (row: ActiviteProjet) => void
   isLastLevel: boolean
+  indicateurCountByActiviteCode: Map<string, number>
 }) {
   const { search, navigate } = useEmbeddedTableState()
   const [planifierSource, setPlanifierSource] = useState<ActiviteProjet | null>(null)
   const [showPlanificationModal, setShowPlanificationModal] = useState(false)
   const [showPlanificationIndicateurModal, setShowPlanificationIndicateurModal] = useState(false)
+
+  // ✅ Récupérer le niveau correspondant pour avoir le nombre
+  const currentNiveau = useMemo(() => {
+    return niveaux.find(n => n.id_niveau_activite_projet === niveauId)
+  }, [niveaux, niveauId])
+
+  const niveauNum = currentNiveau?.nombre_niveau_activite_projet || 1
+  const showParent = (currentNiveau?.nombre_niveau_activite_projet || 1) > 1
 
   const onOpenPlanification = useCallback((activite: ActiviteProjet) => {
     setPlanifierSource(activite)
@@ -73,27 +83,33 @@ function ActiviteProjetNiveauTable({
     (row: ActiviteProjet, targetNiveau: number): string => {
       let current = row
       let currentNiveau = niveauNum
-      
+
       while (currentNiveau > targetNiveau && current.parent_activite_projet) {
         const parentId = typeof current.parent_activite_projet === 'number'
           ? current.parent_activite_projet
           : current.parent_activite_projet?.id_activite_projet
-          
+
         if (!parentId) break
-        
+
         const parent = allActivites.find((p) => p.id_activite_projet === parentId)
         if (!parent) break
-        
+
         current = parent
         currentNiveau = Number(parent.niveau_activite_projet)
       }
-      
+
       if (currentNiveau === targetNiveau) {
         return `${current.code_activite_projet} — ${current.intitule_activite_projet}`
       }
       return '—'
     },
     [allActivites, niveauNum]
+  )
+
+  const getIndicateurCount = useCallback(
+    (activite: ActiviteProjet) =>
+      indicateurCountByActiviteCode.get(activite.code_activite_projet) ?? 0,
+    [indicateurCountByActiviteCode]
   )
 
   const columns = useMemo(
@@ -107,14 +123,27 @@ function ActiviteProjetNiveauTable({
         onDeleteRequest,
         onOpenPlanification,
         onOpenPlanificationIndicateur,
+        getIndicateurCount,
         isLastLevel,
       }),
-    [showParent, getParentAtLevel, niveaux, niveauNum, onEdit, onDeleteRequest, onOpenPlanification, onOpenPlanificationIndicateur, isLastLevel]
+    [
+      showParent,
+      getParentAtLevel,
+      niveaux,
+      niveauNum,
+      onEdit,
+      onDeleteRequest,
+      onOpenPlanification,
+      onOpenPlanificationIndicateur,
+      getIndicateurCount,
+      isLastLevel,
+    ]
   )
 
+  // ✅ Filtrer les activités par ID du niveau (correspondance directe)
   const rows = useMemo(
-    () => activites.filter((a) => Number(a.niveau_activite_projet) === niveauNum),
-    [activites, niveauNum]
+    () => activites.filter((a) => Number(a.niveau_activite_projet) === niveauId),
+    [activites, niveauId]
   )
 
   return (
@@ -165,16 +194,20 @@ export default function ProjetActivitesPanel({ projet }: { projet: Projet }) {
   const { data: niveaux = [], isLoading: isLoadingNiveaux } =
     useGetNiveauxActiviteProjet(codeProjet)
   const { data: activites = [], dataUpdatedAt } = useGetActivitesProjet(codeProjet)
+  const { data: allIndicateurs = [], dataUpdatedAt: indicateursUpdatedAt } =
+    useGetAllIndicateursPerformanceProjet()
   const deleteMutation = useDeleteActiviteProjet()
 
+  // ✅ Trier les niveaux par nombre_niveau_activite_projet (ordre logique 1, 2, 3...)
   const sortedNiveaux = useMemo(
     () =>
       [...niveaux]
         .map((n) => ({
           ...n,
+          id_niveau_activite_projet: Number(n.id_niveau_activite_projet),
           nombre_niveau_activite_projet: Number(n.nombre_niveau_activite_projet),
         }))
-        .filter((n) => Number.isFinite(n.nombre_niveau_activite_projet))
+        .filter((n) => Number.isFinite(n.id_niveau_activite_projet))
         .sort(
           (a, b) =>
             a.nombre_niveau_activite_projet - b.nombre_niveau_activite_projet
@@ -195,35 +228,70 @@ export default function ProjetActivitesPanel({ projet }: { projet: Projet }) {
   useEffect(() => {
     if (sortedNiveaux.length > 0 && tabActive === '') {
       const first = sortedNiveaux[0]
-      setTabActive(String(first.nombre_niveau_activite_projet))
+      setTabActive(String(first.id_niveau_activite_projet))
       setAddBoutonLabel(first.libelle_niveau_activite_projet)
     }
   }, [sortedNiveaux, tabActive])
 
-  const currentNiveau = Number(
-    tabActive || sortedNiveaux[0]?.nombre_niveau_activite_projet || 1
-  )
+  // ✅ ID du niveau actif (utilisé pour les onglets)
+  const currentNiveauId = Number(tabActive || sortedNiveaux[0]?.id_niveau_activite_projet || 0)
 
-  const countByNiveau = useMemo(() => {
+  // ✅ Récupérer l'objet niveau complet pour avoir le nombre
+  const currentNiveauObj = useMemo(() => {
+    return sortedNiveaux.find(n => n.id_niveau_activite_projet === currentNiveauId)
+  }, [sortedNiveaux, currentNiveauId])
+
+  // ✅ Le nombre du niveau actif (utilisé pour l'affichage et la logique métier)
+  const currentNiveauNumber = currentNiveauObj?.nombre_niveau_activite_projet || 1
+
+  // ✅ Compter les activités par ID de niveau
+  // ⚠️ activite.niveau_activite_projet stocke directement l'ID du niveau
+  // Donc correspondance directe : activite.niveau_activite_projet = niveau.id_niveau_activite_projet
+  const countByNiveauId = useMemo(() => {
     const counts = new Map<number, number>()
+
     for (const a of activites) {
-      const n = Number(a.niveau_activite_projet)
-      if (!Number.isFinite(n)) continue
-      counts.set(n, (counts.get(n) ?? 0) + 1)
+      // Récupérer l'ID du niveau de l'activité (correspondance directe)
+      const niveauId = Number(a.niveau_activite_projet)
+      if (!Number.isFinite(niveauId)) continue
+
+      // Vérifier que cet ID existe dans sortedNiveaux
+      const niveau = sortedNiveaux.find(n => n.id_niveau_activite_projet === niveauId)
+      if (niveau) {
+        counts.set(niveauId, (counts.get(niveauId) ?? 0) + 1)
+      }
     }
     return counts
-  }, [activites])
+  }, [activites, sortedNiveaux])
 
+  const indicateurCountByActiviteCode = useMemo(
+    () => buildIndicateurCountByActiviteCode(allIndicateurs, activites),
+    [allIndicateurs, activites]
+  )
+
+  // ✅ Options parent basées sur le niveau précédent
   const parentOptions = useMemo(() => {
-    if (currentNiveau <= 1) return []
-    const parents = activites.filter(
-      (a) => Number(a.niveau_activite_projet) === currentNiveau - 1
+    // Si on est au niveau 1, pas de parent
+    if (currentNiveauNumber <= 1) return []
+
+    // 🔑 Trouver l'ID du niveau précédent (currentNiveauNumber - 1)
+    const previousNiveau = sortedNiveaux.find(
+      (n) => n.nombre_niveau_activite_projet === currentNiveauNumber - 1
     )
+
+    if (!previousNiveau) return []
+
+    // ✅ Filtrer les activités du niveau précédent par son ID
+    const parents = activites.filter(
+      (a) => Number(a.niveau_activite_projet) === previousNiveau.id_niveau_activite_projet
+    )
+
     return parents.map((p) => ({
       value: p.id_activite_projet,
       label: `${p.code_activite_projet} — ${p.intitule_activite_projet}`,
     }))
-  }, [activites, currentNiveau])
+  }, [activites, currentNiveauNumber, sortedNiveaux])
+
 
   const handleAdd = () => {
     if (!hasNiveaux) {
@@ -261,11 +329,11 @@ export default function ProjetActivitesPanel({ projet }: { projet: Projet }) {
     setSelectedActivite(null)
   }
 
-  // Déterminer si le niveau actuel est le dernier
+  // ✅ Déterminer si le niveau actuel est le dernier (basé sur le nombre)
   const isLastLevel = useMemo(() => {
     const maxNiveau = Math.max(...sortedNiveaux.map(n => n.nombre_niveau_activite_projet), 0)
-    return currentNiveau === maxNiveau
-  }, [currentNiveau, sortedNiveaux])
+    return currentNiveauNumber === maxNiveau
+  }, [currentNiveauNumber, sortedNiveaux])
 
   return (
     <div className='space-y-4'>
@@ -309,10 +377,11 @@ export default function ProjetActivitesPanel({ projet }: { projet: Projet }) {
           className='space-y-4'
           style={tabsStyle}
           key={sortedNiveaux.length}
-          value={String(currentNiveau)}
+          // ✅ Value basée sur l'ID du niveau
+          value={String(currentNiveauId)}
           onValueChange={(val) => {
             const n = sortedNiveaux.find(
-              (x) => String(x.nombre_niveau_activite_projet) === val
+              (x) => String(x.id_niveau_activite_projet) === val
             )
             setTabActive(val)
             setAddBoutonLabel(n?.libelle_niveau_activite_projet ?? 'une activité')
@@ -323,8 +392,10 @@ export default function ProjetActivitesPanel({ projet }: { projet: Projet }) {
               {sortedNiveaux.map((niveau) => (
                 <NiveauTabTrigger
                   key={niveau.id_niveau_activite_projet}
-                  value={String(niveau.nombre_niveau_activite_projet)}
-                  count={countByNiveau.get(niveau.nombre_niveau_activite_projet) ?? 0}
+                  // ✅ Value basée sur l'ID du niveau
+                  value={String(niveau.id_niveau_activite_projet)}
+                  // ✅ Compteur basé sur l'ID du niveau (correspondance directe)
+                  count={countByNiveauId.get(niveau.id_niveau_activite_projet) ?? 0}
                 >
                   {niveau.libelle_niveau_activite_projet}
                 </NiveauTabTrigger>
@@ -335,20 +406,22 @@ export default function ProjetActivitesPanel({ projet }: { projet: Projet }) {
           {sortedNiveaux.map((niveau) => (
             <TabsContent
               key={niveau.id_niveau_activite_projet}
-              value={String(niveau.nombre_niveau_activite_projet)}
+              // ✅ Value basée sur l'ID du niveau
+              value={String(niveau.id_niveau_activite_projet)}
               className='focus-visible:outline-none'
             >
-              {String(niveau.nombre_niveau_activite_projet) === String(currentNiveau) && (
+              {niveau.id_niveau_activite_projet === currentNiveauId && (
                 <ActiviteProjetNiveauTable
-                  niveauNum={niveau.nombre_niveau_activite_projet}
-                  showParent={niveau.nombre_niveau_activite_projet > 1}
+                  // ✅ Passer l'ID du niveau (correspondance directe)
+                  niveauId={niveau.id_niveau_activite_projet}
                   activites={activites}
                   allActivites={activites}
                   niveaux={sortedNiveaux}
-                  tableKey={`activites-${niveau.nombre_niveau_activite_projet}-${dataUpdatedAt}-${activites.length}`}
+                  tableKey={`activites-${niveau.id_niveau_activite_projet}-${dataUpdatedAt}-${activites.length}-${indicateursUpdatedAt}`}
                   onEdit={handleEdit}
                   onDeleteRequest={handleDeleteRequest}
                   isLastLevel={isLastLevel}
+                  indicateurCountByActiviteCode={indicateurCountByActiviteCode}
                 />
               )}
             </TabsContent>
@@ -394,7 +467,9 @@ export default function ProjetActivitesPanel({ projet }: { projet: Projet }) {
           </DialogHeader>
           <ActiviteProjetFormDialog
             projet={projet}
-            niveau={currentNiveau}
+            // ✅ Passer l'ID du niveau (correspondance directe)
+            niveau={currentNiveauId}
+            niveauNombre={currentNiveauNumber}
             niveaux={sortedNiveaux}
             activite={selectedActivite}
             parentOptions={parentOptions}

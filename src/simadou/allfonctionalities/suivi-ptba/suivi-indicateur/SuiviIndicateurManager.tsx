@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Loader2 } from 'lucide-react'
 import type { Ptba } from '@/simadou/allTypes'
-import { IndicateurTache } from '@/simadou/allTypes/indicateurTache'
+import type { IndicateurTache } from '@/simadou/allTypes/indicateurTache'
 import { getValeurCibleIndicateur } from '@/simadou/allColonnes/suivi-indicateur-columns'
 import { useGetIndicateursByActivite } from '@/simadou/allHooks/admin/indicateurTacheHooks'
 import { useGetAllSuivisIndicateurs } from '@/simadou/allHooks/admin/suiviPtbaHooks'
@@ -61,8 +61,7 @@ export default function SuiviIndicateurManager({
           }
         >
           <SuiviIndicateurInlineManager
-            key={selectedIndicateur.code_indicateur_ptba}
-            activite={activite}
+            key={selectedIndicateur.id_indicateur_tache}
             indicateur={selectedIndicateur}
             onClose={handleCloseForm}
           />

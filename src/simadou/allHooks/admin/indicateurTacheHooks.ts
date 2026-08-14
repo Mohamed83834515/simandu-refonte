@@ -4,6 +4,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 const BASE_URL = "/indicateurs-taches/"
 
+export const indicateursTacheAllQueryKey = ['indicateurs-tache-all'] as const
+
 export const suiviPtbaQueryKeys = {
     indicateurs: (id_ptba: number) =>
         ['indicateurs-tache', id_ptba] as const,
@@ -16,6 +18,14 @@ export const useGetIndicateursByActivite = (id_ptba: number) =>
     queryFn: () => indicateurTacheService.getByActivite(BASE_URL, id_ptba),
     enabled: !!id_ptba,
   })
+
+export function useGetAllIndicateursTache(enabled = true) {
+  return useQuery({
+    queryKey: indicateursTacheAllQueryKey,
+    queryFn: () => indicateurTacheService.getAll(BASE_URL),
+    enabled,
+  })
+}
 
 export const useCreateIndicateurTache = (id_ptba: number) => {
   const queryClient = useQueryClient()

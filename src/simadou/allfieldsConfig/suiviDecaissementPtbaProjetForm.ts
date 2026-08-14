@@ -1,6 +1,13 @@
 import type { FormConfig } from '@/Global/types/formConfig'
+import type { SelectOption } from '@/simadou/lib/suiviDecaissementPtbaProjetUtils'
 
-export function getSuiviDecaissementPtbaProjetFormConfig(): FormConfig {
+export function getSuiviDecaissementPtbaProjetFormConfig({
+  regionOptions,
+  typePartOptions,
+}: {
+  regionOptions: SelectOption[]
+  typePartOptions: SelectOption[]
+}): FormConfig {
   return {
     fields: [
       {
@@ -8,6 +15,24 @@ export function getSuiviDecaissementPtbaProjetFormConfig(): FormConfig {
         label: 'Date',
         type: 'date',
         required: true,
+        gridCols: 2,
+      },
+      {
+        name: 'region',
+        label: 'Zone',
+        type: 'select',
+        placeholder: 'Sélectionner une zone',
+        required: true,
+        options: regionOptions,
+        gridCols: 2,
+      },
+      {
+        name: 'type_part',
+        label: 'Financement',
+        type: 'select',
+        placeholder: 'Sélectionner un financement',
+        required: true,
+        options: typePartOptions,
         gridCols: 2,
       },
       {

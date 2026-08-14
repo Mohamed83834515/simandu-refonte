@@ -1,15 +1,17 @@
 import { type ColumnDef } from '@tanstack/react-table'
+import type { IndicateurTache } from '@/simadou/allTypes/indicateurTache'
+import type { SuiviIndicateurTache } from '@/simadou/allTypes/suiviIndicateurTacheProjet'
+import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { DataTableColumnHeader } from '@/components/data-table'
-import { cn } from '@/lib/utils'
-import type { IndicateurTache } from '@/simadou/allTypes/indicateurTache'
-import type { SuiviIndicateurActivite } from '@/simadou/allTypes/suiviIndicateurActivite'
+import { type UniteIndicateur } from '../allTypes'
 
 export type SuiviIndicateurTableRow = IndicateurTache
 
 export type SuiviIndicateurColumnHandlers = {
+  unites?: UniteIndicateur[]
   onSuivre: (indicateur: IndicateurTache) => void
-  suivisByIndicateur: Map<string, SuiviIndicateurActivite[]>
+  suivisByIndicateur: Map<string, SuiviIndicateurTache[]>
   resolveIndicateurKey?: (indicateur: IndicateurTache) => string
 }
 
@@ -39,7 +41,8 @@ export function getValeurCibleIndicateur(
 
   const values: number[] = []
   for (const t of trimestres) {
-    const raw = typeof t === 'string' ? t.trim() : t != null ? String(t).trim() : ''
+    const raw =
+      typeof t === 'string' ? t : t != null ? String(t).trim() : 0
     if (!raw) continue
     const n = Number(raw.replace(/\s/g, '').replace(',', '.'))
     if (Number.isFinite(n)) values.push(n)
@@ -53,7 +56,7 @@ export function getValeurCibleIndicateur(
 }
 
 export function countSuivisForIndicateur(
-  suivisByIndicateur: Map<string, SuiviIndicateurActivite[]>,
+  suivisByIndicateur: Map<string, SuiviIndicateurTache[]>,
   indicateur: IndicateurTache,
   resolveIndicateurKey?: (indicateur: IndicateurTache) => string
 ): number {
@@ -83,7 +86,7 @@ export function buildSuiviIndicateurColumns(
               {row.index + 1}.
             </span>
             <div className='min-w-0 space-y-0.5'>
-              <p className='font-medium leading-snug'>
+              <p className='leading-snug font-medium'>
                 {indicateur.intitule_indicateur_tache}
               </p>
               {indicateur.code_indicateur_ptba && (
@@ -104,11 +107,16 @@ export function buildSuiviIndicateurColumns(
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title='Unité' />
       ),
-      cell: ({ row }) => (
-        <span className='text-muted-foreground tabular-nums'>
-          {row.original.unite_ind_tache || '—'}
-        </span>
-      ),
+      cell: ({ row }) => {
+        const unite = handlers.unites?.find(
+          (u) => Number(u.id_unite) === Number(row.original.unite_ind_tache)
+        )
+        return (
+          <span className='text-muted-foreground tabular-nums'>
+            {unite ? `${unite.unite_ui} - ${unite.definition_ui}` : '—'}
+          </span>
+        )
+      },
       meta: { thClassName: 'text-center', className: 'text-center' },
       enableSorting: false,
       enableHiding: false,
@@ -121,9 +129,7 @@ export function buildSuiviIndicateurColumns(
       cell: ({ row }) => {
         const valeur = getValeurCibleIndicateur(row.original)
         return (
-          <span className='font-semibold tabular-nums'>
-            {valeur ?? '—'}
-          </span>
+          <span className='font-semibold tabular-nums'>{valeur ?? '—'}</span>
         )
       },
       meta: { thClassName: 'text-center', className: 'text-center' },

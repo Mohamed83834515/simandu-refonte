@@ -41,6 +41,7 @@ export function normalizeIndicateurCmrProjetFromApi(
   raw: Record<string, unknown>
 ): IndicateurCmrProjet {
   const rawResultat = raw.resultat_cmr ?? raw.Resultat_cmr
+  const rawIndicateurIop = raw.indicateur_iop ?? raw.Indicateur_iop
   const rawId =
     raw.id_ref_ind_cmr ??
     raw.id_indicateur_cmr_projet ??
@@ -55,6 +56,9 @@ export function normalizeIndicateurCmrProjetFromApi(
     code_projet: codeProjet as IndicateurCmrProjet['code_projet'],
     ...(rawResultat !== undefined && rawResultat !== null
       ? { resultat_cmr: rawResultat as IndicateurCmrProjet['resultat_cmr'] }
+      : {}),
+    ...(rawIndicateurIop !== undefined && rawIndicateurIop !== null
+      ? { indicateur_iop: rawIndicateurIop as IndicateurCmrProjet['indicateur_iop'] }
       : {}),
   }
 }

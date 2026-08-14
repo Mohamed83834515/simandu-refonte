@@ -83,10 +83,8 @@ export const CADRE_RESULTAT = {
   code_cr: "",
   intutile_cr: "",
   abgrege_cr: "",
-  cout_axe: "",
   etat: null,
   niveau_cr: null,
-  partenaire_cr: null,
   parent_cr: null,
   projet_cr: null,
 };
@@ -151,6 +149,7 @@ export const UNITE_INDICATEUR = {
 export const INDICATEUR_CMR = {
   code_ref_ind: "",
   resultat_cmr: null,
+  indicateur_iop: null,
   intitule_ref_ind: "",
   reference_cmr: "",
   annee_reference: "",
@@ -364,7 +363,7 @@ export const PROJET = {
   date_demarrage_projet: "",
   partenaire_projet: null,
   programme_projet: null,
-  structure_projet: [],
+  structure_projet: 0,
   signataires_projet: [],
   partenaires_execution_projet: [],
   zone_projet: [],
@@ -403,7 +402,7 @@ export const PROJET_ACTIVE_PERSO = {
   date_demarrage_projet: "",
   partenaire_projet: null,
   programme_projet: null,
-  structure_projet: [],
+  structure_projet: 0,
   signataires_projet: [],
   partenaires_execution_projet: [],
   zone_projet: [],
@@ -527,6 +526,12 @@ export const GENERAL_PARAMS_FINANCE = {
   currencyCode: '',
   baseCurrency: '',
   exchangeRate: 0,
+}
+
+// =========GENERAL_PARAMS_SEUIL==================
+export const GENERAL_PARAMS_SEUIL = {
+  ecartProjetRetard: '',
+  ecartProjetCritique: '',
 }
 
 // =========GENERAL_PARAMS_SECURITE==================

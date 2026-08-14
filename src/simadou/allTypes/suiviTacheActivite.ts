@@ -105,6 +105,17 @@ export function filterSuivisForTaches(
   });
 }
 
+/** Parse P% (`proportion_gt`) stored as string, with or without `%`. */
+export function parseProportionPercent(
+  value: string | number | null | undefined,
+): number {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value !== "string") return 0;
+  const cleaned = value.trim().replace("%", "").replace(",", ".");
+  const n = Number(cleaned);
+  return Number.isFinite(n) ? n : 0;
+}
+
 /** Progression lot réalisée / lot prévu (0–100). */
 export function lotRealiseePercent(
   lotRealisee: number | undefined | null,
@@ -116,35 +127,41 @@ export function lotRealiseePercent(
   return Math.min(100, Math.round((realise / prevu) * 100));
 }
 
-/** Taux d'avancement global : lots réalisés / lots prévus (comme l'app de référence). */
+/**
+ * Contribution d'une tâche au taux global :
+ * `(lot_réalisé × P%) / lot_prévu`, plafonnée à P%.
+ */
+export function contributionAvancementTache(
+  tache: Pick<TacheActivitePtba, "n_lot_gt" | "proportion_gt">,
+  lotRealisee: number | undefined | null,
+): number {
+  const lotPrevu = Number(tache.n_lot_gt) || 0;
+  if (lotPrevu <= 0) return 0;
+  const realise = Number(lotRealisee) || 0;
+  if (realise <= 0) return 0;
+  const proportion = parseProportionPercent(tache.proportion_gt);
+  if (proportion <= 0) return 0;
+  return Math.min(proportion, (realise * proportion) / lotPrevu);
+}
+
+/**
+ * Taux d'avancement global des tâches :
+ * somme de `(lot_réalisé × P%) / lot_prévu` pour chaque tâche (0–100).
+ */
 export function tauxAvancementGlobalTaches(
   taches: TacheActivitePtba[],
   suivis: SuiviTacheActivite[],
 ): number {
   if (taches.length === 0) return 0;
 
-  let totalPrevu = 0;
-  let totalRealise = 0;
-
+  let total = 0;
   for (const tache of taches) {
-    const prevu = tache.n_lot_gt ?? 0;
-    totalPrevu += prevu;
     const suivi = findSuiviForTache(suivis, tache.id_groupe_tache);
-    totalRealise += suivi?.lot_realisee ?? suivi?.proportion_realisee ?? 0;
+    const lotRealisee = suivi?.lot_realisee ?? suivi?.proportion_realisee ?? 0;
+    total += contributionAvancementTache(tache, lotRealisee);
   }
 
-  if (totalPrevu > 0) {
-    return Math.min(100, Math.round((totalRealise / totalPrevu) * 100));
-  }
-
-  const percents = taches.map((tache) => {
-    const suivi = findSuiviForTache(suivis, tache.id_groupe_tache);
-    const lotRealisee = suivi?.lot_realisee ?? suivi?.proportion_realisee;
-    return suivi ? lotRealiseePercent(lotRealisee, tache.n_lot_gt) : 0;
-  });
-  return Math.round(
-    percents.reduce((sum, p) => sum + p, 0) / taches.length,
-  );
+  return Math.min(100, Math.round(total));
 }
 
 export function intituleGroupeTache(

@@ -1,4 +1,4 @@
-import { useEffect, useImperativeHandle, forwardRef } from 'react'
+import { useEffect, useImperativeHandle, forwardRef, useRef } from 'react'
 import type { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -41,7 +41,7 @@ interface DynamicFormProps {
   className?: string
   hideFormFooter?: boolean
   formId?: string
-  renderAfter?: React.ReactNode  // ← Ajoute cette ligne
+  renderAfter?: React.ReactNode // ← Ajoute cette ligne
 }
 
 export interface DynamicFormHandle {
@@ -69,7 +69,7 @@ export const DynamicForm = forwardRef<DynamicFormHandle, DynamicFormProps>(
       className,
       hideFormFooter,
       formId,
-      renderAfter
+      renderAfter,
     },
     ref
   ) => {
@@ -87,12 +87,17 @@ export const DynamicForm = forwardRef<DynamicFormHandle, DynamicFormProps>(
       watch,
       trigger,
       setValue,
-      reset
+      reset,
     } = form
 
+    const defaultValuesKeyRef = useRef<string | null>(null)
+
     useEffect(() => {
-      reset(defaultValues);
-    }, [defaultValues]);
+      const nextKey = JSON.stringify(defaultValues)
+      if (defaultValuesKeyRef.current === nextKey) return
+      defaultValuesKeyRef.current = nextKey
+      reset(defaultValues)
+    }, [defaultValues, reset])
 
     useImperativeHandle(ref, () => ({
       setValue: (name: string, value: any) =>
@@ -121,7 +126,12 @@ export const DynamicForm = forwardRef<DynamicFormHandle, DynamicFormProps>(
     const visibleFields = config.fields.filter(
       (field) => field.type !== 'hidden' && shouldShowField(field)
     )
-    const hiddenFields = config.fields.filter((field) => field.type === 'hidden')
+    const hiddenFields = config.fields.filter(
+      (field) => field.type === 'hidden'
+    )
+    const useThreeColumnGrid = visibleFields.some(
+      (field) => field.gridCols === 3
+    )
     const hasErrors = Object.keys(errors).length > 0
     const errorCount = Object.keys(errors).length
 
@@ -129,59 +139,60 @@ export const DynamicForm = forwardRef<DynamicFormHandle, DynamicFormProps>(
 
     const status = hasErrors
       ? {
-        icon: <AlertCircle className='h-3.5 w-3.5' />,
-        label: `${errorCount} erreur${errorCount > 1 ? 's' : ''} à corriger`,
-        variant: 'destructive' as const,
-        dot: 'bg-destructive',
-      }
+          icon: <AlertCircle className='h-3.5 w-3.5' />,
+          label: `${errorCount} erreur${errorCount > 1 ? 's' : ''} à corriger`,
+          variant: 'destructive' as const,
+          dot: 'bg-destructive',
+        }
       : isDirty
         ? {
-          icon: <PenLine className='h-3.5 w-3.5' />,
-          label: 'Modifications en attente',
-          variant: 'secondary' as const,
-          dot: 'bg-amber-400',
-        }
+            icon: <PenLine className='h-3.5 w-3.5' />,
+            label: 'Modifications en attente',
+            variant: 'secondary' as const,
+            dot: 'bg-amber-400',
+          }
         : {
-          icon: <CheckCircle2 className='h-3.5 w-3.5' />,
-          label: 'Formulaire prêt',
-          variant: 'outline' as const,
-          dot: 'bg-emerald-400',
-        }
+            icon: <CheckCircle2 className='h-3.5 w-3.5' />,
+            label: 'Formulaire prêt',
+            variant: 'outline' as const,
+            dot: 'bg-emerald-400',
+          }
 
     return (
       <div
         className={cn(
           embedded
             ? 'overflow-visible border-0 bg-transparent shadow-none'
-            : 'overflow-hidden rounded-xl border border-border/60 bg-card shadow-sm transition-shadow duration-300 hover:shadow-md',
+            : 'overflow-visible border-0 bg-transparent shadow-none',
           className
         )}
       >
-        {!embedded && (
-          <div className='h-px w-full bg-gradient-to-r from-transparent via-border to-transparent' />
-        )}
-
         {/* ── Corps du formulaire ── */}
         <Form {...form}>
-          <form onSubmit={handleSubmit(onSubmit as any)} id={formId}  >
+          <form onSubmit={handleSubmit(onSubmit as any)} id={formId}>
             {hiddenFields.map((field) => (
               <input key={field.name} type='hidden' {...register(field.name)} />
             ))}
-            <div className={cn(embedded ? 'px-0 pt-0 pb-1' : 'p-6')}>
+            <div className={cn(embedded ? 'px-0 pt-0 pb-1' : 'px-2 pt-0 pb-1')}>
               <div
                 className={cn(
-                  'grid grid-cols-1 sm:grid-cols-2',
-                  embedded ? 'gap-x-5 gap-y-3' : 'gap-x-5 gap-y-5'
+                  'grid grid-cols-1',
+                  useThreeColumnGrid ? 'sm:grid-cols-3' : 'sm:grid-cols-2',
+                  embedded ? 'gap-x-5 gap-y-3' : 'gap-x-4 gap-y-3'
                 )}
               >
                 {visibleFields.map((field, index) => (
                   <div
                     key={field.name}
                     className={cn(
-                      'animate-in duration-300 fade-in-0 fill-mode-both slide-in-from-bottom-2 min-w-0',
-                      field.gridCols === 1
-                        ? 'col-span-1 sm:col-span-2'
-                        : 'col-span-1'
+                      'min-w-0 animate-in duration-300 fade-in-0 fill-mode-both slide-in-from-bottom-2',
+                      useThreeColumnGrid
+                        ? field.gridCols === 1
+                          ? 'col-span-1 sm:col-span-3'
+                          : 'col-span-1'
+                        : field.gridCols === 1
+                          ? 'col-span-1 sm:col-span-2'
+                          : 'col-span-1'
                     )}
                     style={{ animationDelay: `${index * 40}ms` }}
                   >
@@ -196,17 +207,13 @@ export const DynamicForm = forwardRef<DynamicFormHandle, DynamicFormProps>(
                   </div>
                 ))}
               </div>
-              {renderAfter && (
-                <div className="mt-6">
-                  {renderAfter}
-                </div>
-              )}
+              {renderAfter && <div className='mt-6'>{renderAfter}</div>}
             </div>
 
             <div
               className={cn(
                 'h-px bg-border/50',
-                embedded ? 'mt-3' : 'mx-6'
+                embedded ? 'mt-3' : 'mx-2 mt-3'
               )}
             />
 
@@ -215,8 +222,7 @@ export const DynamicForm = forwardRef<DynamicFormHandle, DynamicFormProps>(
               <div
                 className={cn(
                   'flex items-center gap-4',
-                  embedded ? 'justify-end pt-3' : 'justify-between px-6 py-4',
-
+                  embedded ? 'justify-end pt-3' : 'justify-between px-2 pt-3'
                 )}
               >
                 {/* Indicateur de statut (masqué en modal embarqué sauf erreurs) */}

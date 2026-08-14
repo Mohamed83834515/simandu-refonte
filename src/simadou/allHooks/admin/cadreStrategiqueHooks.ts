@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { invalidateAndRefetch } from '@/simadou/allHooks/admin/queryInvalidation'
 import { cadreStrategiqueService } from '@/simadou/allSercices/cadreStrategiqueService'
 import {
   niveauCadreStrategiqueService,
@@ -9,7 +10,7 @@ import type {
   CadreStrategiqueWriteData,
   NiveauCadreStrategiqueWriteData,
 } from '@/simadou/schemas/cadreStrategiqueSchemas'
-import { invalidateAndRefetch } from '@/simadou/allHooks/admin/queryInvalidation'
+import { useActiveProgrammeCode, useActiveProgrammeId } from '@/hooks/use-active-programme'
 
 export const niveauCadreStrategiqueQueryKeys = {
   all: ['niveaux-cadre-strategique'] as const,
@@ -22,9 +23,10 @@ export const cadreStrategiqueQueryKeys = {
 } as const
 
 export function useGetNiveauxCadreStrategique() {
+  const activeProgrammeCode = useActiveProgrammeCode()
   return useQuery({
-    queryKey: niveauCadreStrategiqueQueryKeys.all,
-    queryFn: () => niveauCadreStrategiqueService.getAll(),
+    queryKey: [niveauCadreStrategiqueQueryKeys.all, activeProgrammeCode],
+    queryFn: () => niveauCadreStrategiqueService.getAll(activeProgrammeCode),
   })
 }
 
@@ -32,10 +34,15 @@ export function useCreateNiveauCadreStrategique() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (data: NiveauCadreStrategiqueWriteData) =>
-      niveauCadreStrategiqueService.create(data as NiveauCadreStrategiqueFormData),
+      niveauCadreStrategiqueService.create(
+        data as NiveauCadreStrategiqueFormData
+      ),
     meta: { suppressGlobalErrorToast: true },
     onSuccess: async () => {
-      await invalidateAndRefetch(queryClient, niveauCadreStrategiqueQueryKeys.all)
+      await invalidateAndRefetch(
+        queryClient,
+        niveauCadreStrategiqueQueryKeys.all
+      )
     },
   })
 }
@@ -56,7 +63,10 @@ export function useUpdateNiveauCadreStrategique() {
       ),
     meta: { suppressGlobalErrorToast: true },
     onSuccess: async () => {
-      await invalidateAndRefetch(queryClient, niveauCadreStrategiqueQueryKeys.all)
+      await invalidateAndRefetch(
+        queryClient,
+        niveauCadreStrategiqueQueryKeys.all
+      )
     },
   })
 }
@@ -67,12 +77,16 @@ export function useDeleteNiveauCadreStrategique() {
     mutationFn: (id: number) => niveauCadreStrategiqueService.delete(id),
     meta: { suppressGlobalErrorToast: true },
     onSuccess: async () => {
-      await invalidateAndRefetch(queryClient, niveauCadreStrategiqueQueryKeys.all)
+      await invalidateAndRefetch(
+        queryClient,
+        niveauCadreStrategiqueQueryKeys.all
+      )
     },
   })
 }
 
-export function useGetCadresStrategique(programmeId: number | undefined) {
+export function useGetCadresStrategique() {
+  const programmeId = useActiveProgrammeId()
   return useQuery({
     queryKey: cadreStrategiqueQueryKeys.byProgramme(programmeId ?? 0),
     queryFn: () => cadreStrategiqueService.getAll(programmeId),

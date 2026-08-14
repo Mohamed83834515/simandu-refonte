@@ -3,7 +3,7 @@ import { ObservationPtbaFormData } from "../schemas/observationPtbaSchemas";
 import type { ObservationPtba } from "../allTypes";
 import { filterObservationsByActiviteCode } from "../lib/observationPtbaUtils";
 
-const ENDPOINT = "/observation_ptba/";
+const ENDPOINT = "/observations-ptbas/";
 
 const observationPtbaService = {
   /**

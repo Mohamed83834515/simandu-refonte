@@ -11,6 +11,9 @@ export const niveauCadreResultatSchema = z.object({
     .string()
     .min(1, "Le libellé est requis")
     .max(100, "Le libellé ne peut pas dépasser 100 caractères"),
+  projet_ncr: z
+    .number()
+    .optional(),
   code_number_ncr: z
     .number()
     .min(1, "Le code numérique est requis")
@@ -46,15 +49,10 @@ export const cadreResultatSchema = z.object({
     .string()
     .min(1, "L'abrégé est requis")
     .max(50, "L'abrégé ne peut pas dépasser 50 caractères"),
-  cout_axe: z.coerce
-    .number()
-    .min(0, "Le coût doit être positif")
-    .int("Le coût doit être un entier"),
   date_enregistrement: z.string(),
   date_modification: z.string(),
   etat: z.string().nullable().optional(),
   niveau_cr: z.coerce.number().nullable().optional(),
-  partenaire_cr: z.string().nullable().optional(),
   parent_cr: z.union([z.string(), z.number()]).nullable().optional(),
   projet_cr: z.union([z.string(), z.number()]).nullable().optional(),
 });

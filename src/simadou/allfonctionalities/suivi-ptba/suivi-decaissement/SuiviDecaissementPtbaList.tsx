@@ -8,17 +8,18 @@ import { useEmbeddedTableState } from '@/hooks/use-embedded-table-state'
 import type { SuiviDecaissementPtba } from '@/simadou/allTypes/decaissementPtba'
 import { buildSuiviDecaissementPtbaColumns } from '@/simadou/allColonnes/suivi-decaissement-ptba-columns'
 import { useDeleteSuiviDecaissement } from '@/simadou/allHooks/admin/suiviPtbaHooks'
+import { type Ptba } from '@/simadou/allTypes'
 
 type Props = {
   suivis: SuiviDecaissementPtba[]
-  idActivite: number
+  activite: Ptba
   onEdit: (row: SuiviDecaissementPtba) => void
   onAdd: () => void
 }
 
 export default function SuiviDecaissementPtbaList({
   suivis,
-  idActivite,
+  activite,
   onEdit,
   onAdd,
 }: Props) {
@@ -27,18 +28,19 @@ export default function SuiviDecaissementPtbaList({
   const [currentRow, setCurrentRow] = useState<SuiviDecaissementPtba | null>(
     null
   )
-  const deleteMutation = useDeleteSuiviDecaissement(idActivite)
+  const deleteMutation = useDeleteSuiviDecaissement(activite.id_ptba)
 
   const columns = useMemo(
     () =>
       buildSuiviDecaissementPtbaColumns({
+        activite,
         onEdit,
         onDeleteRequest: (row) => {
           setCurrentRow(row)
           setOpen('delete')
         },
       }),
-    [onEdit, setOpen]
+    [activite, onEdit, setOpen]
   )
 
   const handleConfirmDelete = (row: SuiviDecaissementPtba) => {
@@ -65,6 +67,7 @@ export default function SuiviDecaissementPtbaList({
           },
         ]}
         defaultPageSize={10}
+        compactPagination
         showViewOptions={false}
         toolbarEndSlot={
           <DataTableToolbarOutlineButton className='ms-auto' onClick={onAdd}>

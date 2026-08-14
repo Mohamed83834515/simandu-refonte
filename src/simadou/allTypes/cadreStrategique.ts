@@ -1,5 +1,5 @@
-import { Acteur } from "./acteur";
-import { Programme } from "./programme";
+import { type Acteur } from "./acteur";
+import { type Programme } from "./programme";
 
 export interface CadreStrategique extends Record<string, unknown> {
   id_cs: number;

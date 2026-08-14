@@ -1,21 +1,27 @@
 import {
   Briefcase,
   ClipboardList,
+  Coins,
   Eye,
+  FileSignature,
   FileText,
   Layout,
   LayoutDashboard,
+  OctagonAlert,
   type LucideIcon,
 } from 'lucide-react'
 
 export type ProjetDetailTabKey =
   | 'dashboard'
   | 'activities'
+  | 'financement'
   | 'ptba'
   | 'suivi_ptba'
+  | 'conventions'
   | 'results_framework'
   | 'cmr_indicators'
   | 'documents'
+  | 'points_blocage'
 
 export type ProjetDetailTab = {
   key: ProjetDetailTabKey
@@ -30,6 +36,12 @@ export const projetDetailTabs: ProjetDetailTab[] = [
     name: "Vue d'ensemble",
     icon: LayoutDashboard,
     description: 'Synthèse du projet (indicateurs et avancement).',
+  },
+  {
+    key: 'financement',
+    name: 'Financement',
+    icon: Coins,
+    description: 'Financements du projet (prêt, don, contrepartie).',
   },
   {
     key: 'activities',
@@ -50,6 +62,12 @@ export const projetDetailTabs: ProjetDetailTab[] = [
     description: "Suivi d'avancement des activités PTBA du projet.",
   },
   {
+    key: 'conventions',
+    name: 'Conventions',
+    icon: FileSignature,
+    description: 'Conventions rattachées au projet.',
+  },
+  {
     key: 'results_framework',
     name: 'Cadre de résultats',
     icon: Layout,
@@ -65,6 +83,12 @@ export const projetDetailTabs: ProjetDetailTab[] = [
     key: 'documents',
     name: 'Documents',
     icon: FileText,
-    description: 'Documents rattachés au projet.',
+    description: 'Dossiers et documents rattachés au projet.',
+  },
+  {
+    key: 'points_blocage',
+    name: 'Points de blocage',
+    icon: OctagonAlert,
+    description: 'Recommandations et missions de supervision du projet.',
   },
 ]

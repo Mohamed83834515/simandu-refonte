@@ -98,17 +98,6 @@ export interface Acteur extends Record<string, unknown> {
   categorie_acteur: number;
 }
 
-export interface Convention extends Record<string, unknown> {
-  id_convention?: number;
-  code_convention: string;
-  intutile_conv: string;
-  reference_conv: string;
-  montant_conv: number;
-  date_signature_conv: string;
-  etat_conv: string;
-  partenaire_conv: Partial<Acteur> | null;
-}
-
 export interface Localite extends Record<string, unknown> {
   id_loca: number;
   code_loca: string;
@@ -155,7 +144,7 @@ export interface ProjetActivePerso {
   date_demarrage_projet: string;
   partenaire_projet: number;
   programme_projet: number;
-  structure_projet: number[];
+  structure_projet: number;
   signataires_projet: number[];
   partenaires_execution_projet: number[];
   zone_projet: number[];
@@ -277,17 +266,14 @@ export interface CadreResultat extends Record<string, unknown> {
   code_cr: string;
   intutile_cr: string;
   abgrege_cr: string;
-  cout_axe: number;
   date_enregistrement: string; // Géré auto par le backend
   date_modification: string; // Géré auto par le backend
   etat?: string | null;
   niveau_cr?: number | null;
-  partenaire_cr?: Acteur | string | null;
   parent_cr?: number | null;
   projet_cr?: number | null;
   // Relations populées
   niveau?: NiveauCadreResultat | null;
-  partenaire?: Acteur | null;
   parent?: CadreResultat | null;
 }
 

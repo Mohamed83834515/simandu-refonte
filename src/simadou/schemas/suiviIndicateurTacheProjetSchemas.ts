@@ -25,3 +25,6 @@ export type SuiviIndicateurTacheProjetPayload =
   SuiviIndicateurTacheProjetFormData & {
     indicateur_sit: number
   }
+
+/** Même payload pour /suivis-indicateurs-taches/ (programme). */
+export type SuiviIndicateurTachePayload = SuiviIndicateurTacheProjetPayload

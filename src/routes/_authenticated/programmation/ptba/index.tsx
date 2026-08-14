@@ -12,8 +12,8 @@ export const Route = createFileRoute('/_authenticated/programmation/ptba/')({
 function RouteComponent() {
   return (
     <PageRouteLayout
-      title="Listes activités PTBA"
-      boutonAddTitle="Ajouter Ptba"
+      title="Listes activités du Plan d'Action Operationnel"
+      boutonAddTitle="Ajouter PAO"
       icon={ClipboardList}
       addDialogComponent={AddPtba}
       listComponent={ListePtbas}

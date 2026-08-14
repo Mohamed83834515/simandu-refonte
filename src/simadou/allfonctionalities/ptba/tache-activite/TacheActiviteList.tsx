@@ -7,7 +7,6 @@ import useDialogState from '@/hooks/use-dialog-state'
 import { useDeleteTachePtba } from '@/simadou/allHooks/admin/tacheActiviteHooks'
 import { toast } from 'sonner'
 import { GenericDeleteDialog } from '@/Global/Tableaux/GenericDeleteDialog'
-import { DataTableToolbarOutlineButton } from '@/components/data-table/toolbar-outline-button'
 import { useGetPersonnels } from '@/simadou/allHooks/admin/personnelHooks'
 import { resolvePersonnelLabel } from '@/simadou/lib/resolveApiRelation'
 
@@ -15,14 +14,12 @@ type SuiviTacheActiviteListProps = {
   taches: TacheActivitePtba[]
   idActivite: number
   onEdit: (tache: TacheActivitePtba) => void
-  onAdd: () => void
 }
 
 export default function TacheActiviteList({
   taches,
   idActivite,
   onEdit,
-  onAdd
 }: SuiviTacheActiviteListProps) {
   const { search, navigate } = useEmbeddedTableState()
 
@@ -63,45 +60,26 @@ export default function TacheActiviteList({
   }
   return (
     <>
-      <div className="space-y-4">
-        {/* <div className="flex justify-end">
-          <Button
-            onClick={onAdd}
-            variant="outline"
-          >
-            Ajouter une tache
-          </Button>
-        </div> */}
-
-        <GenericTable<TachePtbaTableRow>
-          data={taches}
-          columns={columns}
-          search={search}
-          navigate={navigate}
-          searchKey='intutile_tache_gt'
-          searchPlaceholder='Filtrer les tâches...'
-          urlFilterConfig={[
-            {
-              columnId: 'intutile_tache_gt',
-              searchKey: 'intutile_tache_gt',
-              type: 'string',
-            },
-          ]}
-          toolbarEndSlot={
-            <DataTableToolbarOutlineButton
-              className='ms-auto'
-              onClick={onAdd}
-            >
-              Ajouter
-            </DataTableToolbarOutlineButton>
-          }
-          defaultPageSize={10}
-          showViewOptions={false}
-          showPagination={false}
-          showSearch={false}
-          emptyMessage='Aucune tâche planifiée pour cette activité.'
-        />
-      </div>
+      <GenericTable<TachePtbaTableRow>
+        data={taches}
+        columns={columns}
+        search={search}
+        navigate={navigate}
+        searchKey='intutile_tache_gt'
+        searchPlaceholder='Filtrer les tâches...'
+        urlFilterConfig={[
+          {
+            columnId: 'intutile_tache_gt',
+            searchKey: 'intutile_tache_gt',
+            type: 'string',
+          },
+        ]}
+        defaultPageSize={10}
+        showViewOptions={false}
+        showPagination={false}
+        showSearch={false}
+        emptyMessage='Aucune tâche planifiée pour cette activité.'
+      />
 
       {currentRow && (
         <GenericDeleteDialog<TacheActivitePtba>

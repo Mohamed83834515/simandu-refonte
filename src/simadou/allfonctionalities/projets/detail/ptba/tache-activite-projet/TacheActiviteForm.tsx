@@ -1,21 +1,22 @@
 import { useMemo } from 'react'
 import { toast } from 'sonner'
 import { DynamicForm } from '@/Global/Forms/DynamicForm'
+import { getApiErrorMessage } from '@/lib/api-error-message'
 import type { Ptba, TacheActivitePtba } from '@/simadou/allTypes'
 import {
-  TacheActivitePtbaFormData,
-  tacheActivitePtbaSchema,
+  tacheActivitePtbaProjetSchema,
+  type TacheActivitePtbaProjetFormData,
 } from '@/simadou/schemas/tacheActivitePtbaSchemas'
 import { getTacheActivitePtbaFormConfigForDialog } from '@/simadou/allfieldsConfig/tacheActivitePtbaForm'
 import { useMe } from '@/simadou/allHooks/auth/authHooks'
-import { useGetPersonnels } from '@/simadou/allHooks/admin/personnelHooks'
 import {
   useCreateTacheActiviteProjet,
   useUpdateTacheActiviteProjet,
 } from '@/simadou/allHooks/admin/tacheActiviteProjetHooks'
 import {
-  buildTacheActivitePtbaPayload,
+  buildTacheActivitePtbaProjetPayload,
   resolvePersonnelFormValue,
+  resolveResponsableTextFormValue,
 } from '@/simadou/lib/tacheActivitePtbaUtils'
 
 interface TacheActivitePtbaFormProps {
@@ -33,22 +34,17 @@ export default function TacheActiviteProjetForm({
 }: TacheActivitePtbaFormProps) {
   const isEditing = !!tache
   const { data: user } = useMe()
-  const { data: personnels = [], isLoading: isLoadingPersonnels } =
-    useGetPersonnels()
   const formConfig = useMemo(
     () =>
       getTacheActivitePtbaFormConfigForDialog({
-        personnelOptions: personnels.map((p) => ({
-          value: p.n_personnel!,
-          label: `${p.prenom_perso ?? ''} ${p.nom_perso ?? ''}`.trim(),
-        })),
-        isLoadingPersonnels,
+        personnelOptions: [],
+        responsableAsText: true,
       }),
-    [personnels, isLoadingPersonnels]
+    []
   )
   const idActivite = activite.id_ptba
   const defaultValues = useMemo(
-    (): TacheActivitePtbaFormData => ({
+    (): TacheActivitePtbaProjetFormData => ({
       intutile_tache_gt: tache?.intutile_tache_gt || '',
       proportion_gt: Number(tache?.proportion_gt || 0),
       code_tache_gt: tache?.code_tache_gt || '',
@@ -58,7 +54,7 @@ export default function TacheActiviteProjetForm({
       observation_gt: tache?.observation_gt || '',
       id_personnel_gt:
         resolvePersonnelFormValue(tache?.id_personnel_gt) ?? user?.n_personnel,
-      responsable_gt: resolvePersonnelFormValue(tache?.responsable_gt),
+      responsable_gt: resolveResponsableTextFormValue(tache?.responsable_gt),
       id_activite: Number(idActivite),
     }),
     [tache, idActivite, user?.n_personnel]
@@ -67,8 +63,8 @@ export default function TacheActiviteProjetForm({
   const createMutation = useCreateTacheActiviteProjet(idActivite)
   const updateMutation = useUpdateTacheActiviteProjet(idActivite)
 
-  const onSubmit = (data: TacheActivitePtbaFormData) => {
-    const payload = buildTacheActivitePtbaPayload(data, Number(idActivite))
+  const onSubmit = (data: TacheActivitePtbaProjetFormData) => {
+    const payload = buildTacheActivitePtbaProjetPayload(data, Number(idActivite))
 
     if (isEditing && tache?.id_groupe_tache) {
       updateMutation.mutate(
@@ -78,7 +74,10 @@ export default function TacheActiviteProjetForm({
             toast.success('Tache mise à jour avec succès')
             onSuccess()
           },
-          onError: () => toast.error('Erreur lors de la mise à jour'),
+          onError: (error: unknown) =>
+            toast.error(
+              getApiErrorMessage(error, 'Erreur lors de la mise à jour')
+            ),
         }
       )
     } else {
@@ -87,7 +86,10 @@ export default function TacheActiviteProjetForm({
           toast.success('Tache Planifiée avec succès')
           onSuccess()
         },
-        onError: () => toast.error("Erreur lors de l'enregistrement"),
+        onError: (error: unknown) =>
+          toast.error(
+            getApiErrorMessage(error, "Erreur lors de l'enregistrement")
+          ),
       })
     }
   }
@@ -96,7 +98,7 @@ export default function TacheActiviteProjetForm({
     <DynamicForm
       key={`${tache?.id_groupe_tache ?? 'new'}`}
       config={formConfig}
-      schema={tacheActivitePtbaSchema}
+      schema={tacheActivitePtbaProjetSchema}
       defaultValues={defaultValues}
       onSubmit={onSubmit}
       submitText={isEditing ? 'Mettre à jour' : 'Enregistrer'}

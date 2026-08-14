@@ -12,7 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { NiveauStructureConfigFormData } from '@/simadou/allTypes/entities'
+import { type NiveauStructureConfigFormData } from '@/simadou/allTypes/entities'
 import { useDeleteNiveauPlanSite, useGetNiveauxPlanSite, useSaveNiveauxPlanSite } from '@/simadou/allHooks/admin/niveauPlanSiteHooks'
 
 type NiveauRow = {

@@ -1,3 +1,4 @@
+import type { CadreResultat } from '@/simadou/allTypes'
 import type { DictionnaireIndicateur } from './dictionnaireIndicateur'
 import type { IndicateurCadreResultat } from './indicateurCadreResultat'
 import type { Projet } from './projet'
@@ -5,7 +6,8 @@ import type { Projet } from './projet'
 export interface IndicateurCmrProjet extends Record<string, unknown> {
   id_ref_ind_cmr: number
   code_ref_ind: string
-  resultat_cmr?: number | IndicateurCadreResultat | null
+  resultat_cmr?: number | CadreResultat | null
+  indicateur_iop?: number | IndicateurCadreResultat | null
   intitule_ref_ind: string
   reference_cmr: string
   annee_reference: number

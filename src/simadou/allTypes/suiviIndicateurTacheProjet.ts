@@ -1,4 +1,12 @@
-export interface SuiviIndicateurTacheProjet extends Record<string, unknown> {
+/**
+ * Suivi indicateur tâche.
+ * - Programme: GET/POST /suivis-indicateurs-taches/
+ * - Projet: GET/POST /suivi-indicateur-tache-projets/
+ *
+ * - personnel_sit: id du personnel qui a enregistré le suivi
+ * - tache_suivi / ugl_sit: réservés (à brancher plus tard)
+ */
+export interface SuiviIndicateurTache extends Record<string, unknown> {
   id_suivi_sit: number
   valeur_suivi_sit: number
   date_suivi_sit: string
@@ -8,3 +16,5 @@ export interface SuiviIndicateurTacheProjet extends Record<string, unknown> {
   commune_sit?: number | null
   indicateur_sit?: number | null
 }
+
+export type SuiviIndicateurTacheProjet = SuiviIndicateurTache

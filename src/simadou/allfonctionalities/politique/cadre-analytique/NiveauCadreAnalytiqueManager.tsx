@@ -41,7 +41,7 @@ function toRow(n: NiveauCadreAnalytique): NiveauRow {
   return {
     id: n.id_nca,
     libelle: n.libelle_nca,
-    codeLength: Number(n.nombre_nca) || 2,
+    codeLength: Number(n.code_number_nca) || 2,
     isNew: false,
   }
 }
@@ -122,11 +122,10 @@ export default function NiveauCadreAnalytiqueManager() {
         order += 1
         const data = {
           libelle_nca: row.libelle.trim(),
-          code_number_nca: order,
-          nombre_nca: Number(row.codeLength) || 2,
+          nombre_nca: order,
+          code_number_nca: Number(row.codeLength) || 2,
           programme: codeProgramme,
         }
-
         if (row.isNew) {
           await createMutation.mutateAsync(data)
         } else if (row.id != null) {
@@ -136,7 +135,7 @@ export default function NiveauCadreAnalytiqueManager() {
 
       const fresh = await queryClient.fetchQuery({
         queryKey: niveauCadreAnalytiqueQueryKeys.all,
-        queryFn: () => niveauCadreAnalytiqueService.getAll(),
+        queryFn: () => niveauCadreAnalytiqueService.getAll(codeProgramme),
       })
       const synced = sortNiveauxCadreAnalytique(
         filterNiveauxByProgramme(fresh, codeProgramme, programmeId)
@@ -192,7 +191,6 @@ export default function NiveauCadreAnalytiqueManager() {
   if (isLoading && !isDirty && rows.every((r) => r.isNew && !r.libelle)) {
     return <div className='py-6 text-sm text-muted-foreground'>Chargement…</div>
   }
-
   return (
     <div className='space-y-4'>
       <div className='flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between'>

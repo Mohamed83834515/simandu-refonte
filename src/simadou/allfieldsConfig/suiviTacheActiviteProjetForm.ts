@@ -12,7 +12,7 @@ export function getSuiviTacheActiviteProjetFormConfig(): FormConfig {
       },
       {
         name: 'proportion_realisee',
-        label: 'Proportion réalisée',
+        label: 'Lot réalisé',
         type: 'number',
         placeholder: '0 – 100',
         required: true,

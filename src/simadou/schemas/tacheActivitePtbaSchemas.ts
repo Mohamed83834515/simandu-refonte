@@ -53,8 +53,20 @@ export const tacheActivitePtbaSchema = z.object({
     .positive("L'ID de l'activité doit être positif"),
 });
 
+export const tacheActivitePtbaProjetSchema = tacheActivitePtbaSchema
+  .omit({ responsable_gt: true })
+  .extend({
+    responsable_gt: z
+      .string()
+      .max(100, 'Le responsable ne peut pas dépasser 100 caractères')
+      .optional(),
+  });
+
 // Type inféré du schéma
 export type TacheActivitePtbaFormData = z.infer<typeof tacheActivitePtbaSchema>;
+export type TacheActivitePtbaProjetFormData = z.infer<
+  typeof tacheActivitePtbaProjetSchema
+>;
 
 // Options pour les statuts de validation
 export const statutValidationOptions = [

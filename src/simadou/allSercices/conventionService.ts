@@ -1,119 +1,90 @@
-import { toast } from "sonner";
-import { apiClient } from "@/axios/api";
-import type { Convention } from "../allTypes";
+import { apiClient } from '@/axios/api'
+import type { Convention, ConventionApiPayload } from '@/simadou/allTypes/convention'
+import { filterConventionsByProjet } from '@/simadou/lib/conventionUtils'
+import { normalizeApiList } from './apiListUtils'
 
-// Type pour les données de formulaire Convention
-export type ConventionFormData = Omit<Convention, "id_convention">;
+const ENDPOINT = '/conventions/'
+
+function toFormData(data: ConventionApiPayload, file?: File | null): FormData {
+  const fd = new FormData()
+  fd.append('code_convention', data.code_convention)
+  fd.append('intutile_conv', data.intutile_conv)
+  fd.append('reference_conv', data.reference_conv)
+  fd.append('montant_conv', String(data.montant_conv))
+  fd.append('date_signature_conv', data.date_signature_conv)
+  fd.append('projet', String(data.projet))
+  if (data.etat_conv) {
+    fd.append('etat_conv', data.etat_conv)
+  }
+  if (data.partenaire_conv != null) {
+    fd.append('partenaire_conv', String(data.partenaire_conv))
+  }
+  if (file) {
+    fd.append('document_fichier', file, file.name)
+  }
+  return fd
+}
+
+function toJsonPayload(data: ConventionApiPayload): Record<string, unknown> {
+  return {
+    code_convention: data.code_convention,
+    intutile_conv: data.intutile_conv,
+    reference_conv: data.reference_conv,
+    montant_conv: data.montant_conv,
+    date_signature_conv: data.date_signature_conv,
+    etat_conv: data.etat_conv,
+    partenaire_conv: data.partenaire_conv ?? null,
+    projet: data.projet,
+    document_fichier:
+      typeof data.document_fichier === 'string' ? data.document_fichier : null,
+  }
+}
+
+function resolveFile(data: ConventionApiPayload): File | null {
+  return data.document_fichier instanceof File ? data.document_fichier : null
+}
 
 export const conventionService = {
-  // Récupérer toutes les conventions
   async getAll(): Promise<Convention[]> {
-    try {
-      const response = await apiClient.request<Convention[]>("/convention/");
-      return Array.isArray(response) ? response : [];
-    } catch (error) {
-      toast.error("Erreur lors de la récupération des conventions");
-      throw error;
-    }
+    const response = await apiClient.request<unknown>(ENDPOINT, { method: 'GET' })
+    return normalizeApiList<Convention>(response)
   },
 
-  // Récupérer une convention par ID
-  async getById(id: number): Promise<Convention> {
+  async getByProjet(idProjet: number): Promise<Convention[]> {
     try {
-      const response = await apiClient.request<Convention>(
-        `/convention/${id}/`,
-      );
-      return response;
-    } catch (error) {
-      toast.error("Erreur lors de la récupération de la convention");
-      throw error;
+      const byParam = await apiClient.request<unknown>(ENDPOINT, {
+        method: 'GET',
+        params: { projet: idProjet },
+      })
+      const items = normalizeApiList<Convention>(byParam)
+      if (items.length > 0) return items
+    } catch {
+      // Repli filtrage client
     }
+
+    const all = await this.getAll()
+    return filterConventionsByProjet(all, idProjet)
   },
 
-  // Créer une nouvelle convention
-  async create(data: ConventionFormData): Promise<Convention> {
-    try {
-      const response = await apiClient.request<Convention>("/convention/", {
-        method: "POST",
-        data,
-      });
-      toast.success("Convention créée avec succès");
-      return response;
-    } catch (error) {
-      toast.error("Erreur lors de la création de la convention");
-      throw error;
-    }
+  async create(data: ConventionApiPayload): Promise<Convention> {
+    const file = resolveFile(data)
+    return apiClient.request<Convention>(ENDPOINT, {
+      method: 'POST',
+      data: file ? toFormData(data, file) : toJsonPayload(data),
+    })
   },
 
-  // Mettre à jour une convention
-  async update(id: number, data: ConventionFormData): Promise<Convention> {
-    try {
-      const response = await apiClient.request<Convention>(
-        `/convention/${id}/`,
-        {
-          method: "PUT",
-          data,
-        },
-      );
-      toast.success("Convention modifiée avec succès");
-      return response;
-    } catch (error) {
-      toast.error("Erreur lors de la modification de la convention");
-      throw error;
-    }
+  async update(id: number, data: ConventionApiPayload): Promise<Convention> {
+    const file = resolveFile(data)
+    return apiClient.request<Convention>(`${ENDPOINT}${id}/`, {
+      method: 'PUT',
+      data: file ? toFormData(data, file) : toJsonPayload(data),
+    })
   },
 
-  // Supprimer une convention
   async delete(id: number): Promise<void> {
-    try {
-      await apiClient.request<void>(`/convention/${id}/`, {
-        method: "DELETE",
-      });
-      toast.success("Convention supprimée avec succès");
-    } catch (error) {
-      toast.error("Erreur lors de la suppression de la convention");
-      throw error;
-    }
+    await apiClient.request<void>(`${ENDPOINT}${id}/`, {
+      method: 'DELETE',
+    })
   },
-
-  // Rechercher des conventions
-  async search(query: string): Promise<Convention[]> {
-    try {
-      const response = await apiClient.request<Convention[]>(
-        `/convention/search/?q=${encodeURIComponent(query)}`,
-      );
-      return Array.isArray(response) ? response : [];
-    } catch (error) {
-      toast.error("Erreur lors de la recherche de conventions");
-      throw error;
-    }
-  },
-
-  // Obtenir les conventions par partenaire
-  async getByPartenaire(partenaireId: number): Promise<Convention[]> {
-    try {
-      const response = await apiClient.request<Convention[]>(
-        `/convention/partenaire/${partenaireId}/`,
-      );
-      return Array.isArray(response) ? response : [];
-    } catch (error) {
-      toast.error(
-        "Erreur lors de la récupération des conventions du partenaire",
-      );
-      throw error;
-    }
-  },
-
-  // Obtenir les conventions par état
-  async getByEtat(etat: string): Promise<Convention[]> {
-    try {
-      const response = await apiClient.request<Convention[]>(
-        `/convention/etat/${encodeURIComponent(etat)}/`,
-      );
-      return Array.isArray(response) ? response : [];
-    } catch (error) {
-      toast.error("Erreur lors de la récupération des conventions par état");
-      throw error;
-    }
-  },
-};
+}

@@ -22,27 +22,37 @@ export function useMe() {
     queryFn: async () => {
       return authService.me()
     },
-    enabled: isAuthenticated, // ← automatic, no manual flag needed
+    enabled: isAuthenticated,
     staleTime: 1000 * 60 * 5,
   })
 }
 
+// ✅ Version corrigée avec redirection selon le niveau
 export function useLogin() {
   const queryClient = useQueryClient()
   const navigate = useNavigate()
   const { login } = useAuthStore()
   const search = useSearch({ from: '/(auth)/sign-in' })
+  
   return useMutation({
     mutationFn: (credentials: LoginCredentials) =>
       authService.login(credentials),
 
-    onSuccess: async () => {
+    onSuccess: async (data:any) => {
+      // ✅ Mettre à jour le store
       login()
+      // data contient probablement l'utilisateur avec niveau_perso
+      const userLevel =   data.personnel.niveau_perso  || 1
+
+      // ✅ Déterminer la redirection selon le niveau
+      let redirectPath = search.redirect ?? '/'
+      if (userLevel === 3) {
+        redirectPath = '/projet-programme/projets'
+      }
 
       toast.success('Connexion réussie')
 
       navigate({
-        to: search.redirect ?? '/',
         replace: true,
       })
 
@@ -50,8 +60,6 @@ export function useLogin() {
         queryKey: personnelKeys.me(),
       })
     },
-
-    // TODO : Update the error shape (detail to message)
 
     onError: (error) => {
       toast.error(error.message)
@@ -68,7 +76,6 @@ interface TokenPayload {
 export const getUserIdFromToken = (token: string): number | null => {
   try {
     const decoded = jwtDecode<TokenPayload>(token)
-
     return decoded.user_id
   } catch {
     return null
@@ -85,7 +92,6 @@ export function useLogout() {
 
     onSettled: () => {
       logout()
-
       queryClient.clear()
       navigate({ to: '/sign-in', replace: true })
     },
@@ -148,4 +154,8 @@ export function useResetPasswordMutation() {
       handleApiError(error)
     },
   })
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> ac3f1e288108a3704b7563a70c949a2b564ad48c

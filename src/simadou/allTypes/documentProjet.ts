@@ -5,4 +5,5 @@ export interface DocumentProjet extends Record<string, unknown> {
   document: string
   description_document?: string
   projet: number | Projet
+  dossier?: number
 }

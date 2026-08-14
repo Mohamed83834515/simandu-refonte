@@ -16,11 +16,13 @@ export const getIndicateurCmrFormConfigForDialog = ({
   isLoadingReferentiels,
   indicateurStrategiqueOptions,
   isLoadingIndicateursStrategiques,
+  resultatFieldLabel = 'Résultat',
 }: {
   referentielOptions: SelectOption[];
   isLoadingReferentiels?: boolean;
   indicateurStrategiqueOptions?: SelectOption[];
   isLoadingIndicateursStrategiques?: boolean;
+  resultatFieldLabel?: string;
 }): FormConfig => ({
   fields: [
     {
@@ -54,10 +56,10 @@ export const getIndicateurCmrFormConfigForDialog = ({
     },
     {
       name: "resultat_cmr",
-      label: "Résultat CMR",
+      label: resultatFieldLabel,
       type: indicateurStrategiqueOptions ? "select" : "text",
       placeholder: indicateurStrategiqueOptions
-        ? "Sélectionner un indicateur stratégique…"
+        ? `Sélectionner un ${resultatFieldLabel.toLowerCase()}…`
         : "Résultat attendu du cadre de mesure de résultats",
       required: true,
       maxLength: indicateurStrategiqueOptions ? undefined : 200,
@@ -67,7 +69,7 @@ export const getIndicateurCmrFormConfigForDialog = ({
     },
     {
       name: "reference_cmr",
-      label: "Référence CMR",
+      label: "Valeur Référence",
       type: "text",
       placeholder: "Référence du cadre de mesure de résultats",
       required: true,
@@ -76,7 +78,7 @@ export const getIndicateurCmrFormConfigForDialog = ({
     },
     {
       name: "referentiel_cmr",
-      label: "Référentiel",
+      label: "indicateurs des Dictionnaires",
       type: "select",
       placeholder: "Sélectionner un indicateur du dictionnaire…",
       required: false,
@@ -86,7 +88,7 @@ export const getIndicateurCmrFormConfigForDialog = ({
     },
     {
       name: "cible_cmr",
-      label: "Cible CMR",
+      label: "Valeur Cible",
       type: "text",
       placeholder: "Valeur cible à atteindre",
       required: true,
@@ -113,3 +115,97 @@ export const getIndicateurCmrFormConfigForDialog = ({
     },
   ],
 });
+
+function withCascadeIndicateurField(
+  base: FormConfig,
+  indicateurField: FormConfig['fields'][number]
+): FormConfig {
+  const resultatIndex = base.fields.findIndex((field) => field.name === 'resultat_cmr');
+  const fields = [...base.fields];
+  fields.splice(resultatIndex + 1, 0, indicateurField);
+  return { ...base, fields };
+}
+
+export const getIndicateurCmrProjetFormConfigForDialog = ({
+  referentielOptions,
+  isLoadingReferentiels,
+  cadreResultatOptions,
+  indicateurCadreResultatOptions,
+  isLoadingIndicateursCadreResultat,
+  resultatFieldLabel = 'Résultat',
+  indicateurFieldDisabled = false,
+}: {
+  referentielOptions: SelectOption[];
+  isLoadingReferentiels?: boolean;
+  cadreResultatOptions: SelectOption[];
+  indicateurCadreResultatOptions: SelectOption[];
+  isLoadingIndicateursCadreResultat?: boolean;
+  resultatFieldLabel?: string;
+  indicateurFieldDisabled?: boolean;
+}): FormConfig => {
+  const base = getIndicateurCmrFormConfigForDialog({
+    referentielOptions,
+    isLoadingReferentiels,
+    indicateurStrategiqueOptions: cadreResultatOptions,
+    resultatFieldLabel,
+  });
+
+  const indicateurField = {
+    name: 'indicateur_iop',
+    label: 'Indicateur',
+    type: 'select' as const,
+    placeholder: indicateurFieldDisabled
+      ? "Sélectionnez d'abord un cadre"
+      : 'Sélectionner un indicateur…',
+    required: true,
+    options: indicateurCadreResultatOptions,
+    isLoading: isLoadingIndicateursCadreResultat,
+    disabled: indicateurFieldDisabled,
+    dependsOn: 'resultat_cmr',
+    gridCols: 2 as const,
+  };
+
+  return withCascadeIndicateurField(base, indicateurField);
+};
+
+export const getIndicateurCmrProgrammeFormConfigForDialog = ({
+  referentielOptions,
+  isLoadingReferentiels,
+  cadreStrategiqueOptions,
+  indicateurStrategiqueOptions,
+  isLoadingIndicateursStrategiques,
+  resultatFieldLabel = 'Cadre stratégique',
+  indicateurFieldDisabled = false,
+}: {
+  referentielOptions: SelectOption[];
+  isLoadingReferentiels?: boolean;
+  cadreStrategiqueOptions: SelectOption[];
+  indicateurStrategiqueOptions: SelectOption[];
+  isLoadingIndicateursStrategiques?: boolean;
+  resultatFieldLabel?: string;
+  indicateurFieldDisabled?: boolean;
+}): FormConfig => {
+  const base = getIndicateurCmrFormConfigForDialog({
+    referentielOptions,
+    isLoadingReferentiels,
+    indicateurStrategiqueOptions: cadreStrategiqueOptions,
+    resultatFieldLabel,
+  });
+
+  const indicateurField = {
+    name: 'indicateur_istr',
+    label: 'Indicateur stratégique',
+    type: 'select' as const,
+    placeholder: indicateurFieldDisabled
+      ? "Sélectionnez d'abord un cadre stratégique"
+      : 'Sélectionner un indicateur stratégique…',
+    required: true,
+    options: indicateurStrategiqueOptions,
+    isLoading: isLoadingIndicateursStrategiques,
+    disabled: indicateurFieldDisabled,
+    dependsOn: 'resultat_cmr',
+    gridCols: 2 as const,
+  };
+
+  return withCascadeIndicateurField(base, indicateurField);
+};

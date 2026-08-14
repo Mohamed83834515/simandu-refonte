@@ -6,11 +6,14 @@ import { buildPtbaApiPayload } from "@/simadou/lib/ptbaFormUtils";
 const ENDPOINT = "/ptbas/";
 
 const ptbaService = {
-  async getAll(codeProgramme?: string): Promise<Ptba[]> {
-    return apiClient.request(ENDPOINT, {
-      method: "GET",
-      params: codeProgramme ? { code_programme: codeProgramme } : {},
-    });
+  async getAll(codeProgramme?: string, idVersionPtba?: number): Promise<Ptba[]> {
+
+    const response:any = await
+      apiClient.request(`/versions-ptbas/${idVersionPtba}/ptbas-programmes/?programme=${codeProgramme}`, {
+        method: "GET"
+      }
+      );
+    return response.ptbas_programmes as Ptba[];
   },
 
   async getById(id: number): Promise<Ptba> {

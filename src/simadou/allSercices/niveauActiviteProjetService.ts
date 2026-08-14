@@ -2,7 +2,7 @@ import { apiClient } from "@/axios/api";
 import type { NiveauActiviteProjet } from "../allTypes";
 import { normalizeApiList } from "./apiListUtils";
 
-const BASE_URL = "/niveau_activite_config/";
+const BASE_URL = "/niveaux-activites-config/";
 
 export const niveauActiviteProjetService = {
   // Récupérer tous les niveaux

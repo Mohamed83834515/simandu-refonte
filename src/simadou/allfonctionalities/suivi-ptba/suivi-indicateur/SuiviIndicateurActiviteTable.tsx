@@ -1,8 +1,9 @@
 import { useMemo } from 'react'
 import { GenericTable } from '@/Global/Generic/Generictable'
 import { useEmbeddedTableState } from '@/hooks/use-embedded-table-state'
+import { useGetUnitesIndicateur } from '@/simadou/allHooks/admin/uniteIndicateurHooks'
 import type { IndicateurTache } from '@/simadou/allTypes/indicateurTache'
-import type { SuiviIndicateurActivite } from '@/simadou/allTypes/suiviIndicateurActivite'
+import type { SuiviIndicateurTache } from '@/simadou/allTypes/suiviIndicateurTacheProjet'
 import {
   buildSuiviIndicateurColumns,
   type SuiviIndicateurTableRow,
@@ -10,37 +11,21 @@ import {
 
 type SuiviIndicateurActiviteTableProps = {
   indicateurs: IndicateurTache[]
-  suivis: SuiviIndicateurActivite[]
+  suivis: SuiviIndicateurTache[]
   onSuivre: (indicateur: IndicateurTache) => void
 }
 
-function resolveSuiviIndicateurCode(suivi: SuiviIndicateurActivite): string | null {
-  if (typeof suivi.indicateur_activite === 'string') {
-    return suivi.indicateur_activite
-  }
-  if (
-    typeof suivi.indicateur_activite === 'object' &&
-    suivi.indicateur_activite
-  ) {
-    const obj = suivi.indicateur_activite as Record<string, unknown>
-    if (typeof obj.code_indicateur_activite === 'string') {
-      return obj.code_indicateur_activite
-    }
-    if (typeof obj.code_indicateur_ptba === 'string') {
-      return obj.code_indicateur_ptba
-    }
-  }
-  return null
-}
-
-function groupSuivisByIndicateur(suivis: SuiviIndicateurActivite[]) {
-  const map = new Map<string, SuiviIndicateurActivite[]>()
+function groupSuivisByIndicateur(
+  suivis: SuiviIndicateurTache[]
+): Map<string, SuiviIndicateurTache[]> {
+  const map = new Map<string, SuiviIndicateurTache[]>()
   for (const suivi of suivis) {
-    const code = resolveSuiviIndicateurCode(suivi)
-    if (!code) continue
-    const list = map.get(code) ?? []
+    const id = suivi.indicateur_sit
+    if (id == null || !Number.isFinite(id)) continue
+    const key = String(id)
+    const list = map.get(key) ?? []
     list.push(suivi)
-    map.set(code, list)
+    map.set(key, list)
   }
   return map
 }
@@ -51,6 +36,7 @@ export default function SuiviIndicateurActiviteTable({
   onSuivre,
 }: SuiviIndicateurActiviteTableProps) {
   const { search, navigate } = useEmbeddedTableState()
+  const { data: unites = [] } = useGetUnitesIndicateur()
 
   const suivisByIndicateur = useMemo(
     () => groupSuivisByIndicateur(suivis),
@@ -58,8 +44,15 @@ export default function SuiviIndicateurActiviteTable({
   )
 
   const columns = useMemo(
-    () => buildSuiviIndicateurColumns({ onSuivre, suivisByIndicateur }),
-    [onSuivre, suivisByIndicateur]
+    () =>
+      buildSuiviIndicateurColumns({
+        unites,
+        onSuivre,
+        suivisByIndicateur,
+        resolveIndicateurKey: (indicateur) =>
+          String(indicateur.id_indicateur_tache),
+      }),
+    [onSuivre, suivisByIndicateur, unites]
   )
 
   return (

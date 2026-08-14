@@ -545,21 +545,19 @@ export const StepDynamicForm = forwardRef<
     const handleBack = () => setCurrentStep((s) => Math.max(s - 1, 1))
 
     const isLastStep = currentStep === totalSteps
-    const currentStepConfig = stepsConfig.find((s) => s.step === currentStep)!
-
     return (
       <div
         className={cn(
-          'rounded-xl border border-border/60 bg-card shadow-sm',
+          'rounded-xl border border-border/50 bg-card shadow-sm',
           'overflow-hidden transition-shadow duration-300 hover:shadow-md'
         )}
       >
         <div className='h-px w-full bg-gradient-to-r from-transparent via-border to-transparent' />
 
         {/*─────────────────────────────────────── */}
-        <div className='border-b border-border/40 px-6 pt-5 pb-4'>
+        <div className='border-b border-border/40 px-6 pt-5 pb-2'>
           {/* Barre de progression globale */}
-          <div className='mb-4 h-1.5 w-full overflow-hidden rounded-full bg-muted'>
+          <div className='mb-2 h-1.5 w-full overflow-hidden rounded-full bg-muted'>
             <div
               className='h-full rounded-full bg-primary transition-all duration-500 ease-out'
               style={{
@@ -650,29 +648,11 @@ export const StepDynamicForm = forwardRef<
               )
             })}
           </div>
-
-          {/* ── Titre + description de l'étape courante ── */}
-          <div className='mt-4 animate-in duration-300 fade-in-0 slide-in-from-left-2'>
-            <div className='flex items-center gap-2'>
-              <span className='inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary'>
-                {currentStep}
-              </span>
-              <h3 className='text-sm leading-tight font-semibold text-foreground'>
-                {currentStepConfig.title}
-              </h3>
-            </div>
-            {currentStepConfig.description && (
-              <p className='mt-1 ml-7 text-xs text-muted-foreground'>
-                {currentStepConfig.description}
-              </p>
-            )}
-          </div>
         </div>
-
         {/* ── Champs du formulaire ────────────────────────────────── */}
         <Form {...form}>
           <form onSubmit={handleFormSubmit}>
-            <div className='p-6'>
+            <div className='p-3'>
               <div className='grid grid-cols-1 gap-x-5 gap-y-5 sm:grid-cols-2'>
                 {visibleFields.map((field, index) => (
                   <div

@@ -1,50 +1,36 @@
 import { useMemo } from 'react'
-import { AxiosError } from 'axios'
-import { toast } from 'sonner'
 import { DynamicForm } from '@/Global/Forms/DynamicForm'
-import { getIndicateurStrategiqueFormConfigForDialog } from '@/simadou/allfieldsConfig/indicateurStrategiqueForm'
-import type { IndicateurStrategique } from '@/simadou/allTypes/indicateurStrategique'
-import {
-  indicateurStrategiqueWriteSchema,
-  type IndicateurStrategiqueWriteData,
-} from '@/simadou/schemas/indicateurStrategiqueSchemas'
 import { useGetActeurs } from '@/simadou/allHooks/admin/acteurHooks'
+import { useGetCadresStrategique } from '@/simadou/allHooks/admin/cadreStrategiqueHooks'
 import {
   useCreateIndicateurStrategique,
   useUpdateIndicateurStrategique,
 } from '@/simadou/allHooks/admin/indicateurStrategiqueHooks'
-import { useGetCadresStrategique } from '@/simadou/allHooks/admin/cadreStrategiqueHooks'
 import { useGetPersonnels } from '@/simadou/allHooks/admin/personnelHooks'
-import { resolveNiveauCsNumber } from '@/simadou/lib/cadreStrategiqueUtils'
+import type { IndicateurStrategique } from '@/simadou/allTypes/indicateurStrategique'
+import { getIndicateurStrategiqueFormConfigForDialog } from '@/simadou/allfieldsConfig/indicateurStrategiqueForm'
+
+import {
+  indicateurStrategiqueWriteSchema,
+  type IndicateurStrategiqueWriteData,
+} from '@/simadou/schemas/indicateurStrategiqueSchemas'
+import { toast } from 'sonner'
 import {
   buildIndicateurStrategiquePayload,
   indicateurStrategiqueToFormValues,
 } from './indicateurStrategiqueFormUtils'
-
-function formatSaveError(error: unknown): string {
-  if (error instanceof AxiosError) {
-    const data = error.response?.data
-    if (data && typeof data === 'object') {
-      const messages = Object.values(data as Record<string, unknown>)
-        .flatMap((value) => (Array.isArray(value) ? value : [value]))
-        .filter((value): value is string => typeof value === 'string')
-      if (messages.length > 0) return messages.join(' ')
-    }
-  }
-  return "Erreur lors de l'enregistrement"
-}
+import { resolveNiveauCsNumber } from '@/simadou/lib/cadreStrategiqueUtils'
+import { getApiErrorMessage } from '@/lib/api-error-message'
 
 export default function IndicateurStrategiqueFormPanel({
-  programmeId,
   codeProgramme,
-  niveauCodeNumber,
+  niveauId,
   indicateur,
   onClose,
   onSuccess,
 }: {
-  programmeId: number
   codeProgramme: string
-  niveauCodeNumber: number
+  niveauId: number
   indicateur?: IndicateurStrategique | null
   onClose: () => void
   onSuccess: () => void
@@ -53,22 +39,20 @@ export default function IndicateurStrategiqueFormPanel({
   const createMutation = useCreateIndicateurStrategique()
   const updateMutation = useUpdateIndicateurStrategique()
   const { data: cadres = [], isLoading: isLoadingCadres } =
-    useGetCadresStrategique(programmeId)
+    useGetCadresStrategique()
   const { data: acteurs = [], isLoading: isLoadingActeurs } = useGetActeurs()
   const { data: personnels = [], isLoading: isLoadingPersonnels } =
     useGetPersonnels()
-
+  console.log('niveauId', niveauId)
   const cadreOptions = useMemo(
     () =>
       cadres
-        .filter(
-          (c) => resolveNiveauCsNumber(c.niveau_cs) === niveauCodeNumber
-        )
+        .filter((c) => resolveNiveauCsNumber(c.niveau_cs) === niveauId)
         .map((c) => ({
           value: String(c.id_cs),
           label: `${c.code_cs} — ${c.intutile_cs}`,
         })),
-    [cadres, niveauCodeNumber]
+    [cadres, niveauId ]
   )
 
   const acteurOptions = useMemo(
@@ -118,26 +102,25 @@ export default function IndicateurStrategiqueFormPanel({
       indicateurStrategiqueToFormValues({
         indicateur,
         codeProgramme,
-        niveauCodeNumber,
+        niveauId,
       }),
-    [indicateur, codeProgramme, niveauCodeNumber]
+    [indicateur, codeProgramme, niveauId]
   )
 
   const onSubmit = (data: IndicateurStrategiqueWriteData) => {
     const payload = buildIndicateurStrategiquePayload({
       data,
       codeProgramme,
-      niveauCodeNumber,
+      niveauId,
     })
 
     const callbacks = {
       onSuccess: () => {
-        toast.success(
-          isEditing ? 'Indicateur mis à jour' : 'Indicateur ajouté'
-        )
+        toast.success(isEditing ? 'Indicateur mis à jour' : 'Indicateur ajouté')
         onSuccess()
       },
-      onError: (error: unknown) => toast.error(formatSaveError(error)),
+      onError: (error: unknown) =>
+        toast.error(getApiErrorMessage(error, "Erreur lors de l'enregistrement")),
     }
 
     if (isEditing && indicateur) {
@@ -153,7 +136,7 @@ export default function IndicateurStrategiqueFormPanel({
 
   return (
     <DynamicForm
-      key={indicateur?.id_indicateur_str ?? `new-${niveauCodeNumber}`}
+      key={indicateur?.id_indicateur_str ?? `new-${niveauId}`}
       config={formConfig}
       schema={indicateurStrategiqueWriteSchema}
       defaultValues={defaultValues}

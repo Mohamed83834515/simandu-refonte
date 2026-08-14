@@ -23,6 +23,7 @@ interface User {
   name?: string
   id_personnel_perso?: string
   personnel?: unknown
+  niveau_perso: number
 }
 
 interface LoginResponse {

@@ -32,7 +32,7 @@ function ListePtbas() {
   const search = route.useSearch()
   const navigate = route.useNavigate()
 
-  const { data: ptbas = [] } = useGetPtbas()
+  const { data: ptbas = [] } = useGetPtbas(Number(selectedVersionId))
   const { data: personnels = [] } = useGetPersonnels()
   const deleteMutation = useDeletePtba()
 
@@ -51,13 +51,6 @@ function ListePtbas() {
       resolvePersonnelLabel(ptba.responsable_ptba, personnelsById),
     [personnelsById]
   )
-
-  const filteredPtbas = useMemo(() => {
-    if (!selectedVersionId) return ptbas
-    return ptbas.filter(
-      (ptba: Ptba) => ptba.version_ptba?.toString() === selectedVersionId
-    )
-  }, [ptbas, selectedVersionId])
 
   const onOpenPlanification = useCallback((activite: Ptba) => {
     setPlanifierActivite(activite)
@@ -87,7 +80,7 @@ function ListePtbas() {
   return (
     <>
       <GenericTable<Ptba>
-        data={filteredPtbas}
+        data={ptbas}
         columns={columns}
         search={search}
         navigate={navigate}

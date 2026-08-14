@@ -31,10 +31,12 @@ export function getProjetYearRange(projet?: Projet | null): number[] {
   const startYear = new Date(projet.date_demarrage_projet).getFullYear()
   if (!Number.isFinite(startYear)) return []
 
-  const dureeAnnees = projet.duree_projet || 1
+  // ✅ Convertir la durée en mois en années (arrondi à l'entier supérieur)
+  const dureeMois = projet.duree_projet || 1
+  const dureeAnnees = Math.ceil(dureeMois / 12)
+  
   return Array.from({ length: dureeAnnees }, (_, index) => startYear + index)
 }
-
 export function resolveCodeIndicateurCrpId(
   cible: CibleCmrProjet | null | undefined
 ): number | null {

@@ -1,6 +1,5 @@
 import { type ColumnDef } from '@tanstack/react-table'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { DataTableColumnHeader } from '@/components/data-table'
 import { cn } from '@/lib/utils'
 import type { TacheActivitePtba } from '@/simadou/allTypes'
@@ -83,12 +82,11 @@ export function buildSuiviTacheColumns(
       <DataTableColumnHeader column={column} title='P%' />
     ),
     cell: ({ row }) => {
-      const raw = row.original.proportion_gt?.trim()
+      const raw = row.original.proportion_gt
       if (!raw) {
         return <span className='text-muted-foreground'>—</span>
       }
-      const label = raw.endsWith('%') ? raw : `${raw}%`
-      return <span className='font-semibold tabular-nums'>{label}</span>
+      return <span className='font-semibold tabular-nums'>{raw}</span>
     },
     meta: { thClassName: 'text-center', className: 'text-center' },
     enableSorting: false,
@@ -113,30 +111,6 @@ export function buildSuiviTacheColumns(
       thClassName: 'min-w-[120px] text-center',
       className: 'min-w-[120px] text-center',
     },
-    enableSorting: false,
-    enableHiding: false,
-  }
-
-  const valideColumn: ColumnDef<SuiviTacheTableRow> = {
-    id: 'valide',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Validé' />
-    ),
-    cell: ({ row }) => {
-      const suivi = findSuiviForTache(suivis, row.original.id_groupe_tache)
-      if (!suivi) {
-        return <span className='text-muted-foreground'>—</span>
-      }
-      return (
-        <Badge
-          variant={suivi.valide ? 'default' : 'secondary'}
-          className='min-w-[48px] justify-center'
-        >
-          {suivi.valide ? 'Oui' : 'Non'}
-        </Badge>
-      )
-    },
-    meta: { thClassName: 'text-center', className: 'text-center' },
     enableSorting: false,
     enableHiding: false,
   }
@@ -195,7 +169,6 @@ export function buildSuiviTacheColumns(
     lotColumn,
     proportionColumn,
     dateColumn,
-    valideColumn,
     suiviActionColumn,
     observationColumn,
   ]

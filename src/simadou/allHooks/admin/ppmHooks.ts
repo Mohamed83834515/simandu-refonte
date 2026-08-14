@@ -1,0 +1,61 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
+import { ppmService } from '@/simadou/allSercices/ppmService'
+import type { PpmFormData } from '@/simadou/schemas/ppmSchema'
+
+export const ppmQueryKeys = {
+  all: ['ppms'] as const,
+  list: () => [...ppmQueryKeys.all, 'list'] as const,
+}
+
+export const useGetPpms = () =>
+  useQuery({
+    queryKey: ppmQueryKeys.list(),
+    queryFn: () => ppmService.getAll(),
+  })
+
+export const useSavePpm = (
+  isEdit: boolean,
+  currentRow?: { id_ppm?: number } | null,
+  onSuccess?: () => void
+) => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (data: PpmFormData) =>
+      isEdit && currentRow?.id_ppm
+        ? ppmService.update(currentRow.id_ppm, data)
+        : ppmService.create(data),
+    meta: { suppressGlobalErrorToast: true },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ppmQueryKeys.list(),
+      })
+      toast.success(
+        isEdit ? 'PPM modifié avec succès' : 'PPM créé avec succès'
+      )
+      onSuccess?.()
+    },
+    onError: () => {
+      toast.error('Erreur lors de la sauvegarde du PPM')
+    },
+  })
+}
+
+export const useDeletePpm = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (id: number) => ppmService.delete(id),
+    meta: { suppressGlobalErrorToast: true },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ppmQueryKeys.list(),
+      })
+      toast.success('PPM supprimé avec succès')
+    },
+    onError: () => {
+      toast.error('Erreur lors de la suppression du PPM')
+    },
+  })
+}

@@ -1,7 +1,9 @@
 import type { FormConfig, SelectOption } from '../../Global/types/formConfig'
+import { Personnel, Programme, UGL } from '../allTypes'
 import type { Acteur } from '../allTypes/acteur'
 import type { CategorieActeur } from '../allTypes/categorieActeur'
 import type { Localite } from '../allTypes/localite'
+import { TypeProjet } from '../allTypes/typeProjet'
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -22,17 +24,26 @@ function acteurOptionsByCode(acteurs: Acteur[], code: string): SelectOption[] {
     .map((a) => ({ value: a.id_acteur, label: a.nom_acteur }))
 }
 
-function ptfOptions(acteurs: Acteur[]): SelectOption[] {
-  // Partenaires financiers = catégorie '02' ou '04'
-  return acteurs
-    .filter((a) => acteurHasCategoryCode(a, '02') || acteurHasCategoryCode(a, '04'))
-    .map((a) => ({ value: a.id_acteur, label: a.nom_acteur }))
-}
-
 function zoneOptions(localites: Localite[]): SelectOption[] {
   return localites
     .filter((z) => typeof z.niveau_loca === 'object' && z.niveau_loca?.nombre_nlc === 2)
     .map((z) => ({ value: z.id_loca, label: z.intitule_loca }))
+}
+function uglOptions(ugls: UGL[]): SelectOption[] {
+  return ugls
+    .map((z) => ({ value: z.id_ugl, label: z.nom_ugl }))
+}
+function ProgrammeOptions(programmes: Programme[]): SelectOption[] {
+  return programmes
+    .map((z) => ({ value: z.id_programme, label: z.nom_programme }))
+}
+function PersonnelOptions(personnels: Personnel[]): SelectOption[] {
+  return personnels
+    .map((z) => ({ value: z.n_personnel || 0, label: z.nom_perso + ' ' + z.prenom_perso }))
+}
+function TypeOptions(types: TypeProjet[]): SelectOption[] {
+  return types
+    .map((z) => ({ value: z.id_type_projet, label: z.nom_type_projet }))
 }
 
 // ── Config principale ──────────────────────────────────────────────────────────
@@ -41,7 +52,11 @@ function zoneOptions(localites: Localite[]): SelectOption[] {
 
 export const getProjetFormConfig = (
   acteurs: Acteur[] = [],
-  localites: Localite[] = []
+  localites: Localite[] = [],
+  ugls: UGL[],
+  programmes:Programme[],
+  type_projets:TypeProjet[],
+  personnels:Personnel[],
 ): FormConfig => ({
   // ── Étapes déclarées une seule fois ──
   steps: [
@@ -107,33 +122,55 @@ export const getProjetFormConfig = (
       formStep: 1,
     },
     {
-      name: 'mps',
-      label: 'Méga projet',
-      type: 'switch',
-      helperText: 'Définir le projet comme étant un méga projet',
-      className: 'field-card',
+      name: 'responsable_projet',
+      label: 'Responsable',
+      type: 'select',
+      placeholder: 'Sélectionner un responsable',
+      required: true,
+      options: PersonnelOptions(personnels),
       gridCols: 2,
+      formStep: 1,
     },
 
     // ════════════ ÉTAPE 2 — Acteurs & zones ════════════
 
+    {
+      name: 'type_projet',
+      label: 'Type de projet',
+      type: 'select',
+      placeholder: 'Sélectionner un type',
+      required: true,
+      options: TypeOptions(type_projets),
+      gridCols: 2,
+      formStep: 2,
+    },
+    {
+      name: 'programme_projet',
+      label: 'Programme',
+      type: 'select',
+      placeholder: 'Sélectionner un programme',
+      required: true,
+      options: ProgrammeOptions(programmes),
+      gridCols: 2,
+      formStep: 2,
+    },
     {
       name: 'signataires_projet',
       label: 'Partenaires financiers (PTF)',
       type: 'multiselect',
       placeholder: 'Sélectionner un ou plusieurs PTF',
       required: true,
-      options: ptfOptions(acteurs),
+      options: acteurOptionsByCode(acteurs, '04'),
       gridCols: 2,
       formStep: 2,
     },
     {
       name: 'structure_projet',
-      label: 'Unité de gestion',
+      label: 'Unité de coordination',
       type: 'select',
       placeholder: 'Sélectionner une unité de gestion',
       required: true,
-      options: acteurOptionsByCode(acteurs, '05'),
+      options: uglOptions(ugls),
       gridCols: 2,
       formStep: 2,
     },

@@ -30,7 +30,16 @@ export const suiviAvancementContratSuiviPtbaSchema = z.object({
   date_suivi: z
     .string()
     .min(1, "La date est requise")
-    .regex(/^\d{4}-\d{2}-\d{2}$/, "Format YYYY-MM-DD"),
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Format YYYY-MM-DD")
+    .refine((date) => {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const selectedDate = new Date(date);
+      selectedDate.setHours(0, 0, 0, 0);
+      return selectedDate <= today;
+    }, {
+      message: "La date de suivi ne peut pas être dans le futur. Veuillez sélectionner une date antérieure ou égale à aujourd'hui.",
+    }),
   statut_activite: z.enum(STATUT_ACTIVITE_VALUES, {
     message: "Sélectionnez un statut d'activité",
   }),

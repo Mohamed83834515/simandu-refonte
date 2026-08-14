@@ -21,24 +21,14 @@ export const niveauActiviteProjetQueryKeys = {
 }
 
 /** Niveaux d'activité : globaux ou rattachés au projet selon la réponse API. */
-export function useGetNiveauxActiviteProjet(codeProjet?: string) {
+export function useGetNiveauxActiviteProjet(codeProjet: string) {
   return useQuery({
-    queryKey: codeProjet
-      ? niveauActiviteProjetQueryKeys.byProjet(codeProjet)
-      : niveauActiviteProjetQueryKeys.all,
+    queryKey: niveauActiviteProjetQueryKeys.byProjet(codeProjet),
     queryFn: async () => {
-      const all = await niveauActiviteProjetService.getAll()
-      if (!codeProjet) return all
-
       const byProjet = await niveauActiviteProjetService.getByProjet(codeProjet)
-      if (byProjet.length > 0) return byProjet
-
-      const forProject = all.filter(
-        (n) => n.code_projet == null || n.code_projet === '' || n.code_projet === codeProjet
-      )
-      return forProject.length > 0 ? forProject : all
+      return byProjet
     },
-    enabled: codeProjet ? codeProjet.length > 0 : true,
+    enabled: !!codeProjet,
   })
 }
 
@@ -104,6 +94,23 @@ export function useGetActivitesProjet(codeProjet: string | undefined) {
       if (!codeProjet) return []
       try {
         const scoped = await activiteProjetService.getByProjet(codeProjet)
+        if (scoped.length > 0) return scoped
+      } catch {
+        // fallback client-side
+      }
+      const all = await activiteProjetService.getAll()
+      return all.filter((a) => matchesCodeProjet(a.code_projet, codeProjet))
+    },
+    enabled: !!codeProjet,
+  })
+}
+export function useGetActivitesProjetLastNiveau(codeProjet: string | undefined) {
+  return useQuery({
+    queryKey: activiteProjetQueryKeys.byProjet(codeProjet),
+    queryFn: async () => {
+      if (!codeProjet) return []
+      try {
+        const scoped = await activiteProjetService.getLAstNiveauByProjet(codeProjet)
         if (scoped.length > 0) return scoped
       } catch {
         // fallback client-side

@@ -5,22 +5,11 @@ import {
   ChevronRightIcon,
 } from "lucide-react";
 import { CHART_COLORS, useColor } from "@/stores/others/color-store";
+import { formatNumber } from "@/simadou/allSercices/montantFormater";
 
-export interface ProjetRow {
-  id: string | number;
-  sigle: string;
-  nom_projet: string;
-  logo?: string;
-  date_demarrage: string;
-  date_cloture: string;
-  delai_consomme: number;
-  budget_prevu: number;
-  montant_decaisse: number;
-  taux_decaissement: number;
-  taux_avancement_technique: number;
-  statut: "actif" | "critique" | "retard" | "clôturé" | "suspendu";
-  bailleur?: string;
-}
+import type { ProjetDashboardRow } from '@/simadou/allTypes/dashboardProjet'
+
+export type ProjetRow = ProjetDashboardRow
 
 interface ProjectTableProps {
   projets: ProjetRow[];
@@ -61,13 +50,6 @@ const ProgressBar: React.FC<{ value: number; label?: string }> = ({ value }) => 
       </span>
     </div>
   );
-};
-
-const formatMontant = (n: number): string => {
-  if (n >= 1_000_000_000) return `${(n / 1_000_000_000).toFixed(1)}Md`;
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(0)}K`;
-  return n.toLocaleString("fr-FR");
 };
 
 const formatDate = (dateStr: string): string => {
@@ -252,7 +234,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
 
                     {/* Date fin calculée */}
                     <td className="px-4 py-4 text-xs text-gray-600 dark:text-gray-400">
-                      {formatDate(projet.date_cloture)}
+                      {formatDate(projet.date_fin ?? '')}
                     </td>
 
                     {/* Délai consommé */}
@@ -262,12 +244,12 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
 
                     {/* Budget prévu */}
                     <td className="px-4 py-4 text-right font-semibold text-gray-800 dark:text-gray-200 text-sm">
-                      {formatMontant(projet.budget_prevu)}
+                      {formatNumber(projet.budget_prevu)}
                     </td>
 
                     {/* Montant décaissé */}
                     <td className="px-4 py-4 text-right font-semibold text-blue-700 dark:text-blue-400 text-sm">
-                      {formatMontant(projet.montant_decaisse)}
+                      {formatNumber(projet.montant_decaisse)}
                     </td>
 
                     {/* Taux décaissement */}

@@ -15,7 +15,7 @@ import type { VersionPtba } from "@/simadou/allTypes"
 // Mapping des statuts pour l'affichage
 const getStatusBadge = (statut: number | undefined) => {
   if (statut === undefined) return <Badge variant="secondary">⚠️ Non défini</Badge>
-  
+
   switch (statut) {
     case 1:
       return <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">✓ Validée</Badge>
@@ -103,59 +103,41 @@ export function buildVersionPtbaColumns({
     ),
     cell: ({ row }) => {
       const item = row.original
-      const isEnCours = item.statut_version === 0 || item.statut_version === undefined
-      const isValide = item.statut_version === 1
+      // const isEnCours = item.statut_version === 0 || item.statut_version === undefined
+      // const isValide = item.statut_version === 1
       // const isArchive = item.statut_version === 2
 
       return (
         <GenericRowActions
           row={row}
           actions={[
-            // Modifier - seulement si en cours
             {
               label: "Modifier",
               icon: <UserPen size={16} />,
+              onClick: () => onEdit(item),
+            },
+            {
+              label: "Valider",
+              icon: <CheckCircle size={16} />,
+              className: "text-green-600!",
+              onClick: () => onValidate(item),
+            },
+            {
+              label: "Archiver",
+              icon: <Archive size={16} />,
+              className: "text-orange-600!",
+              onClick: () => onArchive(item),
+            },
+            {
+              label: "Supprimer",
+              icon: <Trash2 size={16} />,
+              className: "text-red-500!",
+              separator: true,
               onClick: () => {
-                if (isEnCours) onEdit(item)
+                setCurrentRow(item)
+                setOpen(true)
               },
             },
-            // Valider - seulement si en cours
-            ...(isEnCours
-              ? [
-                  {
-                    label: "Valider",
-                    icon: <CheckCircle size={16} />,
-                    className: "text-green-600!",
-                    onClick: () => onValidate(item),
-                  },
-                ]
-              : []),
-            // Archiver - seulement si validée
-            ...(isValide
-              ? [
-                  {
-                    label: "Archiver",
-                    icon: <Archive size={16} />,
-                    className: "text-orange-600!",
-                    onClick: () => onArchive(item),
-                  },
-                ]
-              : []),
-            // Supprimer - seulement si en cours
-            ...(isEnCours
-              ? [
-                  {
-                    label: "Supprimer",
-                    icon: <Trash2 size={16} />,
-                    className: "text-red-500!",
-                    separator: true,
-                    onClick: () => {
-                      setCurrentRow(item)
-                      setOpen(true)
-                    },
-                  },
-                ]
-              : []),
           ]}
         />
       )

@@ -5,7 +5,7 @@ import { resolveActivitePtbaId } from '../allTypes/suiviAvancementContrat'
 import type { SuiviDecaissementPtbaFormData } from '../schemas/suiviDecaissementPtbaSchemas'
 import { normalizeApiList } from './apiListUtils'
 
-const ENDPOINT = '/suivi_decaissement_ptba/'
+const ENDPOINT = '/suivis-decaissement-ptbas/'
 
 /** POST/PUT body for programme PTBA (distinct from projet `activite_ptba_projet`). */
 type SuiviDecaissementPtbaApiPayload = {
@@ -40,6 +40,24 @@ function resolveProgrammeCode(raw: unknown): string | null {
   return String(raw).trim() || null
 }
 
+function resolveActivitePtbaFromApi(raw: unknown): number | null {
+  const fromRelation = resolveActivitePtbaId(
+    raw as number | Ptba | null | undefined
+  )
+  if (fromRelation != null && Number.isFinite(fromRelation)) return fromRelation
+
+  if (raw != null && typeof raw === 'object') {
+    const obj = raw as Record<string, unknown>
+    for (const key of ['id_ptba', 'id', 'pk'] as const) {
+      const n = Number(obj[key])
+      if (Number.isFinite(n)) return n
+    }
+  }
+
+  const n = Number(raw)
+  return Number.isFinite(n) ? n : null
+}
+
 function mapSuiviDecaissementPtbaFromApi(
   raw: Record<string, unknown>
 ): SuiviDecaissementPtba {
@@ -67,10 +85,7 @@ function mapSuiviDecaissementPtbaFromApi(
     observation: String(raw.observation ?? ''),
     date_enregistrement: toDateInput(raw.date_enregistrement) || '',
     date_modification: toDateInput(raw.date_modification) || '',
-    activite_ptba:
-      resolveActivitePtbaId(
-        raw.activite_ptba as number | Ptba | null | undefined
-      ) ?? null,
+    activite_ptba: resolveActivitePtbaFromApi(raw.activite_ptba),
     programme: resolveProgrammeCode(raw.programme),
   }
 }
@@ -103,9 +118,10 @@ const suiviDecaissementPtbaService = {
       method: 'GET',
       params: { activite_ptba: idActivite },
     })
-    return normalizeApiList<Record<string, unknown>>(response).map(
+    const items = normalizeApiList<Record<string, unknown>>(response).map(
       mapSuiviDecaissementPtbaFromApi
     )
+    return items
   },
 
   async create(

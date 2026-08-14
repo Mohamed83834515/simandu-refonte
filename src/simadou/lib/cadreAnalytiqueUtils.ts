@@ -53,6 +53,55 @@ export function getNextNiveauCadreAnalytique(
   return sorted[index + 1] ?? null
 }
 
+export function getLastNiveauCadreAnalytiqueId(
+  niveaux: NiveauCadreAnalytique[]
+): number | null {
+  const sorted = sortNiveauxCadreAnalytique(niveaux)
+  if (sorted.length === 0) return null
+  return sorted[sorted.length - 1].id_nca
+}
+
+/** Budget agrégé par id_ca — feuilles = cout_axe, parents = somme des descendants feuilles. */
+export function buildAggregatedBudgetByCadreId(
+  cadres: CadreAnalytique[],
+  lastNiveauId: number
+): Map<number, number> {
+  const budgets = new Map<number, number>()
+  const childrenByParent = new Map<number, number[]>()
+
+  for (const cadre of cadres) {
+    const niveau = resolveNiveauCaNumber(cadre.niveau_ca)
+    if (niveau === lastNiveauId) {
+      budgets.set(cadre.id_ca, Number(cadre.cout_axe) || 0)
+    }
+
+    const parentId = resolveParentCaId(cadre.parent_ca)
+    if (parentId == null) continue
+
+    const siblings = childrenByParent.get(parentId) ?? []
+    siblings.push(cadre.id_ca)
+    childrenByParent.set(parentId, siblings)
+  }
+
+  const resolveBudget = (id: number): number => {
+    const cached = budgets.get(id)
+    if (cached != null) return cached
+
+    const sum = (childrenByParent.get(id) ?? []).reduce(
+      (total, childId) => total + resolveBudget(childId),
+      0
+    )
+    budgets.set(id, sum)
+    return sum
+  }
+
+  for (const cadre of cadres) {
+    resolveBudget(cadre.id_ca)
+  }
+
+  return budgets
+}
+
 export function buildChildCountByParentCaId(
   cadres: CadreAnalytique[],
   nextNiveauCodeNumber: number
@@ -105,11 +154,11 @@ export function toPartenaireCaFormValue(
 
 export function buildCadreAnalytiqueParentOptions({
   cadres,
-  niveauCodeNumber,
+  parentNIveauId,
   excludeCadreId,
 }: {
   cadres: CadreAnalytique[]
-  niveauCodeNumber: number
+  parentNIveauId: number | null
   excludeCadreId?: number
 }) {
   return cadres
@@ -117,9 +166,9 @@ export function buildCadreAnalytiqueParentOptions({
       const cadreNiveau = resolveNiveauCaNumber(cadre.niveau_ca)
       return (
         cadreNiveau != null &&
-        cadreNiveau === niveauCodeNumber - 1 &&
+        cadreNiveau === (parentNIveauId != null ? parentNIveauId : 0) &&
         cadre.id_ca !== excludeCadreId
-      ) 
+      )
     })
     .map((cadre) => ({
       value: cadre.id_ca,
@@ -137,9 +186,9 @@ export function getFixedCodeLengthForNiveau(
     : niveaux
 
   const niveauConfig = scoped.find(
-    (n) => Number(n.code_number_nca) === niveauCodeNumber
+    (n) => Number(n.nombre_nca) === niveauCodeNumber
   )
-  return Number(niveauConfig?.nombre_nca) || 2
+  return Number(niveauConfig?.code_number_nca) || 2
 }
 
 export function getNiveauCadreAnalytiqueLibelle(
@@ -152,7 +201,7 @@ export function getNiveauCadreAnalytiqueLibelle(
     : niveaux
 
   const niveauConfig = scoped.find(
-    (n) => Number(n.code_number_nca) === niveauCodeNumber
+    (n) => Number(n.nombre_nca) === niveauCodeNumber
   )
   return niveauConfig?.libelle_nca ?? ''
 }
@@ -162,14 +211,16 @@ export function getPtbaCadreAnalytiqueNiveauCode(
   niveaux: NiveauCadreAnalytique[]
 ): number {
   const sorted = sortNiveauxCadreAnalytique(niveaux)
-  const secondByCode = sorted.find((n) => Number(n.code_number_nca) === 2)
-  if (secondByCode) return 2
-
-  const secondByOrder = sorted[1]
-  const code = Number(secondByOrder?.code_number_nca)
-  return Number.isFinite(code) && code > 0 ? code : 2
+  
+  // Prendre le niveau le plus élevé présent dans le tableau
+  const maxNiveau = sorted.reduce((max, n) => {
+    const niveau = Number(n.nombre_nca)
+    return niveau > max ? niveau : max
+  }, 0)
+  
+  // Retourner le max s'il est valide, sinon 3 par défaut
+  return Number.isFinite(maxNiveau) && maxNiveau > 0 ? maxNiveau : 3
 }
-
 /** Options select PTBA — valeur = id_ca (clé API), filtrées par niveau. */
 export function buildCadreAnalytiqueSelectOptions(
   cadres: CadreAnalytique[],

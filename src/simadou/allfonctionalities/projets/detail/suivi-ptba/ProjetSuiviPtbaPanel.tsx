@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -8,31 +8,48 @@ import {
 import { GenericTable } from '@/Global/Generic/Generictable'
 import { DIALOG_SIZES } from '@/Global/Forms/dialog'
 import { useEmbeddedTableState } from '@/hooks/use-embedded-table-state'
-import type { Projet } from '@/simadou/allTypes'
+import type { Projet, Ptba } from '@/simadou/allTypes'
 import type { PtbaProjet } from '@/simadou/allTypes/ptbaProjet'
-import { useGetPtbasProjet } from '@/simadou/allHooks/admin/ptbaProjetHooks'
+import { useGetPtbasProjetsByVersion } from '@/simadou/allHooks/admin/ptbaProjetHooks'
 import { useSuiviPtbaProjetActivitesProgress } from '@/simadou/allHooks/admin/suiviPtbaProjetHooks'
+import { useProjetPtbaVersionSelection } from '@/simadou/allHooks/admin/versionHooks'
 import ActiviteTabbedDialog from '@/simadou/allfonctionalities/suivi-ptba/ActiviteTabbedDialog'
 import SuiviTacheActiviteProjetManager from './suivi-tache/SuiviTacheActiviteManager'
 import SuiviIndicateurProjetManager from './suivi-indicateur/SuiviIndicateurManager'
 import SuiviAvancementContratProjetManager from './suivi-avancement-contrat/SuiviAvancementContratManager'
 import SuiviDecaissementPtbaProjetManager from './suivi-decaissement/SuiviDecaissementPtbaProjetManager'
 import { buildSuiviPtbaProjetColumns } from '@/simadou/allColonnes/suivi-ptba-projet-columns'
+import { PtbaVersionSelect } from '@/simadou/allfonctionalities/ptba/PtbaVersionSelect'
 
 type ProjetSuiviPtbaPanelProps = {
   projet: Projet
 }
 
-export default function ProjetSuiviPtbaPanel({ projet }: ProjetSuiviPtbaPanelProps) {
-  const codeProjet = projet.code_projet
-  const { search, navigate } = useEmbeddedTableState()
-  const { data: ptbas = [] } = useGetPtbasProjet(codeProjet)
+const EMPTY_PTBAS: PtbaProjet[] = []
 
+export default function ProjetSuiviPtbaPanel({
+  projet,
+}: ProjetSuiviPtbaPanelProps) {
+  const codeProjet = projet.code_projet
+  const {
+    selectedVersionId,
+    handleChangeVersion,
+    filteredVersionOptions,
+    selectedVersionPtbaId,
+  } = useProjetPtbaVersionSelection(projet)
+
+  const { search, navigate } = useEmbeddedTableState()
   const [suiviActivite, setSuiviActivite] = useState<PtbaProjet | null>(null)
   const [showSuiviModal, setShowSuiviModal] = useState(false)
   const [showObservationModal, setShowObservationModal] = useState(false)
   const [observationActivite, setObservationActivite] =
     useState<PtbaProjet | null>(null)
+
+  const { data: ptbasByVersion } = useGetPtbasProjetsByVersion(
+    selectedVersionPtbaId > 0 ? selectedVersionPtbaId : undefined,
+    codeProjet
+  )
+  const ptbas = ptbasByVersion?.ptbas_projets ?? EMPTY_PTBAS
 
   const activiteIds = useMemo(
     () =>
@@ -48,29 +65,48 @@ export default function ProjetSuiviPtbaPanel({ projet }: ProjetSuiviPtbaPanelPro
     isLoading: progressLoading,
   } = useSuiviPtbaProjetActivitesProgress(activiteIds)
 
+  const onOpenSuivi = useCallback((activite: Ptba) => {
+    setSuiviActivite(activite as PtbaProjet)
+    setShowSuiviModal(true)
+  }, [])
+
+  const onOpenObservations = useCallback((activite: Ptba) => {
+    setObservationActivite(activite as PtbaProjet)
+    setShowObservationModal(true)
+  }, [])
+
   const columns = useMemo(
     () =>
       buildSuiviPtbaProjetColumns({
-        onOpenSuivi: (activite) => {
-          setSuiviActivite(activite as PtbaProjet)
-          setShowSuiviModal(true)
-        },
-        onOpenObservations: (activite) => {
-          setObservationActivite(activite as PtbaProjet)
-          setShowObservationModal(true)
-        },
+        onOpenSuivi,
+        onOpenObservations,
         tachesByActivite,
         avancementByActivite,
         progressLoading,
       }),
-    [tachesByActivite, avancementByActivite, progressLoading]
+    [
+      onOpenSuivi,
+      onOpenObservations,
+      tachesByActivite,
+      avancementByActivite,
+      progressLoading,
+    ]
   )
 
   return (
     <div className='space-y-4'>
-      <p className='text-sm text-muted-foreground'>
-        Suivi d&apos;avancement des activités PTBA rattachées à ce projet.
-      </p>
+      <div className='flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between'>
+        <p className='text-sm text-muted-foreground'>
+          Suivi d&apos;avancement des activités PTBA rattachées à ce projet.
+        </p>
+        {filteredVersionOptions.length > 0 ? (
+          <PtbaVersionSelect
+            options={filteredVersionOptions}
+            value={selectedVersionId}
+            onChange={handleChangeVersion}
+          />
+        ) : null}
+      </div>
 
       <GenericTable<PtbaProjet>
         data={ptbas}
@@ -121,6 +157,7 @@ export default function ProjetSuiviPtbaPanel({ projet }: ProjetSuiviPtbaPanelPro
                   content: (
                     <SuiviDecaissementPtbaProjetManager
                       key={suiviActivite.id_ptba}
+                      projet={projet}
                       activite={suiviActivite}
                     />
                   ),

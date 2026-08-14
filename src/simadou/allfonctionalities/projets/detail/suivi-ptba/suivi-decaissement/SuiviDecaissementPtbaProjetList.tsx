@@ -12,6 +12,8 @@ import { useDeleteSuiviDecaissementProjet } from '@/simadou/allHooks/admin/suivi
 type Props = {
   suivis: SuiviDecaissementPtbaProjet[]
   idActivite: number
+  regionLabelById?: Map<number, string>
+  financementLabelById?: Map<number, string>
   onEdit: (row: SuiviDecaissementPtbaProjet) => void
   onAdd: () => void
 }
@@ -19,6 +21,8 @@ type Props = {
 export default function SuiviDecaissementPtbaProjetList({
   suivis,
   idActivite,
+  regionLabelById,
+  financementLabelById,
   onEdit,
   onAdd,
 }: Props) {
@@ -37,8 +41,10 @@ export default function SuiviDecaissementPtbaProjetList({
           setCurrentRow(row)
           setOpen('delete')
         },
+        regionLabelById,
+        financementLabelById,
       }),
-    [onEdit, setOpen]
+    [onEdit, setOpen, regionLabelById, financementLabelById]
   )
 
   const handleConfirmDelete = (row: SuiviDecaissementPtbaProjet) => {

@@ -1,6 +1,5 @@
 import type { CadreResultat, NiveauCadreResultat } from '@/simadou/allTypes'
 import {
-  resolveActeurLabel,
   resolveRelationCode,
   resolveRelationId,
 } from '@/simadou/lib/resolveApiRelation'
@@ -32,46 +31,25 @@ export function resolveParentCrCode(
   return resolveRelationCode(value, 'code_cr')
 }
 
-export function resolvePartenaireCode(
-  value: CadreResultat['partenaire_cr']
-): string | null {
-  return resolveRelationCode(value, 'code_acteur')
-}
-
-export function resolvePartenaireLabel(
-  value: CadreResultat['partenaire_cr']
-): string {
-  return resolveActeurLabel(value) ?? 'Non défini'
-}
-
 export function buildCadreParentOptions({
   cadres,
-  niveaux,
-  selectedNiveauId,
+  parentId,
   excludeCadreId,
 }: {
   cadres: CadreResultat[]
-  niveaux: NiveauCadreResultat[]
-  selectedNiveauId: number | null
+  parentId?: number
   excludeCadreId?: number
 }) {
-  if (!selectedNiveauId) return []
-
-  const selectedNiveau = niveaux.find((n) => n.id_ncr === selectedNiveauId)
-  if (!selectedNiveau) return []
-
-  const niveauById = new Map(niveaux.map((n) => [n.id_ncr, n]))
-
   return cadres
     .filter((cadre) => {
-      const cadreNiveauId = resolveNiveauCrId(cadre.niveau_cr)
-      const candidateNiveau = cadreNiveauId
-        ? niveauById.get(cadreNiveauId)
-        : undefined
+      const cadreNiveauId =
+        typeof cadre.niveau_cr === 'object'
+          ? cadre.niveau_cr?.id_ncr
+          : Number(cadre.niveau_cr)
 
       return (
-        candidateNiveau != null &&
-        Number(candidateNiveau.nombre_ncr) < Number(selectedNiveau.nombre_ncr) &&
+        cadreNiveauId != null &&
+        cadreNiveauId === parentId &&
         cadre.id_cr !== excludeCadreId
       )
     })
@@ -79,4 +57,12 @@ export function buildCadreParentOptions({
       value: cadre.code_cr,
       label: `${cadre.code_cr} - ${cadre.intutile_cr}`,
     }))
+}
+
+export function getFixedCodeLengthForNiveauCr(
+  niveaux: NiveauCadreResultat[],
+  niveauId: number
+): number {
+  const niveauConfig = niveaux.find((n) => n.id_ncr === niveauId)
+  return Number(niveauConfig?.code_number_ncr) || 2
 }

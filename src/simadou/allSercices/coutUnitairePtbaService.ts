@@ -14,7 +14,7 @@ class CoutUnitairePtbaService {
     url: string,
     idActivite: number
   ): Promise<CoutUnitairePtba[]> {
-    const response = await apiClient.request<CoutUnitairePtba[]>(url)
+    const response = await apiClient.request<CoutUnitairePtba[]>(`${url}?ptba_activite=${idActivite}`)
     return filterCoutsUnitairesByActivite(response, idActivite)
   }
 

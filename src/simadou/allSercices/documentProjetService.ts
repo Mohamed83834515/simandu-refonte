@@ -1,11 +1,10 @@
 import { apiClient } from '@/axios/api'
 import type { DocumentProjet } from '../allTypes/documentProjet'
-import {
-  filterDocumentsByProjet,
-  type DocumentProjetApiPayload,
-} from '../lib/documentProjetUtils'
+import type { DocumentProjetApiPayload } from '../lib/documentProjetUtils'
+import { normalizeApiList } from './apiListUtils'
 
 const ENDPOINT = '/documents-projets/'
+const DOSSIER_DOCUMENTS_BASE = '/dossiers-projets/'
 
 function toFormData(
   data: DocumentProjetApiPayload,
@@ -13,6 +12,7 @@ function toFormData(
 ): FormData {
   const fd = new FormData()
   fd.append('projet', String(data.projet))
+  fd.append('dossier', String(data.dossier))
   if (data.description_document?.trim()) {
     fd.append('description_document', data.description_document.trim())
   }
@@ -23,23 +23,11 @@ function toFormData(
 }
 
 const documentProjetService = {
-  async getAll(): Promise<DocumentProjet[]> {
-    return apiClient.request<DocumentProjet[]>(ENDPOINT, { method: 'GET' })
-  },
-
-  async getByProjet(idProjet: number): Promise<DocumentProjet[]> {
-    try {
-      const byParam = await apiClient.request<DocumentProjet[]>(ENDPOINT, {
-        method: 'GET',
-        params: { projet: idProjet },
-      })
-      if (byParam.length > 0) return byParam
-    } catch {
-      // Repli filtrage client
-    }
-
-    const all = await this.getAll()
-    return filterDocumentsByProjet(all, idProjet)
+  async getByDossier(idDossier: number): Promise<DocumentProjet[]> {
+    const response = await apiClient.request<unknown>(
+      `${DOSSIER_DOCUMENTS_BASE}${idDossier}/documents/`
+    )
+    return normalizeApiList<DocumentProjet>(response)
   },
 
   async create(

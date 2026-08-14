@@ -21,7 +21,6 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import type { SuiviIndicateurTacheProjet } from '@/simadou/allTypes/suiviIndicateurTacheProjet'
-import type { Ptba } from '@/simadou/allTypes'
 import { IndicateurTache } from '@/simadou/allTypes/indicateurTache'
 import type { SuiviIndicateurTacheProjetPayload } from '@/simadou/schemas/suiviIndicateurTacheProjetSchemas'
 import {
@@ -67,7 +66,6 @@ function rowHasData(row: SuiviRow): boolean {
 }
 
 type SuiviIndicateurInlineManagerProps = {
-  activite: Ptba
   indicateur: IndicateurTache
   onClose: () => void
 }

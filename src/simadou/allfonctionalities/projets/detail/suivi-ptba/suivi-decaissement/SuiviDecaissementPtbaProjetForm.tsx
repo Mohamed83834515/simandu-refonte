@@ -7,13 +7,22 @@ import {
   suiviDecaissementPtbaProjetSchema,
   type SuiviDecaissementPtbaProjetFormData,
 } from '@/simadou/schemas/suiviDecaissementPtbaProjetSchemas'
+import type { Projet } from '@/simadou/allTypes/projet'
 import type { SuiviDecaissementPtbaProjet } from '@/simadou/allTypes/suiviDecaissementPtbaProjet'
 import {
   useCreateSuiviDecaissementProjet,
   useUpdateSuiviDecaissementProjet,
 } from '@/simadou/allHooks/admin/suiviPtbaProjetHooks'
+import { useGetFinancementsProjet } from '@/simadou/allHooks/admin/financementProjetHooks'
+import {
+  buildSuiviDecaissementRegionOptions,
+  buildSuiviDecaissementTypePartOptions,
+  resolveSuiviDecaissementRegionId,
+  resolveSuiviDecaissementTypePartId,
+} from '@/simadou/lib/suiviDecaissementPtbaProjetUtils'
 
 type Props = {
+  projet: Projet
   idActivite: number
   suivi?: SuiviDecaissementPtbaProjet
   onClose: () => void
@@ -21,26 +30,50 @@ type Props = {
 }
 
 export default function SuiviDecaissementPtbaProjetForm({
+  projet,
   idActivite,
   suivi,
   onClose,
   onSuccess,
 }: Props) {
   const isEditing = !!suivi
-  const config = useMemo(() => getSuiviDecaissementPtbaProjetFormConfig(), [])
+  const { data: financements = [] } = useGetFinancementsProjet(projet.id_projet)
+
+  const regionOptions = useMemo(
+    () => buildSuiviDecaissementRegionOptions(projet.zone_projet),
+    [projet.zone_projet]
+  )
+  const typePartOptions = useMemo(
+    () => buildSuiviDecaissementTypePartOptions(financements),
+    [financements]
+  )
+
+  const config = useMemo(
+    () =>
+      getSuiviDecaissementPtbaProjetFormConfig({
+        regionOptions,
+        typePartOptions,
+      }),
+    [regionOptions, typePartOptions]
+  )
+
   const createMutation = useCreateSuiviDecaissementProjet(idActivite)
   const updateMutation = useUpdateSuiviDecaissementProjet(idActivite)
 
-  const defaultValues = useMemo(
-    (): SuiviDecaissementPtbaProjetFormData => ({
+  const defaultValues = useMemo((): SuiviDecaissementPtbaProjetFormData => {
+    const regionId = resolveSuiviDecaissementRegionId(suivi)
+    const typePartId = resolveSuiviDecaissementTypePartId(suivi)
+
+    return {
       date_suivi_dec:
         suivi?.date_suivi_dec?.slice(0, 10) ||
         new Date().toISOString().split('T')[0],
+      region: regionId ?? regionOptions[0]?.value ?? 0,
+      type_part: typePartId ?? typePartOptions[0]?.value ?? 0,
       observation: suivi?.observation ?? '',
       montant_decaisse: suivi?.montant_decaisse ?? 0,
-    }),
-    [suivi]
-  )
+    }
+  }, [suivi, regionOptions, typePartOptions])
 
   const onSubmit = (data: SuiviDecaissementPtbaProjetFormData) => {
     const callbacks = {
@@ -73,6 +106,16 @@ export default function SuiviDecaissementPtbaProjetForm({
     }
 
     createMutation.mutate(data, callbacks)
+  }
+
+  if (regionOptions.length === 0 || typePartOptions.length === 0) {
+    return (
+      <p className='py-6 text-center text-sm text-muted-foreground'>
+        {regionOptions.length === 0
+          ? 'Aucune zone configurée sur ce projet.'
+          : 'Aucun financement configuré pour ce projet.'}
+      </p>
+    )
   }
 
   return (

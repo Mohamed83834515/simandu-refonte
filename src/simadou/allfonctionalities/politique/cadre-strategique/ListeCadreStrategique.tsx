@@ -1,6 +1,29 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { GenericTable } from '@/Global/Generic/Generictable'
+import { GenericDeleteDialog } from '@/Global/Tableaux/GenericDeleteDialog'
+import { buildCadreStrategiqueColumns } from '@/simadou/allColonnes/cadre-strategique-columns'
+import { useGetActeurs } from '@/simadou/allHooks/admin/acteurHooks'
+import {
+  useDeleteCadreStrategique,
+  useGetCadresStrategique,
+  useGetNiveauxCadreStrategique,
+} from '@/simadou/allHooks/admin/cadreStrategiqueHooks'
+import type { CadreStrategique } from '@/simadou/allTypes/cadreStrategique'
+import type { NiveauCadreStrategique } from '@/simadou/allTypes/niveauCadreStrategique'
+import { resolveNiveauCsNumber } from '@/simadou/lib/cadreStrategiqueUtils'
 import { Plus, Search, Settings } from 'lucide-react'
 import { toast } from 'sonner'
+import {
+  useActiveProgramme,
+  useActiveProgrammeId,
+} from '@/hooks/use-active-programme'
+import useDialogState from '@/hooks/use-dialog-state'
+import { useEmbeddedTableState } from '@/hooks/use-embedded-table-state'
+import {
+  NiveauTabTrigger,
+  NiveauTabsList,
+  useNiveauTabsTheme,
+} from '@/components/ui/NiveauTabs'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import {
@@ -11,39 +34,11 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent } from '@/components/ui/tabs'
-import { GenericTable } from '@/Global/Generic/Generictable'
-import { GenericDeleteDialog } from '@/Global/Tableaux/GenericDeleteDialog'
-import useDialogState from '@/hooks/use-dialog-state'
-import { useEmbeddedTableState } from '@/hooks/use-embedded-table-state'
-import {
-  useActiveProgramme,
-  useActiveProgrammeId,
-} from '@/hooks/use-active-programme'
-import type { CadreStrategique } from '@/simadou/allTypes/cadreStrategique'
-import type { NiveauCadreStrategique } from '@/simadou/allTypes/niveauCadreStrategique'
-import { buildCadreStrategiqueColumns } from '@/simadou/allColonnes/cadre-strategique-columns'
-import {
-  useDeleteCadreStrategique,
-  useGetCadresStrategique,
-  useGetNiveauxCadreStrategique,
-} from '@/simadou/allHooks/admin/cadreStrategiqueHooks'
-import { useGetActeurs } from '@/simadou/allHooks/admin/acteurHooks'
-import {
-  NiveauTabTrigger,
-  NiveauTabsList,
-  useNiveauTabsTheme,
-} from '@/components/ui/NiveauTabs'
-import {
-  filterNiveauxByProgramme,
-  getNiveauCadreStrategiqueLibelle,
-  resolveNiveauCsNumber,
-  sortNiveauxCadreStrategique,
-} from '@/simadou/lib/cadreStrategiqueUtils'
 import CadreStrategiqueFormPanel from './CadreStrategiqueFormPanel'
 import NiveauCadreStrategiqueDialog from './NiveauCadreStrategiqueDialog'
 
 function CadreStrategiqueNiveauTable({
-  niveauCodeNumber,
+  niveauId,
   niveaux,
   cadres,
   acteurs,
@@ -52,7 +47,7 @@ function CadreStrategiqueNiveauTable({
   onEdit,
   onDeleteRequest,
 }: {
-  niveauCodeNumber: number
+  niveauId: number
   niveaux: NiveauCadreStrategique[]
   cadres: CadreStrategique[]
   acteurs: { id_acteur: number; nom_acteur: string; code_acteur: string }[]
@@ -62,25 +57,24 @@ function CadreStrategiqueNiveauTable({
   onDeleteRequest: (row: CadreStrategique) => void
 }) {
   const { search, navigate } = useEmbeddedTableState()
-
   const columns = useMemo(
     () =>
       buildCadreStrategiqueColumns({
-        cadres,
+        currentNiveauId: niveauId,
         niveaux,
-        currentNiveauCodeNumber: niveauCodeNumber,
+        cadres,
         acteurs,
         onEdit,
         onDeleteRequest,
       }),
-    [cadres, niveaux, niveauCodeNumber, acteurs, onEdit, onDeleteRequest]
+    [niveauId, niveaux, cadres, acteurs, onEdit, onDeleteRequest]
   )
 
   const rows = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase()
 
     return cadres.filter((cadre) => {
-      if (resolveNiveauCsNumber(cadre.niveau_cs) !== niveauCodeNumber) {
+      if (cadre.niveau_cs !== niveauId) {
         return false
       }
 
@@ -91,7 +85,7 @@ function CadreStrategiqueNiveauTable({
         cadre.code_cs.toLowerCase().includes(normalizedSearch)
       )
     })
-  }, [cadres, niveauCodeNumber, searchTerm])
+  }, [cadres, niveauId, searchTerm])
 
   return (
     <GenericTable<CadreStrategique>
@@ -115,47 +109,38 @@ export default function ListeCadreStrategique() {
 
   const { data: niveaux = [], isLoading: isLoadingNiveaux } =
     useGetNiveauxCadreStrategique()
-  const { data: cadres = [], dataUpdatedAt } = useGetCadresStrategique(programmeId)
+  const { data: cadres = [], dataUpdatedAt } = useGetCadresStrategique()
   const { data: acteurs = [] } = useGetActeurs()
   const deleteMutation = useDeleteCadreStrategique(programmeId)
 
-  const sortedNiveaux = useMemo(
-    () =>
-      sortNiveauxCadreStrategique(
-        filterNiveauxByProgramme(niveaux, codeProgramme, programmeId)
-      ),
-    [niveaux, codeProgramme, programmeId]
-  )
-
-  const hasNiveaux = sortedNiveaux.length > 0
+  const hasNiveaux = niveaux.length > 0
   const { tabsStyle } = useNiveauTabsTheme()
 
-  const [activeNiveauCode, setActiveNiveauCode] = useState<string>('')
+  const [activeNiveau, setActiveNiveau] = useState<
+    NiveauCadreStrategique | undefined
+  >()
   const [searchTerm, setSearchTerm] = useState('')
   const [showForm, setShowForm] = useState(false)
   const [showNiveauxDialog, setShowNiveauxDialog] = useState(false)
-  const [selectedCadre, setSelectedCadre] = useState<CadreStrategique | null>(null)
+  const [selectedCadre, setSelectedCadre] = useState<CadreStrategique | null>(
+    null
+  )
   const [deleteOpen, setDeleteOpen] = useDialogState<'delete'>(null)
-  const [cadreToDelete, setCadreToDelete] = useState<CadreStrategique | null>(null)
-
-  useEffect(() => {
-    if (sortedNiveaux.length > 0 && activeNiveauCode === '') {
-      setActiveNiveauCode(String(sortedNiveaux[0].code_number_nsc))
-    }
-  }, [sortedNiveaux, activeNiveauCode])
-
-  const currentNiveauCode = Number(
-    activeNiveauCode || sortedNiveaux[0]?.code_number_nsc || 0
+  const [cadreToDelete, setCadreToDelete] = useState<CadreStrategique | null>(
+    null
   )
 
-  const currentNiveauLibelle = useMemo(() => {
-    const libelle = getNiveauCadreStrategiqueLibelle(
-      niveaux,
-      currentNiveauCode,
-      codeProgramme
-    )
-    return libelle || 'cadre'
-  }, [niveaux, currentNiveauCode, codeProgramme])
+  useEffect(() => {
+    if (niveaux.length > 0 && activeNiveau == null) {
+      setActiveNiveau(niveaux[0])
+    }
+  }, [niveaux, activeNiveau])
+
+  const currentNiveauId = Number(
+    activeNiveau?.id_nsc || niveaux[0]?.id_nsc || 0
+  )
+
+  const currentNiveauLibelle = activeNiveau?.libelle_nsc || 'cadre'
 
   const countByNiveau = useMemo(() => {
     const counts = new Map<number, number>()
@@ -167,10 +152,13 @@ export default function ListeCadreStrategique() {
     return counts
   }, [cadres])
 
-  const handleTabChange = useCallback((value: string) => {
-    setActiveNiveauCode(value)
-    setSearchTerm('')
-  }, [])
+  const handleTabChange = useCallback(
+    (value: string) => {
+      setActiveNiveau(niveaux.find((n) => n.id_nsc == Number(value)))
+      setSearchTerm('')
+    },
+    [niveaux]
+  )
 
   const handleEdit = useCallback((cadre: CadreStrategique) => {
     setSelectedCadre(cadre)
@@ -204,7 +192,8 @@ export default function ListeCadreStrategique() {
     return (
       <Card className='border-dashed p-6 text-center'>
         <p className='text-sm text-muted-foreground'>
-          Sélectionnez un programme dans l&apos;en-tête pour gérer le cadre stratégique.
+          Sélectionnez un programme dans l&apos;en-tête pour gérer le cadre
+          stratégique.
         </p>
       </Card>
     )
@@ -225,8 +214,8 @@ export default function ListeCadreStrategique() {
           <Settings className='mx-auto mb-4 h-10 w-10 text-muted-foreground' />
           <h3 className='mb-2 text-lg font-semibold'>Configuration requise</h3>
           <p className='mb-4 text-sm text-muted-foreground'>
-            Veuillez d&apos;abord configurer les niveaux du cadre stratégique avant
-            de pouvoir ajouter des cadres.
+            Veuillez d&apos;abord configurer les niveaux du cadre stratégique
+            avant de pouvoir ajouter des cadres.
           </p>
           <Button type='button' onClick={() => setShowNiveauxDialog(true)}>
             <Settings className='h-4 w-4' />
@@ -248,18 +237,18 @@ export default function ListeCadreStrategique() {
         orientation='vertical'
         className='space-y-4'
         style={tabsStyle}
-        key={sortedNiveaux.length}
-        value={String(currentNiveauCode)}
+        key={niveaux.length}
+        value={String(currentNiveauId)}
         onValueChange={handleTabChange}
       >
         <div className='flex items-center justify-between gap-4'>
           <div className='flex-1 overflow-x-auto'>
             <NiveauTabsList>
-              {sortedNiveaux.map((n) => (
+              {niveaux.map((n) => (
                 <NiveauTabTrigger
                   key={n.id_nsc}
-                  value={String(n.code_number_nsc)}
-                  count={countByNiveau.get(Number(n.code_number_nsc)) ?? 0}
+                  value={String(n.id_nsc)}
+                  count={countByNiveau.get(n.id_nsc)}
                 >
                   {n.libelle_nsc}
                 </NiveauTabTrigger>
@@ -279,20 +268,17 @@ export default function ListeCadreStrategique() {
             </div>
             <Button type='button' onClick={handleAddForm}>
               <Plus className='h-4 w-4' />
-               Ajout des {currentNiveauLibelle}s
+              Ajout des {currentNiveauLibelle}s
             </Button>
           </div>
         </div>
 
-        {sortedNiveaux.map((n) => (
-          <TabsContent
-            key={n.id_nsc}
-            value={String(n.code_number_nsc)}
-          >
-            {Number(n.code_number_nsc) === currentNiveauCode && (
+        {niveaux.map((n) => (
+          <TabsContent key={n.id_nsc} value={String(n.id_nsc)}>
+            {n.id_nsc === currentNiveauId && (
               <CadreStrategiqueNiveauTable
-                niveauCodeNumber={Number(n.code_number_nsc)}
-                niveaux={sortedNiveaux}
+                niveauId={n.id_nsc}
+                niveaux={niveaux}
                 cadres={cadres}
                 acteurs={acteurs}
                 searchTerm={searchTerm}
@@ -320,35 +306,41 @@ export default function ListeCadreStrategique() {
                 setDeleteOpen(null)
               },
               onError: () =>
-                toast.error('Erreur lors de la suppression du cadre stratégique'),
+                toast.error(
+                  'Erreur lors de la suppression du cadre stratégique'
+                ),
             })
           }
         />
       )}
 
-      <Dialog open={showForm} onOpenChange={(o) => !o && handleCloseForm()}>
-        <DialogContent className='gap-0 overflow-hidden p-0 sm:max-w-3xl' aria-describedby={undefined}>
-          <DialogHeader className='border-b px-6 py-4'>
-            <DialogTitle>
-              {selectedCadre
-                ? `Mise à jour d’un ${currentNiveauLibelle}`
-                : `Ajout d’un ${currentNiveauLibelle}`}
-            </DialogTitle>
-          </DialogHeader>
-          <div className='px-6 py-4'>
-            <CadreStrategiqueFormPanel
-              programmeId={programmeId}
-              codeProgramme={codeProgramme}
-              niveauCodeNumber={currentNiveauCode}
-              niveaux={niveaux}
-              cadres={cadres}
-              cadre={selectedCadre}
-              onClose={handleCloseForm}
-              onSuccess={handleCloseForm}
-            />
-          </div>
-        </DialogContent>
-      </Dialog>
+      {activeNiveau && (
+        <Dialog open={showForm} onOpenChange={(o) => !o && handleCloseForm()}>
+          <DialogContent
+            className='gap-0 overflow-hidden p-0 sm:max-w-3xl'
+            aria-describedby={undefined}
+          >
+            <DialogHeader className='border-b px-6 py-4'>
+              <DialogTitle>
+                {selectedCadre
+                  ? `Mise à jour d’un ${currentNiveauLibelle}`
+                  : `Ajout d’un ${currentNiveauLibelle}`}
+              </DialogTitle>
+            </DialogHeader>
+            <div className='px-6 py-4'>
+              <CadreStrategiqueFormPanel
+                programmeId={programmeId}
+                niveau={activeNiveau}
+                niveaux={niveaux}
+                cadres={cadres}
+                cadre={selectedCadre}
+                onClose={handleCloseForm}
+                onSuccess={handleCloseForm}
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
 
       <NiveauCadreStrategiqueDialog
         open={showNiveauxDialog}

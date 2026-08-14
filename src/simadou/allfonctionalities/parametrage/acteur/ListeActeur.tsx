@@ -73,7 +73,7 @@ export function ListeActeur() {
 
   if (isLoadingActeurs || isLoadingCategories) {
     return (
-      <div className='flex items-center justify-center py-12'>
+      <div className='flex items-center justify-center py-6'>
         <Loader2 className='h-6 w-6 animate-spin text-muted-foreground' />
       </div>
     )
@@ -82,46 +82,47 @@ export function ListeActeur() {
   const currentActiveId = selectedCategorieId ?? defaultCategorieId
 
   return (
-    <div className='space-y-6'>
+    <div className='space-y-2 px-2'>
       {/* En-tête */}
-      <div className='flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between'>
-        <div>
-          <h2 className='text-2xl font-bold tracking-tight'>Gestion des acteurs</h2>
-          <p className='text-sm text-muted-foreground'>
-            Gérez les acteurs institutionnels, techniques et partenaires
-          </p>
-        </div>
-      </div>
-
-      {/* Onglets des catégories avec style comme NiveauTabs */}
       <div className='overflow-x-auto'>
         <Tabs
           orientation='vertical'
-          className='space-y-2'
+          className='gap-1 space-y-1'
           style={tabsStyle}
           value={String(currentActiveId)}
           onValueChange={(val) => setSelectedCategorieId(Number(val))}
         >
           <TabsList className='inline-flex w-full min-w-max gap-1 bg-transparent p-0'>
-            {sortedCategories.map((categorie) => (
-              <TabsTrigger
-                key={categorie.id_categorie}
-                value={String(categorie.id_categorie)}
-              >
-                {categorie.nom_categorie.length > 15
-                  ? categorie.nom_categorie.substring(0, 12) + '…'
-                  : categorie.nom_categorie}
-                <span className='ml-2 rounded-full bg-muted px-1.5 py-0.5 text-xs text-black'>
-                  ({countByCategorie.get(categorie.id_categorie) || 0})
-                </span>
-              </TabsTrigger>
-            ))}
+            {sortedCategories && sortedCategories.length > 0 ? (
+              sortedCategories.map((categorie) => {
+                // Sécuriser chaque élément
+                if (!categorie || !categorie.id_categorie) return null
+
+                const nom = categorie.nom_categorie || 'Sans nom'
+                const displayNom = nom.length > 15 ? nom.substring(0, 12) + '…' : nom
+                const count = countByCategorie?.get(categorie.id_categorie) || 0
+
+                return (
+                  <TabsTrigger
+                    key={categorie.id_categorie}
+                    value={String(categorie.id_categorie)}
+                  >
+                    {displayNom}
+                    <span className='rounded-full bg-muted px-1.5 py-0.5 text-xs text-black'>
+                      ({count})
+                    </span>
+                  </TabsTrigger>
+                )
+              })
+            ) : (
+              <span>Aucune catégorie d'acteur trouvée</span>
+            )}
           </TabsList>
         </Tabs>
       </div>
 
       {/* Tableau des acteurs */}
-      <div className='space-y-4'>
+      <div className='space-y-2'>
         <GenericTable
           data={filteredActeurs}
           columns={columns}

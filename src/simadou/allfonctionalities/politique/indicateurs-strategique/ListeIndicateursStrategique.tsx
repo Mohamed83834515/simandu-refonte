@@ -1,6 +1,28 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { GenericTable } from '@/Global/Generic/Generictable'
+import { GenericDeleteDialog } from '@/Global/Tableaux/GenericDeleteDialog'
+import { buildIndicateurStrategiqueColumns } from '@/simadou/allColonnes/indicateur-strategique-columns'
+import { useGetNiveauxCadreStrategique } from '@/simadou/allHooks/admin/cadreStrategiqueHooks'
+import { useGetCiblesIndicateurStrategique } from '@/simadou/allHooks/admin/cibleIndicateurStrategiqueHooks'
+import {
+  useDeleteIndicateurStrategique,
+  useGetIndicateursStrategique,
+} from '@/simadou/allHooks/admin/indicateurStrategiqueHooks'
+import { useGetPersonnels } from '@/simadou/allHooks/admin/personnelHooks'
+import type { IndicateurStrategique } from '@/simadou/allTypes/indicateurStrategique'
 import { Search } from 'lucide-react'
 import { toast } from 'sonner'
+import {
+  useActiveProgramme,
+  useActiveProgrammeId,
+} from '@/hooks/use-active-programme'
+import useDialogState from '@/hooks/use-dialog-state'
+import { useEmbeddedTableState } from '@/hooks/use-embedded-table-state'
+import {
+  NiveauTabTrigger,
+  NiveauTabsList,
+  useNiveauTabsTheme,
+} from '@/components/ui/NiveauTabs'
 import { Card } from '@/components/ui/card'
 import {
   Dialog,
@@ -12,42 +34,12 @@ import {
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent } from '@/components/ui/tabs'
 import { DataTableToolbarOutlineButton } from '@/components/data-table/toolbar-outline-button'
-import { GenericTable } from '@/Global/Generic/Generictable'
-import { GenericDeleteDialog } from '@/Global/Tableaux/GenericDeleteDialog'
-import useDialogState from '@/hooks/use-dialog-state'
-import { useEmbeddedTableState } from '@/hooks/use-embedded-table-state'
-import {
-  useActiveProgramme,
-  useActiveProgrammeId,
-} from '@/hooks/use-active-programme'
-import type { IndicateurStrategique } from '@/simadou/allTypes/indicateurStrategique'
-import { buildIndicateurStrategiqueColumns } from '@/simadou/allColonnes/indicateur-strategique-columns'
-import {
-  useDeleteIndicateurStrategique,
-  useGetIndicateursStrategique,
-} from '@/simadou/allHooks/admin/indicateurStrategiqueHooks'
-import {
-  useGetCiblesIndicateurStrategique,
-} from '@/simadou/allHooks/admin/cibleIndicateurStrategiqueHooks'
-import { useGetNiveauxCadreStrategique } from '@/simadou/allHooks/admin/cadreStrategiqueHooks'
-import { useGetPersonnels } from '@/simadou/allHooks/admin/personnelHooks'
-import {
-  NiveauTabTrigger,
-  NiveauTabsList,
-  useNiveauTabsTheme,
-} from '@/components/ui/NiveauTabs'
-import {
-  filterNiveauxByProgramme,
-  sortNiveauxCadreStrategique,
-} from '@/simadou/lib/cadreStrategiqueUtils'
-import {
-  resolveIndicateurStrategiqueCode,
-} from './indicateurStrategiqueFormUtils'
 import CiblesIndicateurStrategiqueDialog from './CiblesIndicateurStrategiqueDialog'
 import IndicateurStrategiqueFormPanel from './IndicateurStrategiqueFormPanel'
+import { resolveIndicateurStrategiqueCode } from './indicateurStrategiqueFormUtils'
 
 function IndicateurStrategiqueNiveauTable({
-  niveauCodeNumber,
+  niveauId,
   indicateurs,
   searchTerm,
   tableKey,
@@ -57,7 +49,7 @@ function IndicateurStrategiqueNiveauTable({
   onEdit,
   onDeleteRequest,
 }: {
-  niveauCodeNumber: number
+  niveauId: number
   indicateurs: IndicateurStrategique[]
   searchTerm: string
   tableKey: string
@@ -84,14 +76,14 @@ function IndicateurStrategiqueNiveauTable({
   const rows = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase()
     return indicateurs.filter((ind) => {
-      if (Number(ind.niveau_istr) !== niveauCodeNumber) return false
+      if (Number(ind.niveau_istr) !== niveauId) return false
       if (!normalizedSearch) return true
       return (
         ind.intitule_indicateur_istr.toLowerCase().includes(normalizedSearch) ||
         ind.code_indicateur_istr.toLowerCase().includes(normalizedSearch)
       )
     })
-  }, [indicateurs, niveauCodeNumber, searchTerm])
+  }, [indicateurs, niveauId, searchTerm])
 
   return (
     <GenericTable<IndicateurStrategique>
@@ -115,20 +107,13 @@ export default function ListeIndicateursStrategique() {
 
   const { data: niveaux = [], isLoading: isLoadingNiveaux } =
     useGetNiveauxCadreStrategique()
-  const { data: indicateurs = [], dataUpdatedAt } = useGetIndicateursStrategique()
+  const { data: indicateurs = [], dataUpdatedAt } =
+    useGetIndicateursStrategique()
   const { data: cibles = [] } = useGetCiblesIndicateurStrategique()
   const { data: personnels = [] } = useGetPersonnels()
   const deleteMutation = useDeleteIndicateurStrategique()
 
-  const sortedNiveaux = useMemo(
-    () =>
-      sortNiveauxCadreStrategique(
-        filterNiveauxByProgramme(niveaux, codeProgramme, programmeId)
-      ),
-    [niveaux, codeProgramme, programmeId]
-  )
-
-  const hasNiveaux = sortedNiveaux.length > 0
+  const hasNiveaux = niveaux.length > 0
   const { tabsStyle } = useNiveauTabsTheme()
 
   const [activeNiveauCode, setActiveNiveauCode] = useState<string>('')
@@ -144,22 +129,37 @@ export default function ListeIndicateursStrategique() {
     null
   )
 
+  const [currentProgramme, setCurrentProgramme] = useState(codeProgramme)
+  
   useEffect(() => {
-    if (sortedNiveaux.length > 0 && activeNiveauCode === '') {
-      setActiveNiveauCode(String(sortedNiveaux[0].code_number_nsc))
+    // Si le programme a changé, réinitialiser tout
+    if (codeProgramme !== currentProgramme) {
+      setCurrentProgramme(codeProgramme)
+      setActiveNiveauCode('')
     }
-  }, [sortedNiveaux, activeNiveauCode])
+  }, [codeProgramme, currentProgramme])
 
-  const currentNiveauCode = Number(
-    activeNiveauCode || sortedNiveaux[0]?.code_number_nsc || 0
+  // Effet pour sélectionner le premier niveau
+  useEffect(() => {
+    if (niveaux.length > 0 && activeNiveauCode === '') {
+      const premierNiveau = niveaux[0]
+      if (premierNiveau && premierNiveau.id_nsc != null) {
+        const code = String(premierNiveau.id_nsc)
+        setActiveNiveauCode(code)
+      }
+    }
+  }, [niveaux, activeNiveauCode])
+
+  const currentNiveauId = Number(
+    activeNiveauCode || niveaux[0]?.id_nsc || 0
+  )
+  console.log("currentNiveauId", currentNiveauId)
+  const currentNiveau = useMemo(
+    () => niveaux.find((x) => Number(x.id_nsc) === currentNiveauId) ?? niveaux[0],
+    [niveaux, currentNiveauId]
   )
 
-  const currentNiveauLibelle = useMemo(() => {
-    const n = sortedNiveaux.find(
-      (x) => Number(x.code_number_nsc) === currentNiveauCode
-    )
-    return n?.libelle_nsc ?? 'indicateur'
-  }, [sortedNiveaux, currentNiveauCode])
+  const currentNiveauLibelle = currentNiveau?.libelle_nsc ?? 'indicateur'
 
   const getValeurCible = useCallback(
     (ind: IndicateurStrategique) => {
@@ -192,11 +192,15 @@ export default function ListeIndicateursStrategique() {
     },
     [personnels]
   )
-
   const handleTabChange = useCallback((value: string) => {
     setActiveNiveauCode(value)
     setSearchTerm('')
-  }, [])
+  }, [niveaux])
+
+  // const handleTabChange = useCallback((value: string) => {
+  //   setActiveNiveauCode(value)
+  //   setSearchTerm('')
+  // }, [])
 
   const handleEdit = useCallback((row: IndicateurStrategique) => {
     setSelectedIndicateur(row)
@@ -234,8 +238,8 @@ export default function ListeIndicateursStrategique() {
     return (
       <Card className='border-dashed p-6 text-center'>
         <p className='text-sm text-muted-foreground'>
-          Sélectionnez un programme dans l&apos;en-tête pour gérer les indicateurs
-          stratégiques.
+          Sélectionnez un programme dans l&apos;en-tête pour gérer les
+          indicateurs stratégiques.
         </p>
       </Card>
     )
@@ -266,20 +270,20 @@ export default function ListeIndicateursStrategique() {
         orientation='vertical'
         className='space-y-4'
         style={tabsStyle}
-        key={sortedNiveaux.length}
-        value={String(currentNiveauCode)}
+        key={niveaux.length}
+        value={String(currentNiveauId)}
         onValueChange={handleTabChange}
       >
         <div className='flex items-center justify-between gap-4'>
           <div className='flex-1 overflow-x-auto'>
             <NiveauTabsList>
-              {sortedNiveaux.map((n) => (
+              {niveaux.map((n) => (
                 <NiveauTabTrigger
                   key={n.id_nsc}
-                  value={String(n.code_number_nsc)}
+                  value={String(n.id_nsc)}
                   count={
                     indicateurs.filter(
-                      (i) => Number(i.niveau_istr) === Number(n.code_number_nsc)
+                      (i) => Number(i.niveau_istr) === Number(n.id_nsc)
                     ).length
                   }
                 >
@@ -300,19 +304,16 @@ export default function ListeIndicateursStrategique() {
               />
             </div>
             <DataTableToolbarOutlineButton onClick={handleAddForm}>
-               Ajout des {currentNiveauLibelle}s
+              Ajout des {currentNiveauLibelle}s
             </DataTableToolbarOutlineButton>
           </div>
         </div>
 
-        {sortedNiveaux.map((n) => (
-          <TabsContent
-            key={n.id_nsc}
-            value={String(n.code_number_nsc)}
-          >
-            {Number(n.code_number_nsc) === currentNiveauCode && (
+        {niveaux.map((n) => (
+          <TabsContent key={n.id_nsc} value={String(n.id_nsc)}>
+            {Number(n.id_nsc) === currentNiveauId && (
               <IndicateurStrategiqueNiveauTable
-                niveauCodeNumber={Number(n.code_number_nsc)}
+                niveauId={Number(n.id_nsc)}
                 indicateurs={indicateurs}
                 searchTerm={searchTerm}
                 tableKey={`indic-istr-${n.id_nsc}-${dataUpdatedAt}-${searchTerm}`}
@@ -374,10 +375,12 @@ export default function ListeIndicateursStrategique() {
           <div className='px-6 py-4'>
             {programmeId > 0 && codeProgramme && (
               <IndicateurStrategiqueFormPanel
-                key={selectedIndicateur?.id_indicateur_str ?? `new-${currentNiveauCode}`}
-                programmeId={programmeId}
+                key={
+                  selectedIndicateur?.id_indicateur_str ??
+                  `new-${currentNiveauId}`
+                }
+                niveauId={currentNiveauId || 1}
                 codeProgramme={codeProgramme}
-                niveauCodeNumber={currentNiveauCode}
                 indicateur={selectedIndicateur}
                 onClose={handleCloseForm}
                 onSuccess={handleCloseForm}

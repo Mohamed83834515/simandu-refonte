@@ -55,7 +55,7 @@ const PTBAComposanteChart: React.FC<PTBAComposanteChartProps> = ({
   const { stroke } = CHART_COLORS[color];
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-5">
+    <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-3">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">

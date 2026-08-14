@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { Loader2 } from 'lucide-react'
 import type { Ptba } from '@/simadou/allTypes'
@@ -7,10 +7,12 @@ import {
   suiviPtbaQueryKeys,
   useGetIndicateursByActivite,
 } from '@/simadou/allHooks/admin/indicateurTacheHooks'
+import { DataTableToolbarOutlineButton } from '@/components/data-table/toolbar-outline-button'
 import ActiviteTabbedFormPanel from '../ActiviteTabbedFormPanel'
 import {
   ActiviteTabbedSubViewHeader,
   useActiviteTabbedSubView,
+  useActiviteTabbedToolbarAction,
 } from '../ActiviteTabbedDialogContext'
 import IndicateurTacheForm from './IndicateurTacheForm'
 import IndicateurTacheList from './IndicateurTacheList'
@@ -32,10 +34,21 @@ export default function IndicateurTacheManager({
     activite.id_ptba
   )
 
-  const handleAdd = () => {
+  const handleAdd = useCallback(() => {
     setEditing(undefined)
     setShowForm(true)
-  }
+  }, [])
+
+  const toolbarAction = useMemo(
+    () => (
+      <DataTableToolbarOutlineButton onClick={handleAdd}>
+        Ajouter
+      </DataTableToolbarOutlineButton>
+    ),
+    [handleAdd]
+  )
+
+  useActiviteTabbedToolbarAction('indicateurs', toolbarAction, !showForm)
 
   const handleEdit = (row: IndicateurTache) => {
     setEditing(row)
@@ -86,12 +99,11 @@ export default function IndicateurTacheManager({
           />
         </ActiviteTabbedFormPanel>
       ) : (
-        <div className='min-h-0 flex-1 overflow-y-auto px-3 py-2 sm:px-4 sm:py-3'>
+        <div className='min-h-0 flex-1 overflow-y-auto'>
           <IndicateurTacheList
             indicateurs={indicateurs}
             idActivite={activite.id_ptba}
             onEdit={handleEdit}
-            onAdd={handleAdd}
           />
         </div>
       )}

@@ -9,7 +9,8 @@ type FonctionDialogType = 'delete' | 'edit'
 
 export const buildFonctionColumns = (
     setOpen: (dialog: FonctionDialogType | null) => void,
-    setCurrentRow: React.Dispatch<React.SetStateAction<Fonction | null>>
+    setCurrentRow: React.Dispatch<React.SetStateAction<Fonction | null>>,
+    onEdit?: (row: any) => void
 ): ColumnDef<Fonction>[] => {
     return [
         {
@@ -46,7 +47,8 @@ export const buildFonctionColumns = (
                             icon: <UserPen size={16} />,
                             onClick: () => {
                                 setCurrentRow(row.original)
-                                setOpen('edit')
+                                if (onEdit) onEdit(row.original)
+                                else setOpen('edit')
                             },
                         },
                         {

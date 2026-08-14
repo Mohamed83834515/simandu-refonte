@@ -45,7 +45,6 @@ export default function NiveauActiviteProjetManager({
   const createMutation = useCreateNiveauActiviteProjet(codeProjet)
   const updateMutation = useUpdateNiveauActiviteProjet(codeProjet)
   const deleteMutation = useDeleteNiveauActiviteProjet()
-
   const sorted = useMemo(
     () =>
       [...niveaux].sort(

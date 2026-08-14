@@ -37,8 +37,7 @@ export function buildSuiviPtbaProjetColumns(
       key: 'intitule_activite_ptba',
       title: 'Activité',
       maxWidth: 'max-w-md',
-    },
-    { type: 'plain', key: 'version_ptba', title: 'Version PTBA' },
+    }
   ])
 
   const avancementColumn: ColumnDef<Ptba> = {

@@ -43,6 +43,7 @@ export default function ActiviteTabbedDialog({
   title,
 }: ActiviteTabbedDialogProps) {
   const [subViewActive, setSubViewActive] = useState(false)
+  const [toolbarAction, setToolbarAction] = useState<ReactNode | null>(null)
   const [activeTab, setActiveTab] = useState(defaultTab ?? tabs[0]?.value ?? '')
   const { tabsStyle } = useNiveauTabsTheme()
   const initialTab = defaultTab ?? tabs[0]?.value ?? ''
@@ -54,6 +55,7 @@ export default function ActiviteTabbedDialog({
   const handleOpenChange = (next: boolean) => {
     if (!next) {
       setSubViewActive(false)
+      setToolbarAction(null)
       setActiveTab(initialTab)
     }
     onOpenChange(next)
@@ -74,7 +76,11 @@ export default function ActiviteTabbedDialog({
         </DialogTitle>
 
         {activite && tabs.length > 0 && (
-          <ActiviteTabbedDialogProvider setSubViewActive={setSubViewActive}>
+          <ActiviteTabbedDialogProvider
+            activeTab={activeTab}
+            setSubViewActive={setSubViewActive}
+            setToolbarAction={setToolbarAction}
+          >
             {!subViewActive && (
               <ActiviteTableHeading
                 activite={activite}
@@ -86,18 +92,23 @@ export default function ActiviteTabbedDialog({
               key={`${activite.id_ptba}-${tabs.length}`}
               value={activeTab}
               onValueChange={setActiveTab}
-              className='flex min-h-0 w-full flex-1 flex-col'
+              className='flex min-h-0 w-full flex-1 flex-col gap-2.5'
               style={tabsStyle}
             >
               {!subViewActive && (
-                <div className='shrink-0 overflow-x-auto'>
-                  <NiveauTabsList>
-                    {tabs.map((tab) => (
-                      <NiveauTabTrigger key={tab.value} value={tab.value}>
-                        {tab.label}
-                      </NiveauTabTrigger>
-                    ))}
-                  </NiveauTabsList>
+                <div className='flex shrink-0 items-center justify-between gap-2'>
+                  <div className='min-w-0 flex-1 overflow-x-auto'>
+                    <NiveauTabsList>
+                      {tabs.map((tab) => (
+                        <NiveauTabTrigger key={tab.value} value={tab.value}>
+                          {tab.label}
+                        </NiveauTabTrigger>
+                      ))}
+                    </NiveauTabsList>
+                  </div>
+                  {toolbarAction ? (
+                    <div className='shrink-0'>{toolbarAction}</div>
+                  ) : null}
                 </div>
               )}
 
@@ -105,7 +116,7 @@ export default function ActiviteTabbedDialog({
                 <TabsContent
                   key={tab.value}
                   value={tab.value}
-                  className='mt-2 flex min-h-0 flex-1 flex-col overflow-hidden data-[state=inactive]:hidden'
+                  className='mt-0 flex min-h-0 flex-1 flex-col overflow-hidden data-[state=inactive]:hidden'
                 >
                   {tab.content}
                 </TabsContent>

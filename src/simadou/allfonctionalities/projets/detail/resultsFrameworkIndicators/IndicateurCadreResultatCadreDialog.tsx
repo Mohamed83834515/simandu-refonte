@@ -1,6 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { GenericTable } from '@/Global/Generic/Generictable'
+import { GenericDeleteDialog } from '@/Global/Tableaux/GenericDeleteDialog'
+import { buildIndicateurCadreResultatColumns } from '@/simadou/allColonnes/indicateur-cadre-resultat-columns'
+import { useGetNiveauxCadreResultat } from '@/simadou/allHooks/admin/cadreResultatHooks'
+import {
+  useDeleteIndicateurCadreResultat,
+  useGetIndicateursCadreResultat,
+} from '@/simadou/allHooks/admin/indicateurCadreResultatHooks'
+import type { CadreResultat, IndicateurCadreResultat } from '@/simadou/allTypes'
 import { Plus } from 'lucide-react'
 import { toast } from 'sonner'
+import useDialogState from '@/hooks/use-dialog-state'
+import { useEmbeddedTableState } from '@/hooks/use-embedded-table-state'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -9,25 +20,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { GenericTable } from '@/Global/Generic/Generictable'
-import { GenericDeleteDialog } from '@/Global/Tableaux/GenericDeleteDialog'
-import useDialogState from '@/hooks/use-dialog-state'
-import { useEmbeddedTableState } from '@/hooks/use-embedded-table-state'
-import type { CadreResultat, IndicateurCadreResultat } from '@/simadou/allTypes'
-import { buildIndicateurCadreResultatColumns } from '@/simadou/allColonnes/indicateur-cadre-resultat-columns'
-import { useGetNiveauxCadreResultat } from '@/simadou/allHooks/admin/cadreResultatHooks'
-import { useGetPersonnels } from '@/simadou/allHooks/admin/personnelHooks'
-import {
-  useDeleteIndicateurCadreResultat,
-  useGetIndicateursCadreResultat,
-} from '@/simadou/allHooks/admin/indicateurCadreResultatHooks'
 import IndicateurCadreResultatFormDialog from './IndicateurCadreResultatFormDialog'
 import {
   filterIndicateursForCadreResultat,
   resolveFixedCodeCrFromCadre,
   resolveNiveauCrLabel,
   resolveNiveauIopFromCadre,
-  resolveResponsableIopLabel,
 } from './indicateurCadreResultatFormUtils'
 
 type Modal = 'list' | 'form'
@@ -37,6 +35,7 @@ type Props = {
   onOpenChange: (open: boolean) => void
   cadre: CadreResultat | null
   codeProjet: string
+  idProjet: number
 }
 
 export default function IndicateurCadreResultatCadreDialog({
@@ -44,10 +43,11 @@ export default function IndicateurCadreResultatCadreDialog({
   onOpenChange,
   cadre,
   codeProjet,
+  idProjet,
 }: Props) {
-  const { data: allIndicateurs = [], dataUpdatedAt } = useGetIndicateursCadreResultat()
-  const { data: niveaux = [] } = useGetNiveauxCadreResultat()
-  const { data: personnels = [] } = useGetPersonnels()
+  const { data: allIndicateurs = [], dataUpdatedAt } =
+    useGetIndicateursCadreResultat()
+  const { data: niveaux = [] } = useGetNiveauxCadreResultat(idProjet)
   const deleteMutation = useDeleteIndicateurCadreResultat()
   const tableState = useEmbeddedTableState()
 
@@ -55,7 +55,8 @@ export default function IndicateurCadreResultatCadreDialog({
   const [selectedIndicateur, setSelectedIndicateur] =
     useState<IndicateurCadreResultat | null>(null)
   const [deleteOpen, setDeleteOpen] = useDialogState<'delete'>(null)
-  const [rowToDelete, setRowToDelete] = useState<IndicateurCadreResultat | null>(null)
+  const [rowToDelete, setRowToDelete] =
+    useState<IndicateurCadreResultat | null>(null)
 
   const fixedCadreCrCode = useMemo(
     () => (cadre ? resolveFixedCodeCrFromCadre(cadre) : null),
@@ -102,11 +103,6 @@ export default function IndicateurCadreResultatCadreDialog({
     [setDeleteOpen]
   )
 
-  const getResponsableLabel = useCallback(
-    (row: IndicateurCadreResultat) =>
-      resolveResponsableIopLabel(row.responsable_iop, personnels),
-    [personnels]
-  )
 
   const columns = useMemo(
     () =>
@@ -114,9 +110,8 @@ export default function IndicateurCadreResultatCadreDialog({
         onEdit: handleEdit,
         onDeleteRequest: handleDeleteRequest,
         hideCadreColumn: true,
-        getResponsableLabel,
       }),
-    [handleEdit, handleDeleteRequest, getResponsableLabel]
+    [handleEdit, handleDeleteRequest]
   )
 
   const handleConfirmDelete = (row: IndicateurCadreResultat) => {
@@ -159,7 +154,7 @@ export default function IndicateurCadreResultatCadreDialog({
             </DialogDescription>
           </DialogHeader>
 
-          <div className='px-6 py-4'>
+          <div className='max-w-full overflow-x-auto px-6 py-4'>
             <GenericTable<IndicateurCadreResultat>
               key={`indicateurs-cr-cadre-${cadre.id_cr}-${dataUpdatedAt}-${filteredIndicateurs.length}`}
               data={filteredIndicateurs}
@@ -203,7 +198,10 @@ export default function IndicateurCadreResultatCadreDialog({
         </DialogContent>
       </Dialog>
 
-      <Dialog open={open && modal === 'form'} onOpenChange={(o) => !o && backToList()}>
+      <Dialog
+        open={open && modal === 'form'}
+        onOpenChange={(o) => !o && backToList()}
+      >
         <DialogContent className='gap-0 overflow-hidden p-0 sm:max-w-3xl'>
           <DialogHeader className='border-b px-6 py-4'>
             <DialogTitle>
@@ -224,6 +222,7 @@ export default function IndicateurCadreResultatCadreDialog({
                 `new-${cadre.id_cr}-${fixedNiveauIop ?? 'niveau'}`
               }
               codeProjet={codeProjet}
+              idProjet={idProjet}
               fixedCadreCrCode={fixedCadreCrCode}
               fixedNiveauIop={fixedNiveauIop}
               indicateur={selectedIndicateur}

@@ -10,6 +10,12 @@ export const coutUnitairePtbaQueryKeys = {
     ['couts-unitaires-ptba', idActivite] as const,
 }
 
+export const useGetCoutsUnitaires = () =>
+  useQuery({
+    queryKey: coutUnitairePtbaQueryKeys.all,
+    queryFn: () =>
+      coutUnitairePtbaService.getAll(BASE_URL),
+  })
 export const useGetCoutsUnitairesByActivite = (idActivite: number) =>
   useQuery({
     queryKey: coutUnitairePtbaQueryKeys.byActivite(idActivite),

@@ -1,18 +1,32 @@
 import { type ColumnDef } from '@tanstack/react-table'
-import { Eye, Trash2, UserPen } from 'lucide-react'
+import { Eye, Trash2, UserPen, Lock, Unlock } from 'lucide-react'
 import { DataTableColumnHeader } from '@/components/data-table'
 import { LongText } from '@/components/others/long-text'
 import type { Projet } from '@/simadou/allTypes/projet'
 import { GenericRowActions } from '@/Global/Tableaux/GenericRowActions'
 
-type ProjetDialogType = 'add' | 'edit' | 'delete';
+type ProjetDialogType = 'add' | 'edit' | 'delete'
 
-export function buildProjetsColumns(
-  setOpen: (dialog: ProjetDialogType | null) => void,
-  setCurrentRow: React.Dispatch<React.SetStateAction<Projet | null>>,
-  onDetail: (projet: Projet) => void,
+type BuildProjetsColumnsOptions = {
+  setOpen: (dialog: ProjetDialogType | null) => void
+  setCurrentRow: React.Dispatch<React.SetStateAction<Projet | null>>
+  onDetail: (projet: Projet) => void
+  handleClotureClick: (projet: Projet) => void
   currencyCode?: string
-): ColumnDef<Projet>[] {
+  userLevel?: number // ✅ Ajout du niveau d'accès
+}
+
+export function buildProjetsColumns({
+  setOpen,
+  setCurrentRow,
+  onDetail,
+  handleClotureClick,
+  currencyCode,
+  userLevel = 1, // Par défaut admin
+}: BuildProjetsColumnsOptions): ColumnDef<Projet>[] {
+  // ✅ Vérifier si l'utilisateur est niveau 3 (Consultant)
+  const isLevel3 = userLevel === 3
+
   return [
     {
       id: 'code_projet',
@@ -66,7 +80,30 @@ export function buildProjetsColumns(
       enableHiding: false,
     },
     {
-      id: 'partenaires_execution',
+      id: 'signataires_projet',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Partenaires Financier" />
+      ),
+      cell: ({ row }) => {
+        const partenaires = row.original.signataires_projet
+        if (!partenaires || partenaires.length === 0) {
+          return <span className='text-muted-foreground'>—</span>
+        }
+        return (
+          <div className='flex flex-row gap-0.5'>
+            {partenaires.map((partenaire, idx) => (
+              <span key={idx} className='text-sm text-muted-foreground'>
+                {partenaire.code_acteur?.trim()}, 
+              </span>
+            ))}
+          </div>
+        )
+      },
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
+      id: 'partenaires_execution_projet',
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Partenaires d'exécution" />
       ),
@@ -76,17 +113,12 @@ export function buildProjetsColumns(
           return <span className='text-muted-foreground'>—</span>
         }
         return (
-          <div className='flex flex-col gap-0.5'>
-            {partenaires.slice(0, 2).map((partenaire, idx) => (
-              <span key={idx} className='text-sm text-muted-foreground'>
-                {partenaire.nom_acteur?.trim()}
+          <div className='flex flex-row gap-0.5'>
+            {partenaires.map((partenaire, idx) => (
+              <span key={idx} className='text-sm text-muted-foreground bg-blue'>
+                {partenaire.code_acteur?.trim()}, 
               </span>
             ))}
-            {partenaires.length > 2 && (
-              <span className='text-xs text-muted-foreground'>
-                +{partenaires.length - 2} autre(s)
-              </span>
-            )}
           </div>
         )
       },
@@ -99,7 +131,6 @@ export function buildProjetsColumns(
         <DataTableColumnHeader column={column} title={`Budget(${currencyCode})`} />
       ),
       cell: ({ row }) => {
-        // Simulation de coûts basée sur l'intitulé ou l'ID de la ligne
         const budget = row.original.budget_projet
 
         if (!budget || budget === 0) {
@@ -126,64 +157,72 @@ export function buildProjetsColumns(
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title='Actions' />
       ),
-      cell: ({ row }) => (
-        <GenericRowActions
-          row={row}
-          actions={[
-            {
-              label: 'Detail',
-              icon: <Eye size={16} />,
-              onClick: () => {
-                onDetail(row.original)
-              }
-            },
-            {
-              label: 'Modifier',
-              icon: <UserPen size={16} />,
-              onClick: () => {
-                setCurrentRow(row.original)
-                setOpen('edit')
-                console.log('isditing', row.original)
+      cell: ({ row }) => {
+        const projet = row.original
+        const isCloture = projet.is_cloture
+
+        // ✅ Si niveau 3, seulement l'action "Détail"
+        if (isLevel3) {
+          return (
+            <GenericRowActions
+              row={row}
+              actions={[
+                {
+                  label: 'Détail',
+                  icon: <Eye size={16} />,
+                  onClick: () => {
+                    onDetail(row.original)
+                  }
+                },
+              ]}
+            />
+          )
+        }
+
+        // ✅ Pour les autres niveaux, toutes les actions
+        return (
+          <GenericRowActions
+            row={row}
+            actions={[
+              {
+                label: 'Détail',
+                icon: <Eye size={16} />,
+                onClick: () => {
+                  onDetail(row.original)
+                }
               },
-            },
-            {
-              label: 'Supprimer',
-              icon: <Trash2 size={16} />,
-              onClick: () => {
-                setCurrentRow(row.original)
-                setOpen('delete')
+              {
+                label: isCloture ? 'Déclôturer' : 'Clôturer',
+                icon: isCloture ? <Unlock size={16} /> : <Lock size={16} />,
+                onClick: () => {
+                  setCurrentRow(row.original)
+                  handleClotureClick(row.original)
+                },
+                className: isCloture ? 'text-green-600!' : 'text-amber-600!',
+                separator: true,
               },
-              className: 'text-red-500!',
-              separator: true,
-            },
-          ]
-          }
-        />
-      ),
+              {
+                label: 'Modifier',
+                icon: <UserPen size={16} />,
+                onClick: () => {
+                  setCurrentRow(row.original)
+                  setOpen('edit')
+                },
+              },
+              {
+                label: 'Supprimer',
+                icon: <Trash2 size={16} />,
+                onClick: () => {
+                  setCurrentRow(row.original)
+                  setOpen('delete')
+                },
+                className: 'text-red-500!',
+                separator: true,
+              },
+            ]}
+          />
+        )
+      },
     },
-    // {
-    //   id: 'actions',
-    //   header: () => (
-    //     <span className='text-xs font-medium text-muted-foreground'>Actions</span>
-    //   ),
-    //   cell: ({ row }) => (
-    //     <Button
-    //       type='button'
-    //       variant='outline'
-    //       size='sm'
-    //       className='h-8 gap-1.5 border-primary/20 bg-primary/10 text-xs font-semibold text-primary hover:bg-primary hover:text-primary-foreground'
-    //       onClick={(e) => {
-    //         e.stopPropagation()
-    //         onDetail(row.original)
-    //       }}
-    //     >
-    //       <Eye className='h-3.5 w-3.5' />
-    //       Détails
-    //     </Button>
-    //   ),
-    //   meta: { thClassName: 'text-center pe-4', className: 'text-center pe-4' },
-    //   enableSorting: false,
-    //   enableHiding: false,
-    // },
   ]
 }

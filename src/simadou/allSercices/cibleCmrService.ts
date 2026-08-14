@@ -10,7 +10,7 @@ export interface CibleCmrFormData {
   programme?: string | null
 }
 
-const BASE_URL = '/cible_cmr/'
+const BASE_URL = '/cibles-cmrs/'
 
 function sortByAnnee(a: CibleCmr, b: CibleCmr): number {
   return Number(a.annee) - Number(b.annee)

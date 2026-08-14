@@ -8,24 +8,11 @@ export async function requireAuth() {
     await authService.me()
     useAuthStore.getState().setAuthenticated(true)
   } catch {
-    // const refreshed = await authService.refreshToken()
-
-    // if (!refreshed) {
-      throw redirect({
-        to: '/sign-in',
-        search: { redirect: location.href },
-        replace: true,
-      })
-    // }
-
-    // try {
-    //   await authService.me()
-    //   useAuthStore.getState().setAuthenticated(true)
-    // } catch {
-    //   throw redirect({
-    //     to: '/sign-in',
-    //     replace: true,
-    //   })
-    // }
+    useAuthStore.getState().logout()
+    throw redirect({
+      to: '/sign-in',
+      search: { redirect: location.href },
+      replace: true,
+    })
   }
 }

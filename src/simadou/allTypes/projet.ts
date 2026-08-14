@@ -1,6 +1,8 @@
 import { Acteur } from "./acteur";
 import { Localite } from "./localite";
+import { Personnel } from "./personnel";
 import { Programme } from "./programme";
+import { TypeProjet } from "./typeProjet";
 
 export interface Projet {
   id_projet: number;
@@ -10,14 +12,24 @@ export interface Projet {
   duree_projet: number;
   date_signature_projet: string;
   date_demarrage_projet: string;
+  date_cloture_projet: string;
   partenaire_projet: Acteur | null;
   programme_projet?: Programme | number;
-  mps?: boolean;
   structure_projet: number;
   signataires_projet: Acteur[];
   partenaires_execution_projet: Acteur[];
   zone_projet: Localite[];
   budget_projet?: number,
+  nombre_ptbas?: number,
+  taux_execution_ptba?: number,
+  montant_total_decaisse?: number,
+  responsable_projet?: number | Personnel,
+  type_projet?: number | TypeProjet,
+  is_cloture?: boolean,
+}
+export interface ProjetClotureForm {
+  date_cloture_projet: string;
+  is_cloture: boolean;
 }
 
 export type ProjetFormData = Omit<Projet, "id_projet">;

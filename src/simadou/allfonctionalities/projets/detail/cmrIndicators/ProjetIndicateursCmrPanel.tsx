@@ -26,20 +26,28 @@ import {
   useDeleteIndicateurCmrProjet,
   useGetIndicateursCmrProjet,
 } from '@/simadou/allHooks/admin/indicateurCmrHooks'
-import { useGetNiveauxCadreResultat } from '@/simadou/allHooks/admin/cadreResultatHooks'
+import {
+  useGetCadresResultat,
+  useGetNiveauxCadreResultat,
+} from '@/simadou/allHooks/admin/cadreResultatHooks'
 import { useGetIndicateursCadreResultat } from '@/simadou/allHooks/admin/indicateurCadreResultatHooks'
 import { sortNiveauxCadreResultat } from '@/simadou/lib/cadreResultatUtils'
 import CiblesCmrIndicateurDialog from './CiblesCmrIndicateurDialog'
 import IndicateurCmrProjetDetailView from './IndicateurCmrProjetDetailView'
 import IndicateurCmrProjetFormPanel from './IndicateurCmrProjetFormPanel'
-import { filterIndicateursCadreResultatByNiveau } from './indicateurCmrProjetFormUtils'
+import {
+  countIndicateursCmrProjetByNiveau,
+  filterCadresResultatByNiveau,
+  filterIndicateursCmrProjetByNiveau,
+} from './indicateurCmrProjetFormUtils'
 
 type ModalState = 'indicateur' | 'indicateurView'
 
 export default function ProjetIndicateursCmrPanel({ projet }: { projet: Projet }) {
   const codeProjet = projet.code_projet
   const { data: niveaux = [], isLoading: isLoadingNiveaux } =
-    useGetNiveauxCadreResultat()
+    useGetNiveauxCadreResultat(projet.id_projet)
+  const { data: cadresResultat = [] } = useGetCadresResultat(codeProjet)
   const { data: indicateursCadreResultat = [] } = useGetIndicateursCadreResultat()
   const { data: indicateurs = [], dataUpdatedAt: indicateursUpdatedAt } =
     useGetIndicateursCmrProjet(codeProjet, projet.id_projet)
@@ -54,7 +62,7 @@ export default function ProjetIndicateursCmrPanel({ projet }: { projet: Projet }
   const hasNiveaux = sortedNiveaux.length > 0
   const { tabsStyle } = useNiveauTabsTheme()
 
-  const [activeNiveauNombre, setActiveNiveauNombre] = useState('')
+  const [activeNiveauId, setActiveNiveauId] = useState('')
   const [modal, setModal] = useState<ModalState | null>(null)
   const [ciblesOpen, setCiblesOpen] = useState(false)
   const [indicateurForCibles, setIndicateurForCibles] =
@@ -69,21 +77,40 @@ export default function ProjetIndicateursCmrPanel({ projet }: { projet: Projet }
   const [indToDelete, setIndToDelete] = useState<IndicateurCmrProjet | null>(null)
 
   useEffect(() => {
-    if (sortedNiveaux.length > 0 && activeNiveauNombre === '') {
-      setActiveNiveauNombre(String(sortedNiveaux[0].nombre_ncr))
+    if (sortedNiveaux.length > 0 && activeNiveauId === '') {
+      setActiveNiveauId(String(sortedNiveaux[0].id_ncr))
     }
-  }, [sortedNiveaux, activeNiveauNombre])
+  }, [sortedNiveaux, activeNiveauId])
 
-  const currentNiveauNombre = Number(
-    activeNiveauNombre || sortedNiveaux[0]?.nombre_ncr || 0
+  const currentNiveauId = Number(
+    activeNiveauId || sortedNiveaux[0]?.id_ncr || 0
   )
 
   const currentNiveauLibelle = useMemo(() => {
-    const niveau = sortedNiveaux.find(
-      (item) => Number(item.nombre_ncr) === currentNiveauNombre
-    )
+    const niveau = sortedNiveaux.find((item) => item.id_ncr === currentNiveauId)
     return niveau?.libelle_ncr ?? 'niveau'
-  }, [sortedNiveaux, currentNiveauNombre])
+  }, [sortedNiveaux, currentNiveauId])
+
+  const indicateurCountByNiveau = useMemo(
+    () =>
+      countIndicateursCmrProjetByNiveau(
+        indicateurs,
+        cadresResultat,
+        indicateursCadreResultat
+      ),
+    [indicateurs, cadresResultat, indicateursCadreResultat]
+  )
+
+  const filteredIndicateurs = useMemo(
+    () =>
+      filterIndicateursCmrProjetByNiveau(
+        indicateurs,
+        currentNiveauId,
+        cadresResultat,
+        indicateursCadreResultat
+      ),
+    [indicateurs, currentNiveauId, cadresResultat, indicateursCadreResultat]
+  )
 
   const closeAll = () => {
     setModal(null)
@@ -153,15 +180,14 @@ export default function ProjetIndicateursCmrPanel({ projet }: { projet: Projet }
       return
     }
 
-    const indicateursAtNiveau = filterIndicateursCadreResultatByNiveau(
-      indicateursCadreResultat,
-      currentNiveauNombre,
-      codeProjet
+    const cadresAtNiveau = filterCadresResultatByNiveau(
+      cadresResultat,
+      currentNiveauId
     )
 
-    if (indicateursAtNiveau.length === 0) {
+    if (cadresAtNiveau.length === 0) {
       toast.info(
-        `Aucun indicateur cadre résultat au niveau « ${currentNiveauLibelle} ». Créez-en un d’abord.`
+        `Aucun cadre de résultat au niveau « ${currentNiveauLibelle} ». Créez-en un d'abord.`
       )
       return
     }
@@ -193,8 +219,8 @@ export default function ProjetIndicateursCmrPanel({ projet }: { projet: Projet }
     <>
       <div className='space-y-4'>
         <Tabs
-          value={String(currentNiveauNombre)}
-          onValueChange={setActiveNiveauNombre}
+          value={String(currentNiveauId)}
+          onValueChange={setActiveNiveauId}
           style={tabsStyle}
         >
           <div className='overflow-x-auto'>
@@ -202,14 +228,8 @@ export default function ProjetIndicateursCmrPanel({ projet }: { projet: Projet }
               {sortedNiveaux.map((niveau) => (
                 <NiveauTabTrigger
                   key={niveau.id_ncr}
-                  value={String(niveau.nombre_ncr)}
-                  count={
-                    filterIndicateursCadreResultatByNiveau(
-                      indicateursCadreResultat,
-                      Number(niveau.nombre_ncr),
-                      codeProjet
-                    ).length
-                  }
+                  value={String(niveau.id_ncr)}
+                  count={indicateurCountByNiveau[niveau.id_ncr] ?? 0}
                 >
                   {niveau.libelle_ncr}
                 </NiveauTabTrigger>
@@ -219,8 +239,8 @@ export default function ProjetIndicateursCmrPanel({ projet }: { projet: Projet }
         </Tabs>
 
         <GenericTable<IndicateurCmrProjet>
-          key={`indicateurs-cmr-projet-${codeProjet}-${indicateursUpdatedAt}-${indicateurs.length}`}
-          data={indicateurs}
+          key={`indicateurs-cmr-projet-${codeProjet}-${currentNiveauId}-${indicateursUpdatedAt}-${filteredIndicateurs.length}`}
+          data={filteredIndicateurs}
           columns={indicateurColumns}
           search={search}
           navigate={navigate}
@@ -245,7 +265,7 @@ export default function ProjetIndicateursCmrPanel({ projet }: { projet: Projet }
               Nouvel indicateur
             </DataTableToolbarOutlineButton>
           }
-          emptyMessage='Aucun indicateur CMR'
+          emptyMessage='Aucun indicateur CMR pour ce niveau'
         />
       </div>
 
@@ -286,11 +306,13 @@ export default function ProjetIndicateursCmrPanel({ projet }: { projet: Projet }
           <div className='px-6 py-4'>
             <IndicateurCmrProjetFormPanel
               key={
-                selectedIndicateur?.id_ref_ind_cmr ?? `new-${currentNiveauNombre}`
+                selectedIndicateur?.id_ref_ind_cmr ?? `new-${currentNiveauId}`
               }
               indicateur={selectedIndicateur}
               codeProjet={codeProjet}
-              niveauNombre={currentNiveauNombre}
+              niveauId={currentNiveauId}
+              niveauLibelle={currentNiveauLibelle}
+              cadresResultat={cadresResultat}
               indicateursCadreResultat={indicateursCadreResultat}
               onClose={closeAll}
               onSuccess={closeAll}

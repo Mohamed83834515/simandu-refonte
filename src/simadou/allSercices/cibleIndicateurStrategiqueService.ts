@@ -1,7 +1,7 @@
 import { apiClient } from "@/axios/api";
 import { CibleIndicateurStrategique } from "../allTypes/cibleIndicateurStrategique";
 
-const BASE_URL = "/cible_indicateur_strategique/";
+const BASE_URL = "/cibles-indicateurs-strategiques/";
 
 export const cibleIndicateurStrategiqueService = {
   // Récupérer toutes les cibles d'indicateurs stratégiques

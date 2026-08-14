@@ -1,5 +1,4 @@
 import type { SelectOption } from '@/Global/types/formConfig'
-import type { IndicateurCmr } from '@/simadou/allTypes/indicateurCmr'
 import type {
   IndicateurTache,
   IndicateurTacheRequest,
@@ -7,10 +6,11 @@ import type {
 import type { UniteIndicateur } from '@/simadou/allTypes/uniteIndicateur'
 import type { IndicateurTacheFormData } from '@/simadou/schemas/indicateurTacheSchemas'
 import { resolveRelationId } from '@/simadou/lib/resolveApiRelation'
+import { IndicateurPerformanceProgramme, IndicateurPerformanceProjet } from '../allTypes'
 
-function normalizeTrimestre(value: unknown): string {
-  if (value == null) return ''
-  return String(value)
+function normalizeTrimestre(value: unknown): number {
+  if (value == null) return 0
+  return Number(value)
 }
 
 export function normalizeIndicateurTache(raw: IndicateurTache): IndicateurTache {
@@ -48,17 +48,28 @@ export function filterIndicateursByActivite(
 }
 
 export function buildIndicateurCmrSelectOptions(
-  cmrs: IndicateurCmr[]
+  cmrs: IndicateurPerformanceProgramme[]
 ): SelectOption[] {
   return cmrs.map((cmr) => {
-    const code = cmr.code_ref_ind?.trim()
-    const intitule = cmr.intitule_ref_ind?.trim()
+    const code = cmr.id_indicateur_performance?.toString().trim()
+    const intitule = cmr.intitule_indicateur_tache?.trim()
     const label =
-      [code, intitule].filter(Boolean).join(' — ') || String(cmr.id_ref_ind_cmr)
+      [code, intitule].filter(Boolean).join(' — ') || String(cmr.id_indicateur_performance)
 
     return {
-      value: cmr.id_ref_ind_cmr,
+      value: cmr.id_indicateur_performance,
       label,
+    }
+  })
+}
+export function buildIndicateurPerforamnceSelectOptions(
+  cmrs: IndicateurPerformanceProjet[]
+): SelectOption[] {
+  return cmrs.map((cmr) => {
+
+    return {
+      value: cmr.id_indicateur_performance,
+      label:cmr.intitule_indicateur_tache,
     }
   })
 }
@@ -99,9 +110,9 @@ export function buildIndicateurTachePayload(
     unite_ind_tache: data.unite_ind_tache,
     indicateur_cmr: data.indicateur_cmr,
     id_activite: idActivite,
-    trimestre_1: data.trimestre_1?.trim() ?? '',
-    trimestre_2: data.trimestre_2?.trim() ?? '',
-    trimestre_3: data.trimestre_3?.trim() ?? '',
-    trimestre_4: data.trimestre_4?.trim() ?? '',
+    trimestre_1: data.trimestre_1 ?? 0,
+    trimestre_2: data.trimestre_2 ?? 0,
+    trimestre_3: data.trimestre_3 ?? 0,
+    trimestre_4: data.trimestre_4 ?? 0,
   }
 }

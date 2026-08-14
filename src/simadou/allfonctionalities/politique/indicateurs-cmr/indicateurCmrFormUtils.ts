@@ -1,25 +1,76 @@
 import type { SelectOption } from '@/Global/types/formConfig'
+import type { CadreStrategique } from '@/simadou/allTypes/cadreStrategique'
 import type { DictionnaireIndicateur, IndicateurCmr } from '@/simadou/allTypes'
 import type { IndicateurStrategique } from '@/simadou/allTypes/indicateurStrategique'
-import type { IndicateurCmrCreateData } from '@/simadou/schemas/indicateursSchemas'
-import { resolveRelationId } from '@/simadou/lib/resolveApiRelation'
+import type { IndicateurCmrProgrammeCreateData } from '@/simadou/schemas/indicateurCmrProgrammeSchemas'
+import {
+  resolveRelationCode,
+  resolveRelationId,
+} from '@/simadou/lib/resolveApiRelation'
 
-export function filterIndicateursStrategiqueByNiveau(
-  indicateurs: IndicateurStrategique[],
-  niveauCodeNumber: number
-): IndicateurStrategique[] {
-  return indicateurs.filter(
-    (ind) => Number(ind.niveau_istr) === niveauCodeNumber
-  )
+function resolvePopulatedIndicateurStrategique(
+  indicateur?: IndicateurCmr | null
+): IndicateurStrategique | null {
+  if (!indicateur) return null
+
+  const resultat = indicateur.resultat_cmr
+  if (
+    resultat != null &&
+    typeof resultat === 'object' &&
+    ('id_indicateur_str' in resultat || 'code_indicateur_istr' in resultat)
+  ) {
+    return resultat as IndicateurStrategique
+  }
+
+  return null
 }
 
-export function resolveResultatCmrId(
+function resolveResultatCmrId(
   indicateur?: IndicateurCmr | null
 ): number | null {
   if (!indicateur) return null
   const value = indicateur.resultat_cmr
   if (typeof value === 'number' && Number.isFinite(value)) return value
   return resolveRelationId(value, 'id_indicateur_str')
+}
+
+export function resolveIndicateurStrategiqueId(
+  indicateur?: IndicateurCmr | null
+): number | null {
+  if (!indicateur) return null
+
+  const populated = resolvePopulatedIndicateurStrategique(indicateur)
+  if (populated?.id_indicateur_str != null) {
+    return populated.id_indicateur_str
+  }
+
+  return resolveResultatCmrId(indicateur)
+}
+
+export function resolveCadreIdForIndicateurCmr(
+  indicateur?: IndicateurCmr | null,
+  cadresStrategiques: CadreStrategique[] = []
+): number | null {
+  if (!indicateur) return null
+
+  const populatedIndicateur = resolvePopulatedIndicateurStrategique(indicateur)
+  if (populatedIndicateur) {
+    const linkedId = resolveRelationId(populatedIndicateur.code_istr, 'id_cs')
+    if (linkedId != null) return linkedId
+
+    const linkedCode =
+      resolveRelationCode(populatedIndicateur.code_istr, 'code_cs') ??
+      (typeof populatedIndicateur.code_istr === 'string'
+        ? populatedIndicateur.code_istr
+        : null)
+
+    if (linkedCode) {
+      const cadre = cadresStrategiques.find((item) => item.code_cs === linkedCode)
+      if (cadre) return cadre.id_cs
+    }
+  }
+
+  return null
 }
 
 export function resolveResultatCmrLabel(value: unknown): string {
@@ -44,30 +95,6 @@ export function resolveResultatCmrLabel(value: unknown): string {
     return intitule ?? code ?? ''
   }
   return String(value)
-}
-
-export function buildIndicateurStrategiqueSelectOptions(
-  indicateurs: IndicateurStrategique[],
-  currentResultatId?: number | null
-): SelectOption[] {
-  const options = indicateurs
-    .filter((ind) => ind.id_indicateur_str != null)
-    .map((ind) => ({
-      value: ind.id_indicateur_str,
-      label: `${ind.code_indicateur_istr} — ${ind.intitule_indicateur_istr}`,
-    }))
-
-  if (
-    currentResultatId != null &&
-    !options.some((opt) => Number(opt.value) === currentResultatId)
-  ) {
-    options.unshift({
-      value: currentResultatId,
-      label: `Indicateur stratégique #${currentResultatId}`,
-    })
-  }
-
-  return options
 }
 
 export function buildDictionnaireIndicateurSelectOptions(
@@ -100,12 +127,14 @@ export function resolveReferentielCmrId(
   return resolveRelationId(indicateur?.referentiel_cmr, 'id_ref_ind_ref')
 }
 
-export function indicateurCmrToFormValues(
-  indicateur?: IndicateurCmr | null
-): IndicateurCmrCreateData {
+export function indicateurCmrProgrammeToFormValues(
+  indicateur?: IndicateurCmr | null,
+  cadresStrategiques: CadreStrategique[] = []
+): IndicateurCmrProgrammeCreateData {
   return {
     code_ref_ind: indicateur?.code_ref_ind ?? '',
-    resultat_cmr: resolveResultatCmrId(indicateur) ?? 0,
+    resultat_cmr: resolveCadreIdForIndicateurCmr(indicateur, cadresStrategiques) ?? 0,
+    indicateur_istr: resolveIndicateurStrategiqueId(indicateur) ?? 0,
     intitule_ref_ind: indicateur?.intitule_ref_ind ?? '',
     reference_cmr: indicateur?.reference_cmr ?? '',
     annee_reference: indicateur?.annee_reference ?? new Date().getFullYear(),
@@ -114,4 +143,62 @@ export function indicateurCmrToFormValues(
     fonction_agregat_cmr: indicateur?.fonction_agregat_cmr ?? '',
     referentiel_cmr: resolveReferentielCmrId(indicateur),
   }
+}
+
+function resolveIndicateurCmrNiveauCode(
+  indicateur: IndicateurCmr,
+  indicateursStrategiques: IndicateurStrategique[] = []
+): number | null {
+  const populated = resolvePopulatedIndicateurStrategique(indicateur)
+  if (
+    populated?.niveau_istr != null &&
+    Number.isFinite(Number(populated.niveau_istr))
+  ) {
+    return Number(populated.niveau_istr)
+  }
+
+  const indicateurStrId = resolveIndicateurStrategiqueId(indicateur)
+  if (indicateurStrId != null) {
+    const linked = indicateursStrategiques.find(
+      (item) => item.id_indicateur_str === indicateurStrId
+    )
+    if (
+      linked?.niveau_istr != null &&
+      Number.isFinite(Number(linked.niveau_istr))
+    ) {
+      return Number(linked.niveau_istr)
+    }
+  }
+
+  return null
+}
+
+export function filterIndicateursCmrByNiveau(
+  indicateurs: IndicateurCmr[],
+  niveauCodeNumber: number,
+  indicateursStrategiques: IndicateurStrategique[] = []
+): IndicateurCmr[] {
+  return indicateurs.filter(
+    (indicateur) =>
+      resolveIndicateurCmrNiveauCode(indicateur, indicateursStrategiques) ===
+      niveauCodeNumber
+  )
+}
+
+export function countIndicateursCmrByNiveau(
+  indicateurs: IndicateurCmr[],
+  indicateursStrategiques: IndicateurStrategique[] = []
+): Record<number, number> {
+  const counts: Record<number, number> = {}
+
+  for (const indicateur of indicateurs) {
+    const niveauCode = resolveIndicateurCmrNiveauCode(
+      indicateur,
+      indicateursStrategiques
+    )
+    if (niveauCode == null) continue
+    counts[niveauCode] = (counts[niveauCode] ?? 0) + 1
+  }
+
+  return counts
 }

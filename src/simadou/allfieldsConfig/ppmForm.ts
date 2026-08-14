@@ -1,0 +1,65 @@
+import type { FormConfig } from '@/Global/types/formConfig'
+
+export const getPpmFormConfig = (): FormConfig => ({
+  fields: [
+    {
+      name: 'intitule_ppm',
+      label: 'Intitulé',
+      type: 'textarea',
+      placeholder: 'Intitulé du plan de passation des marchés',
+      required: true,
+      gridCols: 1,
+    },
+    {
+      name: 'code_budget',
+      label: 'Code budget',
+      type: 'number',
+      placeholder: 'Code budget',
+      required: true,
+      gridCols: 2,
+    },
+    {
+      name: 'montant_budget',
+      label: 'Montant budget',
+      type: 'number',
+      placeholder: 'Montant du budget',
+      required: true,
+      gridCols: 2,
+    },
+    {
+      name: 'numero_appel_offre',
+      label: "Numéro d'appel d'offre",
+      type: 'number',
+      placeholder: "Numéro d'appel d'offre",
+      required: true,
+      gridCols: 2,
+    },
+    {
+      name: 'methode_passation',
+      label: 'Méthode de passation',
+      type: 'select',
+      placeholder: 'Sélectionner une méthode de passation',
+      required: true,
+      options: [],
+      gridCols: 2,
+    },
+    {
+      name: 'type_financement',
+      label: 'Type de financement',
+      type: 'select',
+      placeholder: 'Sélectionner un type de financement',
+      required: true,
+      options: [],
+      gridCols: 2,
+    },
+    {
+      name: 'nature_marche',
+      label: 'Nature de marché',
+      type: 'select',
+      placeholder: 'Sélectionner une nature de marché',
+      required: true,
+      options: [],
+      gridCols: 2,
+    },
+  ],
+})

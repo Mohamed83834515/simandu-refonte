@@ -15,8 +15,10 @@ import {
 } from '@/simadou/allHooks/admin/cadreAnalytiqueHooks'
 import {
   buildCadreAnalytiqueParentOptions,
+  filterNiveauxByProgramme,
   getFixedCodeLengthForNiveau,
   getNiveauCadreAnalytiqueLibelle,
+  sortNiveauxCadreAnalytique,
 } from '@/simadou/lib/cadreAnalytiqueUtils'
 import { cadreAnalytiqueToFormValues } from './cadreAnalytiqueFormUtils'
 
@@ -25,6 +27,7 @@ export default function CadreAnalytiqueFormPanel({
   codeProgramme,
   niveauCodeNumber,
   niveaux,
+  niveauId,
   cadres,
   cadre,
   onClose,
@@ -33,6 +36,7 @@ export default function CadreAnalytiqueFormPanel({
   programmeId: number
   codeProgramme?: string
   niveauCodeNumber: number
+  niveauId: number
   niveaux: NiveauCadreAnalytique[]
   cadres: CadreAnalytique[]
   cadre?: CadreAnalytique | null
@@ -43,35 +47,51 @@ export default function CadreAnalytiqueFormPanel({
   const createMutation = useCreateCadreAnalytique()
   const updateMutation = useUpdateCadreAnalytique(programmeId)
   const { data: acteurs = [], isLoading: isLoadingActeurs } = useGetActeurs()
-
   const codeLength = getFixedCodeLengthForNiveau(
     niveaux,
     niveauCodeNumber,
     codeProgramme
   )
 
-  const schema = useMemo(
-    () =>
-      cadreAnalytiqueWriteSchema.extend({
-        code_ca: z
-          .string()
-          .min(1, 'Le code est obligatoire')
-          .length(
-            codeLength,
-            `Le code doit contenir exactement ${codeLength} caractère(s) selon la configuration du niveau ${niveauCodeNumber}`
-          ),
-      }),
-    [codeLength, niveauCodeNumber]
-  )
+  const showParent = niveauCodeNumber > 1
 
+  const showBudget = useMemo(() => {
+    const scoped = sortNiveauxCadreAnalytique(
+      filterNiveauxByProgramme(niveaux, codeProgramme, programmeId)
+    )
+    if (scoped.length === 0) return false
+    const lastNiveauOrder = Number(scoped[scoped.length - 1].nombre_nca)
+    return niveauCodeNumber === lastNiveauOrder
+  }, [niveaux, codeProgramme, programmeId, niveauCodeNumber])
+
+  const schema = useMemo(() => {
+    const withCode = cadreAnalytiqueWriteSchema.extend({
+      code_ca: z
+        .string()
+        .min(1, 'Le code est obligatoire')
+        .length(
+          codeLength,
+          `Le code doit contenir exactement ${codeLength} caractère(s) selon la configuration du niveau ${niveauCodeNumber}`
+        ),
+    })
+
+    return showBudget ? withCode : withCode.omit({ cout_axe: true })
+  }, [codeLength, niveauCodeNumber, showBudget])
+  const parentNIveauId = useMemo(() => {
+    if (!showParent) return null
+    const parentNiveau = niveaux.find(
+      (n) => Number(n.nombre_nca) === niveauCodeNumber - 1
+    )
+    return parentNiveau?.id_nca ?? null
+  }, [niveaux, niveauCodeNumber, showParent])
   const parentOptions = useMemo(
     () =>
       buildCadreAnalytiqueParentOptions({
         cadres,
-        niveauCodeNumber,
+        parentNIveauId,
         excludeCadreId: cadre?.id_ca,
       }),
-    [cadres, niveauCodeNumber, cadre?.id_ca]
+    [cadres, parentNIveauId, cadre?.id_ca]
   )
 
   const acteurOptions = useMemo(
@@ -82,8 +102,6 @@ export default function CadreAnalytiqueFormPanel({
       })),
     [acteurs]
   )
-
-  const showParent = niveauCodeNumber > 1
 
   const parentLabel = useMemo(() => {
     const libelle = getNiveauCadreAnalytiqueLibelle(
@@ -101,6 +119,7 @@ export default function CadreAnalytiqueFormPanel({
         acteurOptions,
         isLoadingActeurs,
         showParent,
+        showBudget,
         parentLabel,
         parentDisabled: parentOptions.length === 0,
         codeLength,
@@ -110,6 +129,7 @@ export default function CadreAnalytiqueFormPanel({
       acteurOptions,
       isLoadingActeurs,
       showParent,
+      showBudget,
       parentLabel,
       codeLength,
     ]
@@ -122,17 +142,21 @@ export default function CadreAnalytiqueFormPanel({
         programmeId,
         niveauCodeNumber,
         acteurs,
+        showBudget,
       }),
-    [cadre, programmeId, niveauCodeNumber, acteurs]
+    [cadre, programmeId, niveauCodeNumber, acteurs, showBudget]
   )
 
   const onSubmit = (data: CadreAnalytiqueWriteData) => {
     const payload: CadreAnalytiqueWriteData = {
       ...data,
-      niveau_ca: niveauCodeNumber,
+      niveau_ca: niveauId,
       programme_ca: programmeId,
       parent_ca: data.parent_ca || null,
       partenaire_ca: data.partenaire_ca ?? [],
+      ...(showBudget
+        ? {}
+        : { cout_axe: cadre?.cout_axe ?? 0 }),
     }
 
     const callbacks = {
@@ -165,7 +189,7 @@ export default function CadreAnalytiqueFormPanel({
 
   return (
     <DynamicForm
-      key={cadre?.id_ca ?? `new-${niveauCodeNumber}`}
+      key={cadre?.id_ca ?? `new-${niveauId}`}
       config={formConfig}
       schema={schema}
       defaultValues={defaultValues}

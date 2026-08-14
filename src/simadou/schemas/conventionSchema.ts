@@ -1,5 +1,10 @@
 import { z } from "zod";
 
+const documentFichierSchema = z.union([
+  z.instanceof(File),
+  z.string().min(1),
+]);
+
 // Schéma de validation pour les conventions
 export const conventionSchema = z.object({
   // ID de la convention (auto-généré)
@@ -54,7 +59,7 @@ export const conventionSchema = z.object({
     }),
 
   // Montant de la convention - requis
-  montant_conv: z
+  montant_conv: z.coerce
     .number({
       message: "Le montant de convention est requis et doit être un nombre",
     })
@@ -87,24 +92,11 @@ export const conventionSchema = z.object({
 
   // État de la convention - requis
   etat_conv: z
-    .string({
-      message: "L'état de convention est requis",
-    })
-    .min(1, "État de convention requis")
-    .max(50, "État trop long")
-    .refine(
-      (val) =>
-        ["active", "inactive", "en_cours", "terminee", "suspendue"].includes(
-          val
-        ),
-      {
-        message:
-          "État invalide. Valeurs acceptées: active, inactive, en_cours, terminee, suspendue",
-      }
-    ),
+    .string().optional()
+  ,
 
   // Partenaire de la convention - optionnel (ID de l'acteur)
-  partenaire_conv: z
+  partenaire_conv: z.coerce
     .number({
       message: "L'ID du partenaire doit être un nombre",
     })
@@ -112,6 +104,8 @@ export const conventionSchema = z.object({
     .min(1, "L'ID du partenaire doit être positif")
     .optional()
     .nullable(),
+
+  document_fichier: documentFichierSchema.optional().nullable(),
 });
 
 // Schéma avec validations contextuelles pour le formulaire
@@ -119,49 +113,4 @@ export const conventionFormSchema = conventionSchema.omit({
   id_convention: true,
 });
 
-export type ConventionFormData = z.infer<typeof conventionFormSchema>;
-
-// Options pour l'état des conventions avec descriptions
-export const CONVENTION_STATES = [
-  {
-    value: "active",
-    label: "Active",
-    description: "Convention en vigueur et opérationnelle",
-  },
-  {
-    value: "inactive",
-    label: "Inactive",
-    description: "Convention temporairement suspendue",
-  },
-  {
-    value: "en_cours",
-    label: "En cours",
-    description: "Convention en cours de négociation",
-  },
-  {
-    value: "terminee",
-    label: "Terminée",
-    description: "Convention arrivée à échéance",
-  },
-  {
-    value: "suspendue",
-    label: "Suspendue",
-    description: "Convention suspendue par décision",
-  },
-] as const;
-
-// Validation helper pour les montants
-export const validateMontant = (montant: number): boolean => {
-  return Number.isFinite(montant) && montant >= 0 && montant <= 999999999;
-};
-
-// Validation helper pour les dates
-export const validateDateSignature = (date: string): boolean => {
-  if (!date) return false;
-  const parsedDate = new Date(date);
-  const today = new Date();
-  const minDate = new Date("1900-01-01");
-  return (
-    !isNaN(parsedDate.getTime()) && parsedDate >= minDate && parsedDate <= today
-  );
-};
+export type ConventionFormData = z.infer<typeof conventionFormSchema>

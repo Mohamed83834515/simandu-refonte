@@ -60,6 +60,48 @@ function NavBadge({ children }: { children: ReactNode }) {
   )
 }
 
+// ─── Icône lien externe ──────────────────────────────────────────────────────
+
+function ExternalLinkIcon({ className = '' }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+      />
+    </svg>
+  )
+}
+
+// ─── Utilitaire ──────────────────────────────────────────────────────────────
+
+function checkIsActive(href: string, item: NavItem, mainNav = false) {
+  return (
+    href === item.url ||
+    href.split('?')[0] === item.url ||
+    !!item?.items?.filter((i) => i.url === href).length ||
+    (mainNav &&
+      href.split('/')[1] !== '' &&
+      href.split('/')[1] === item?.url?.split('/')[1])
+  )
+}
+
+// 🔍 Vérifier si c'est un lien externe
+function isExternalLink(url?: string): boolean {
+  if (!url) return false
+  return url.startsWith('http://') || 
+         url.startsWith('https://') || 
+         url.startsWith('//')
+}
+
 // ─── NavGroup ─────────────────────────────────────────────────────────────────
 
 export function NavGroup({ title, items }: NavGroupProps) {
@@ -92,7 +134,35 @@ export function NavGroup({ title, items }: NavGroupProps) {
 
 function SidebarMenuLink({ item, href }: { item: NavLink; href: string }) {
   const { setOpenMobile } = useSidebar()
+  const isExternal = isExternalLink(item.url)
 
+  // Si c'est un lien externe
+  if (isExternal) {
+    return (
+      <SidebarMenuItem>
+        <SidebarMenuButton
+          asChild
+          tooltip={item.title}
+          isActive={false}
+        >
+          <a
+            href={item.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => setOpenMobile(false)}
+            className="flex items-center gap-2"
+          >
+            {item.icon && <item.icon />}
+            <span>{item.title}</span>
+            {item.badge && <NavBadge>{item.badge}</NavBadge>}
+            <ExternalLinkIcon className="ms-auto size-3.5 opacity-50" />
+          </a>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+    )
+  }
+
+  // Lien interne
   return (
     <SidebarMenuItem>
       <SidebarMenuButton
@@ -138,20 +208,51 @@ function SidebarMenuCollapsible({
         </CollapsibleTrigger>
         <CollapsibleContent className='CollapsibleContent'>
           <SidebarMenuSub>
-            {item.items.map((subItem) => (
-              <SidebarMenuSubItem key={subItem.title}>
-                <SidebarMenuSubButton
-                  asChild
-                  isActive={checkIsActive(href, subItem)}
-                >
-                  <Link to={subItem.url} onClick={() => setOpenMobile(false)}>
-                    {subItem.icon && <subItem.icon />}
-                    <span>{subItem.title}</span>
-                    {subItem.badge && <NavBadge>{subItem.badge}</NavBadge>}
-                  </Link>
-                </SidebarMenuSubButton>
-              </SidebarMenuSubItem>
-            ))}
+            {item.items.map((subItem) => {
+              const isExternal = isExternalLink(subItem.url)
+              const isActive = checkIsActive(href, subItem)
+
+              // Si c'est un lien externe
+              if (isExternal) {
+                return (
+                  <SidebarMenuSubItem key={subItem.title}>
+                    <SidebarMenuSubButton
+                      asChild
+                      isActive={false}
+                    >
+                      <a
+                        href={subItem.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={() => setOpenMobile(false)}
+                        className="flex items-center gap-2"
+                      >
+                        {subItem.icon && <subItem.icon />}
+                        <span>{subItem.title}</span>
+                        {subItem.badge && <NavBadge>{subItem.badge}</NavBadge>}
+                        <ExternalLinkIcon className="ms-auto size-3 opacity-50" />
+                      </a>
+                    </SidebarMenuSubButton>
+                  </SidebarMenuSubItem>
+                )
+              }
+
+              // Lien interne
+              return (
+                <SidebarMenuSubItem key={subItem.title}>
+                  <SidebarMenuSubButton
+                    asChild
+                    isActive={isActive}
+                  >
+                    <Link to={subItem.url} onClick={() => setOpenMobile(false)}>
+                      {subItem.icon && <subItem.icon />}
+                      <span>{subItem.title}</span>
+                      {subItem.badge && <NavBadge>{subItem.badge}</NavBadge>}
+                    </Link>
+                  </SidebarMenuSubButton>
+                </SidebarMenuSubItem>
+              )
+            })}
           </SidebarMenuSub>
         </CollapsibleContent>
       </SidebarMenuItem>
@@ -187,37 +288,53 @@ function SidebarMenuCollapsedDropdown({
             {item.title} {item.badge ? `(${item.badge})` : ''}
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          {item.items.map((sub) => (
-            <DropdownMenuItem key={`${sub.title}-${sub.url}`} asChild>
-              <Link
-                to={sub.url}
-                className={checkIsActive(href, sub) ? 'bg-secondary' : ''}
-              >
-                {sub.icon && <sub.icon />}
-                <span className='max-w-52 text-wrap'>{sub.title}</span>
-                {sub.badge && (
-                  <span className='ms-auto'>
-                    <NavBadge>{sub.badge}</NavBadge>
-                  </span>
-                )}
-              </Link>
-            </DropdownMenuItem>
-          ))}
+          {item.items.map((sub) => {
+            const isExternal = isExternalLink(sub.url)
+            const isActive = checkIsActive(href, sub)
+
+            // Si c'est un lien externe
+            if (isExternal) {
+              return (
+                <DropdownMenuItem key={`${sub.title}-${sub.url}`} asChild>
+                  <a
+                    href={sub.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2"
+                  >
+                    {sub.icon && <sub.icon />}
+                    <span className='max-w-52 text-wrap'>{sub.title}</span>
+                    {sub.badge && (
+                      <span className='ms-auto'>
+                        <NavBadge>{sub.badge}</NavBadge>
+                      </span>
+                    )}
+                    <ExternalLinkIcon className="ms-auto size-3 opacity-50" />
+                  </a>
+                </DropdownMenuItem>
+              )
+            }
+
+            // Lien interne
+            return (
+              <DropdownMenuItem key={`${sub.title}-${sub.url}`} asChild>
+                <Link
+                  to={sub.url}
+                  className={isActive ? 'bg-secondary' : ''}
+                >
+                  {sub.icon && <sub.icon />}
+                  <span className='max-w-52 text-wrap'>{sub.title}</span>
+                  {sub.badge && (
+                    <span className='ms-auto'>
+                      <NavBadge>{sub.badge}</NavBadge>
+                    </span>
+                  )}
+                </Link>
+              </DropdownMenuItem>
+            )
+          })}
         </DropdownMenuContent>
       </DropdownMenu>
     </SidebarMenuItem>
-  )
-}
-
-// ─── Utilitaire ──────────────────────────────────────────────────────────────
-
-function checkIsActive(href: string, item: NavItem, mainNav = false) {
-  return (
-    href === item.url ||
-    href.split('?')[0] === item.url ||
-    !!item?.items?.filter((i) => i.url === href).length ||
-    (mainNav &&
-      href.split('/')[1] !== '' &&
-      href.split('/')[1] === item?.url?.split('/')[1])
   )
 }

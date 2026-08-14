@@ -6,6 +6,7 @@ export function getCadreAnalytiqueFormConfigForDialog({
   acteurOptions,
   isLoadingActeurs,
   showParent,
+  showBudget = true,
   parentLabel = 'Parent',
   parentDisabled = false,
   codeLength,
@@ -14,6 +15,7 @@ export function getCadreAnalytiqueFormConfigForDialog({
   acteurOptions: SelectOption[]
   isLoadingActeurs?: boolean
   showParent: boolean
+  showBudget?: boolean
   parentLabel?: string
   parentDisabled?: boolean
   codeLength: number
@@ -55,16 +57,20 @@ export function getCadreAnalytiqueFormConfigForDialog({
         required: false,
         gridCols: 2,
       },
-      {
-        name: 'cout_axe',
-        label: 'Budget (GNF)',
-        type: 'number',
-        placeholder: 'Saisissez le budget ',
-        required: true,
-        min: 0,
-        step: 0.01,
-        gridCols: 2,
-      },
+      ...(showBudget
+        ? [
+            {
+              name: 'cout_axe',
+              label: 'Budget (GNF)',
+              type: 'number' as const,
+              placeholder: 'Saisissez le budget ',
+              required: true,
+              min: 0,
+              step: 0.01,
+              gridCols: 2 as const,
+            },
+          ]
+        : []),
       ...(showParent
         ? [
             {
