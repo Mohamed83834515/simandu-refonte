@@ -39,7 +39,7 @@ function ProgrammeOptions(programmes: Programme[]): SelectOption[] {
 }
 function PersonnelOptions(personnels: Personnel[]): SelectOption[] {
   return personnels
-    .map((z) => ({ value: z.n_personnel || 0, label: z.nom_perso + ' ' + z.prenom_perso }))
+    .map((z) => ({ value: z.n_personnel || 0, label: z.nom_perso + ' ' + z.prenom_perso + ' (' + z.fonction_perso + ')' }))
 }
 function TypeOptions(types: TypeProjet[]): SelectOption[] {
   return types

@@ -19,6 +19,12 @@ export type GanttTimeline = {
 /** Bascule mois → trimestre au-delà de ~18 mois d'étendue. */
 const MAX_MONTHS_FOR_MONTHLY = 18
 
+/**
+ * Initiales des mois (janvier → décembre) : colonnes de Gantt étroites
+ * dans les exports.
+ */
+const MONTH_LETTERS = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D']
+
 function parseDate(value: unknown): number | null {
   if (typeof value !== 'string' || !value.trim()) return null
   const time = new Date(value).getTime()
@@ -89,10 +95,7 @@ export function buildGanttTimeline(
 
       buckets.push({
         key: `${year}-${String(month + 1).padStart(2, '0')}`,
-        label: start.toLocaleDateString('fr-FR', {
-          month: 'short',
-          year: '2-digit',
-        }),
+        label: MONTH_LETTERS[month],
         start: start.getTime(),
         end: end.getTime(),
       })

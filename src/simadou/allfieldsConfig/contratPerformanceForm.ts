@@ -1,13 +1,13 @@
 import type { FormConfig, SelectOption } from '@/Global/types/formConfig'
-import type { UGL } from '@/simadou/allTypes'
+import type { PlanSite } from '@/simadou/allTypes'
 
-function uglOptions(ugls: UGL[]): SelectOption[] {
-  return ugls.map((item) => ({ value: item.id_ugl, label: item.nom_ugl }))
+function structureOptions(plan_sites: PlanSite[]): SelectOption[] {
+  return plan_sites.map((item) => ({ value: item.id_ds || 0, label: item.code_ds + ':' + item.intutile_ds }))
 }
 
 
 export const getContratPerformanceFormConfig = (
-  ugls: UGL[] = [],
+  plan_sites: PlanSite[] = [],
 ): FormConfig => ({
   steps: [
     { step: 1, title: 'Informations générales' },
@@ -67,11 +67,11 @@ export const getContratPerformanceFormConfig = (
     },
     {
       name: 'structure',
-      label: 'Structure / UGL',
+      label: 'Direction / Services',
       type: 'select',
       placeholder: 'Sélectionner une UGL',
       required: true,
-      options: uglOptions(ugls),
+      options: structureOptions(plan_sites),
       formStep: 2,
       gridCols: 2,
     },

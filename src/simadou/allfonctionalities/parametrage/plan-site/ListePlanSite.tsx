@@ -6,7 +6,6 @@ import { Card } from '@/components/ui/card'
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
@@ -109,27 +108,6 @@ export default function ListePlanSite() {
     )
   }
 
-  if (!hasNiveaux) {
-    return (
-      <div className='space-y-4'>
-        <div className='flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between'>
-          <p className='text-sm text-muted-foreground'>
-            Configurez d&apos;abord les niveaux, puis ajoutez les plans site par niveau.
-          </p>
-          <Button type='button' variant='outline' onClick={() => setShowModal('niveaux')}>
-            <Settings className='h-4 w-4' />
-            Niveaux
-          </Button>
-        </div>
-        <Card className='border-dashed p-6 text-center'>
-          <p className='mb-3 text-sm text-muted-foreground'>
-            Aucun niveau configuré. Cliquez sur le bouton "Niveaux" pour commencer.
-          </p>
-        </Card>
-      </div>
-    )
-  }
-
   return (
     <div className='space-y-4'>
       <div className='flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between'>
@@ -145,56 +123,68 @@ export default function ListePlanSite() {
         </div>
       </div>
 
-      <Tabs
-        orientation='vertical'
-        className='space-y-4'
-        style={tabsStyle}
-        key={sortedNiveaux.length}
-        value={String(currentNiveauId)}
-        onValueChange={setActiveNiveauId}
-      >
-        <div className='flex items-center justify-between gap-4'>
-          <div className='overflow-x-auto flex-1'>
-            <NiveauTabsList>
-              {sortedNiveaux.map((n: any) => (
-                <NiveauTabTrigger
-                  key={n.id_nsc}
-                  value={String(n.id_nsc)}
-                  count={countByNiveau.get(n.id_nsc) ?? 0}
-                >
-                  {n.libelle_nsc}
-                </NiveauTabTrigger>
-              ))}
-            </NiveauTabsList>
+      {!hasNiveaux ? (
+        <Card className='border-dashed p-6 text-center'>
+          <p className='mb-3 text-sm text-muted-foreground'>
+            Aucun niveau configuré. Cliquez sur le bouton &quot;Niveaux&quot; pour commencer.
+          </p>
+          <Button type='button' onClick={() => setShowModal('niveaux')}>
+            <Settings className='h-4 w-4' />
+            Configurer les niveaux
+          </Button>
+        </Card>
+      ) : (
+        <Tabs
+          orientation='vertical'
+          className='space-y-4'
+          style={tabsStyle}
+          key={sortedNiveaux.length}
+          value={String(currentNiveauId)}
+          onValueChange={setActiveNiveauId}
+        >
+          <div className='flex items-center justify-between gap-4'>
+            <div className='overflow-x-auto flex-1'>
+              <NiveauTabsList>
+                {sortedNiveaux.map((n: any) => (
+                  <NiveauTabTrigger
+                    key={n.id_nsc}
+                    value={String(n.id_nsc)}
+                    count={countByNiveau.get(n.id_nsc) ?? 0}
+                  >
+                    {n.libelle_nsc}
+                  </NiveauTabTrigger>
+                ))}
+              </NiveauTabsList>
+            </div>
+
+            <Button
+              type='button'
+              onClick={() => {
+                setSelectedPlan(null)
+                setShowModal('form')
+              }}
+              disabled={isLoadingNiveaux}
+            >
+              <Plus className='h-4 w-4' />
+              Ajouter {currentNiveau?.libelle_nsc ?? 'plan'}
+            </Button>
           </div>
 
-          <Button
-            type='button'
-            onClick={() => {
-              setSelectedPlan(null)
-              setShowModal('form')
-            }}
-            disabled={isLoadingNiveaux}
-          >
-            <Plus className='h-4 w-4' />
-            Ajouter {currentNiveau?.libelle_nsc ?? 'plan'}
-          </Button>
-        </div>
-
-        {sortedNiveaux.map((n: any) => (
-          <TabsContent key={n.id_nsc} value={String(n.id_nsc)}>
-            {n.id_nsc === currentNiveauId && (
-              <PlanSiteNiveauTable
-                niveauId={n.id_nsc}
-                plans={allPlans}
-                tableKey={`plans-${n.id_nsc}-${dataUpdatedAt}-${allPlans.length}`}
-                onEdit={handleEdit}
-                onDeleteRequest={handleDeleteRequest}
-              />
-            )}
-          </TabsContent>
-        ))}
-      </Tabs>
+          {sortedNiveaux.map((n: any) => (
+            <TabsContent key={n.id_nsc} value={String(n.id_nsc)}>
+              {n.id_nsc === currentNiveauId && (
+                <PlanSiteNiveauTable
+                  niveauId={n.id_nsc}
+                  plans={allPlans}
+                  tableKey={`plans-${n.id_nsc}-${dataUpdatedAt}-${allPlans.length}`}
+                  onEdit={handleEdit}
+                  onDeleteRequest={handleDeleteRequest}
+                />
+              )}
+            </TabsContent>
+          ))}
+        </Tabs>
+      )}
 
       {planToDelete && (
         <GenericDeleteDialog<PlanSite>
@@ -207,15 +197,9 @@ export default function ListePlanSite() {
         />
       )}
 
-      {/* Dialogue Niveaux */}
+      {/* Dialogue Niveaux — always mounted so empty-state "Niveaux" works */}
       <Dialog open={showModal === 'niveaux'} onOpenChange={(o) => !o && handleClose()}>
         <DialogContent className='sm:max-w-3xl'>
-          <DialogHeader>
-            <DialogTitle>Configuration des niveaux de structure</DialogTitle>
-            <DialogDescription>
-              Définissez les niveaux (Ministère, Direction, Service, etc.)
-            </DialogDescription>
-          </DialogHeader>
           <NiveauPlanSiteManager onSuccess={handleClose} />
         </DialogContent>
       </Dialog>
@@ -226,8 +210,8 @@ export default function ListePlanSite() {
           <DialogHeader>
             <DialogTitle>
               {selectedPlan
-                ? 'Modifier le plan site'
-                : 'Créer un plan site'}
+                ? `Modifier un(e) ${currentNiveau?.libelle_nsc ?? 'structure'}`
+                : `Créer un(e) ${currentNiveau?.libelle_nsc ?? 'structure'}`}
             </DialogTitle>
           </DialogHeader>
           <AddPlanSite

@@ -1,10 +1,55 @@
 import type { TacheActivitePtba } from '@/simadou/allTypes/tacheActivitePtba'
 import { resolveIdActivite } from '@/simadou/allTypes/tacheActivitePtba'
+import { parseProportionPercent } from '@/simadou/allTypes/suiviTacheActivite'
 import type {
   TacheActivitePtbaFormData,
   TacheActivitePtbaProjetFormData,
 } from '@/simadou/schemas/tacheActivitePtbaSchemas'
 import { resolveRelationId } from '@/simadou/lib/resolveApiRelation'
+
+export const TACHE_PROPORTION_TOTAL_MAX = 100
+
+/** Parse `proportion_gt` (number or `"25"` / `"25%"`) to a finite number. */
+export function parseTacheProportion(
+  value: string | number | null | undefined
+): number {
+  return parseProportionPercent(value)
+}
+
+/** Sum of proportions for an activité's tasks (optionally excluding one task). */
+export function sumTacheProportions(
+  taches: Pick<TacheActivitePtba, 'proportion_gt' | 'id_groupe_tache'>[],
+  excludeId?: number | null
+): number {
+  return taches.reduce((total, tache) => {
+    if (
+      excludeId != null &&
+      Number(tache.id_groupe_tache) === Number(excludeId)
+    ) {
+      return total
+    }
+    return total + parseTacheProportion(tache.proportion_gt)
+  }, 0)
+}
+
+/**
+ * Max proportion allowed for a create/edit:
+ * - create: 100 − sum(others)
+ * - edit: 100 − sum(others excluding current) (= current + leftover)
+ */
+export function getMaxAssignableProportion(
+  taches: Pick<TacheActivitePtba, 'proportion_gt' | 'id_groupe_tache'>[],
+  editingId?: number | null
+): number {
+  const usedByOthers = sumTacheProportions(taches, editingId)
+  return Math.max(0, TACHE_PROPORTION_TOTAL_MAX - usedByOthers)
+}
+
+export function canAddTacheWithProportions(
+  taches: Pick<TacheActivitePtba, 'proportion_gt' | 'id_groupe_tache'>[]
+): boolean {
+  return getMaxAssignableProportion(taches) > 0
+}
 
 export type TacheActivitePtbaApiPayload = {
   intutile_tache_gt: string

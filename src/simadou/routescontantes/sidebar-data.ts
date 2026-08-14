@@ -11,7 +11,6 @@ import {
   LayoutGrid,
   User,
   SlidersHorizontal,
-  Handshake,
   MapPin,
   FileStack,
   BarChart2,
@@ -71,17 +70,17 @@ export const sidebarData: SidebarData = {
               icon: UserCog,
             },
             {
-              title: 'Partenaire Financier',
-              url: '/parametrage/partenaire-financier',
-              icon: Handshake,
+              title: 'Unités de gestion',
+              url: '/parametrage/unites-de-gestion',
+              icon: LayoutGrid,
             },
+            // {
+            //   title: 'Partenaire Financier',
+            //   url: '/parametrage/partenaire-financier',
+            //   icon: Handshake,
+            // },
             {
-              title: 'Zones agroécologiques',
-              url: '/parametrage/zone-de-collecte',
-              icon: MapPin,
-            }, 
-            {
-              title: 'Cadre Organique du MMAFP',
+              title: 'Cadre Organique du MINAGRI',
               url: '/parametrage/plans-de-site',
               icon: ClipboardList,
             },
@@ -104,12 +103,12 @@ export const sidebarData: SidebarData = {
           icon: FileStack,
           items: [
             {
-              title: 'Liste des politiques et stratégies',
+              title: 'Liste des programmes',
               url: '/programme/liste',
               icon: FileStack,
             },
             {
-              title: 'Cadre analytique',
+              title: 'CDMT',
               url: '/programme/cadre-analytique',
               icon: BarChart2,
             },
@@ -124,7 +123,7 @@ export const sidebarData: SidebarData = {
               icon: LineChart,
             },
             {
-              title: 'Indicateurs du CMR',
+              title: 'Cadre des mésures de resultats',
               url: '/programme/indicateurs-cmr',
               icon: TrendingUp,
             }
@@ -133,12 +132,12 @@ export const sidebarData: SidebarData = {
 
         // ── Programmation ─────────────────────────────────────
         {
-          title: 'Programmation',
+          title: 'Planification',
           icon: CalendarDays,
           items: [
 
             {
-              title: 'PAO',
+              title: 'Plans d\'Actions Opérationnels',
               url: '/programmation/ptba',
               icon: ClipboardList,
             },
@@ -148,17 +147,12 @@ export const sidebarData: SidebarData = {
               icon: FileSignature,
             },
             {
-              title: 'Suivi du PAO',
-              url: '/programmation/suivi-ptba',
-              icon: Eye,
-            },
-            {
-              title: 'Parametrage des marches',
+              title: 'Paramétrage des marchés',
               url: '/programmation/parametrage-marches',
               icon: List,
             },
             {
-              title: 'PPMS',
+              title: 'Plan de passation des marchés',
               url: '/programmation/ppms',
               icon: FileStack,
             },
@@ -174,11 +168,13 @@ export const sidebarData: SidebarData = {
               url: '/projet-programme/projets',
               icon: FolderOpen,
             },
+
             {
-              title: 'Unités de gestion',
-              url: '/projet-programme/unites-de-gestion',
-              icon: LayoutGrid,
+              title: 'Zones agro-écologiques',
+              url: '/projet-programme/zone-de-collecte',
+              icon: MapPin,
             },
+
           ],
         },
 
@@ -191,6 +187,11 @@ export const sidebarData: SidebarData = {
               title: 'Suivi des indicateurs',
               url: '/suivi-resultats/suivi-indicateurs',
               icon: LineChart,
+            },
+            {
+              title: 'Suivi du Plan d\'Action Opérationnel',
+              url: '/suivi-resultats/suivi-ptba',
+              icon: Eye,
             },
             {
               title: 'Cartographie',
@@ -206,22 +207,22 @@ export const sidebarData: SidebarData = {
           icon: FileBarChart,
           items: [
             {
-              title: 'PAO',
+              title: 'Plans d\'Actions Opérationnels',
               url: '/rapport/ptba',
               icon: ClipboardList,
             },
             {
-              title: 'État des activités',
+              title: 'Avancement des activités',
               url: '/rapport/etat-des-activites',
               icon: ListChecks,
             },
             {
-              title: 'Décaissement',
+              title: 'Suivi budgétaire',
               url: '/rapport/decaissement',
               icon: Wallet,
             },
             {
-              title: 'Indicateurs',
+              title: 'Suivi des indicateurs',
               url: '/rapport/indicateurs',
               icon: LineChart,
             },

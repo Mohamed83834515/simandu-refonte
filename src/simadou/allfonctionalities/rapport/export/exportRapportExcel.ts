@@ -16,8 +16,10 @@ import {
   detectAlignment,
   downloadBlob,
   filterExportRows,
+  findSectionColumnIndex,
   resolveCellMerges,
   resolveHeaderGroupRanges,
+  SECTION_LABEL_SEPARATOR,
   splitCellBoldPrefix,
 } from './rapportExportUtils'
 
@@ -60,25 +62,47 @@ function applyBodyStyle(cell: ExcelJS.Cell, shaded: boolean, value: unknown) {
 }
 
 /**
+ * Retrait hiérarchique : espaces en tête de texte plutôt qu'attribut
+ * OOXML `indent`, ignoré par certains tableurs (Numbers notamment).
+ */
+const SECTION_EXCEL_INDENT_SPACES = '   '
+
+function excelIndentPrefix(niveau: number | undefined): string {
+  return niveau && niveau > 0 ? SECTION_EXCEL_INDENT_SPACES.repeat(niveau) : ''
+}
+
+/**
  * Écrit la valeur d'une cellule de données : texte riche (code en gras +
  * reste en normal) quand la colonne définit boldPrefixSeparator.
+ * indentNiveau porte le retrait hiérarchique (activité sous son cadre).
  */
 function setBodyCellValue(
   cell: ExcelJS.Cell,
   value: string,
-  column?: { boldPrefixSeparator?: string }
+  column?: { boldPrefixSeparator?: string },
+  indentNiveau?: number
 ) {
+  const prefix = excelIndentPrefix(indentNiveau)
+
   const split = column?.boldPrefixSeparator
     ? splitCellBoldPrefix(value, column.boldPrefixSeparator)
     : null
 
   if (!split) {
-    cell.value = value
+    cell.value = `${prefix}${value}`
     return
   }
 
   cell.value = {
     richText: [
+      ...(prefix
+        ? [
+            {
+              font: { size: 10, color: { argb: hexArgb(theme.text) } },
+              text: prefix,
+            },
+          ]
+        : []),
       {
         font: { bold: true, size: 10, color: { argb: hexArgb(theme.text) } },
         text: split.prefix,
@@ -88,6 +112,52 @@ function setBodyCellValue(
         text: `${column!.boldPrefixSeparator}${split.rest}`,
       },
     ],
+  }
+}
+
+/**
+ * Écrit le libellé d'une ligne de section : code en gras + reste en normal
+ * quand le libellé contient le séparateur, tout en gras sinon. Le retrait
+ * hiérarchique est porté par des espaces en tête de texte.
+ */
+function setSectionCellValue(
+  cell: ExcelJS.Cell,
+  label: string,
+  niveau: number
+) {
+  const prefix = excelIndentPrefix(niveau)
+  const split = splitCellBoldPrefix(label, SECTION_LABEL_SEPARATOR)
+
+  if (split) {
+    cell.value = {
+      richText: [
+        ...(prefix
+          ? [
+              {
+                font: { size: 10, color: { argb: hexArgb(theme.text) } },
+                text: prefix,
+              },
+            ]
+          : []),
+        {
+          font: { bold: true, size: 10, color: { argb: hexArgb(theme.text) } },
+          text: split.prefix,
+        },
+        {
+          font: { size: 10, color: { argb: hexArgb(theme.text) } },
+          text: `${SECTION_LABEL_SEPARATOR}${split.rest}`,
+        },
+      ],
+    }
+  } else {
+    cell.value = `${prefix}${label}`
+    cell.font = { bold: true, size: 10, color: { argb: hexArgb(theme.text) } }
+  }
+
+  cell.alignment = {
+    vertical: 'middle',
+    horizontal: 'left',
+    wrapText: true,
   }
 }
 
@@ -101,7 +171,10 @@ function applyGanttActiveStyle(cell: ExcelJS.Cell) {
 }
 
 /** Largeur (en caractères) des colonnes mensuelles du Gantt. */
-const GANTT_EXCEL_COLUMN_WIDTH = 8
+const GANTT_EXCEL_COLUMN_WIDTH = 3
+
+/** Largeur (en caractères) d'une colonne d'indentation hiérarchique. */
+const EXCEL_INDENT_COLUMN_WIDTH = 3
 
 /** Feuille « Préambule » (orientation portrait), placée avant le tableau. */
 function addPreambleSheet(
@@ -159,6 +232,30 @@ export async function exportRapportExcel(payload: RapportExportPayload) {
   const headerRowCount = headerGroupRanges.length > 0 ? 2 : 1
   const dataStartRow = 5 + headerRowCount
 
+  // ── INDENTATION STRUCTURELLE ─────────────────────────────────────────
+  // L'attribut OOXML `indent` est ignoré par certains tableurs et un
+  // préfixe d'espaces n'indente que la première ligne en cas de retour à
+  // la ligne. L'indentation est donc matérialisée par de vraies colonnes
+  // étroites insérées avant la colonne « Activité » : chaque libellé
+  // fusionne de sa colonne de départ (selon son niveau) jusqu'à la colonne
+  // principale, et les lignes repliées restent indentées.
+  const baseSectionIndex = findSectionColumnIndex(columns)
+  const maxNiveau = (rowMetas ?? []).reduce(
+    (max, rowMeta) => Math.max(max, rowMeta.niveau ?? 0),
+    0
+  )
+  // Non combinable avec les en-têtes fusionnés (aucun rapport ne cumule
+  // les deux) : repli sur le préfixe d'espaces dans ce cas.
+  const indentColumnCount = headerGroupRanges.length === 0 ? maxNiveau : 0
+  const totalColumnCount = columns.length + indentColumnCount
+
+  /**
+   * Index feuille (0-based) d'une colonne de données. La colonne
+   * « Activité » pointe sur sa colonne principale (dernière de la zone).
+   */
+  const toSheetIndex = (colIndex: number) =>
+    colIndex < baseSectionIndex ? colIndex : colIndex + indentColumnCount
+
   const workbook = new ExcelJS.Workbook()
   workbook.creator = 'Simandu'
   workbook.created = new Date()
@@ -172,7 +269,7 @@ export async function exportRapportExcel(payload: RapportExportPayload) {
     pageSetup: { orientation: 'landscape', paperSize: 9 },
   })
 
-  const colCount = Math.max(columns.length, 1)
+  const colCount = Math.max(totalColumnCount, 1)
   sheet.mergeCells(1, 1, 1, colCount)
   sheet.mergeCells(2, 1, 2, colCount)
   sheet.mergeCells(3, 1, 3, colCount)
@@ -220,7 +317,7 @@ export async function exportRapportExcel(payload: RapportExportPayload) {
   }
   sheet.getRow(3).height = 4
 
-  const columnWidths = columns.map((column, index) => {
+  const dataColumnWidths = columns.map((column, index) => {
     if (index >= ganttStartIndex) return GANTT_EXCEL_COLUMN_WIDTH
 
     const values = rows.map((row) => row[index] ?? '')
@@ -232,14 +329,46 @@ export async function exportRapportExcel(payload: RapportExportPayload) {
     )
   })
 
-  columnWidths.forEach((width, index) => {
+  // Largeurs par colonne de la feuille : colonnes d'indentation étroites
+  // insérées juste avant la colonne principale « Activité ».
+  const sheetColumnWidths: number[] = []
+  columns.forEach((_, index) => {
+    if (index === baseSectionIndex) {
+      for (let k = 0; k < indentColumnCount; k += 1) {
+        sheetColumnWidths.push(EXCEL_INDENT_COLUMN_WIDTH)
+      }
+    }
+    sheetColumnWidths.push(dataColumnWidths[index])
+  })
+
+  sheetColumnWidths.forEach((width, index) => {
     sheet.getColumn(index + 1).width = width
   })
 
   if (headerRowCount === 1) {
     const headerRow = sheet.getRow(5)
     columns.forEach((column, index) => {
-      const cell = headerRow.getCell(index + 1)
+      // En-tête « Activité » fusionné au-dessus des colonnes
+      // d'indentation et de la colonne principale.
+      if (index === baseSectionIndex && indentColumnCount > 0) {
+        for (
+          let sheetCol = baseSectionIndex;
+          sheetCol <= baseSectionIndex + indentColumnCount;
+          sheetCol += 1
+        ) {
+          applyHeaderStyle(headerRow.getCell(sheetCol + 1))
+        }
+        headerRow.getCell(baseSectionIndex + 1).value = column.header
+        sheet.mergeCells(
+          5,
+          baseSectionIndex + 1,
+          5,
+          baseSectionIndex + indentColumnCount + 1
+        )
+        return
+      }
+
+      const cell = headerRow.getCell(toSheetIndex(index) + 1)
       cell.value = column.header
       applyHeaderStyle(cell)
     })
@@ -317,47 +446,146 @@ export async function exportRapportExcel(payload: RapportExportPayload) {
     const rowMeta = rowMetas?.[rowIndex]
     const excelRow = sheet.getRow(dataStartRow + rowIndex)
     const isAlt = rowIndex % 2 === 1
+    const rowNumber = dataStartRow + rowIndex
 
-    // ── SECTION ROW (cadre analytique)
+    /**
+     * Largeurs alignées sur les colonnes de données pour l'estimation de
+     * hauteur : la zone Activité vaut la somme des colonnes fusionnées.
+     */
+    const rowHeightWidths = (startOffset: number) =>
+      columns.map((_, colIndex) =>
+        colIndex === baseSectionIndex
+          ? sheetColumnWidths
+              .slice(
+                baseSectionIndex + startOffset,
+                baseSectionIndex + indentColumnCount + 1
+              )
+              .reduce((sum, width) => sum + width, 0)
+          : sheetColumnWidths[toSheetIndex(colIndex)]
+      )
+
+    /**
+     * Écrit la zone Activité d'une ligne de données : libellé posé sur la
+     * colonne correspondant à son niveau puis fusionné jusqu'à la colonne
+     * principale — les lignes repliées restent indentées.
+     */
+    const writeActiviteRegion = (
+      value: string,
+      niveau: number | undefined,
+      verticalSpan: number
+    ) => {
+      const startOffset = Math.min(niveau ?? 0, indentColumnCount)
+      const labelStart = baseSectionIndex + startOffset
+      const labelEnd = baseSectionIndex + indentColumnCount
+
+      // Cellules d'indentation (et zone fusionnée) stylées avant fusion.
+      for (let sheetCol = baseSectionIndex; sheetCol <= labelEnd; sheetCol += 1) {
+        if (sheetCol === labelStart) continue
+        const cell = excelRow.getCell(sheetCol + 1)
+        cell.value = ''
+        applyBodyStyle(cell, isAlt, '')
+      }
+
+      const cell = excelRow.getCell(labelStart + 1)
+      setBodyCellValue(
+        cell,
+        value,
+        columns[baseSectionIndex],
+        indentColumnCount === 0 ? niveau : undefined
+      )
+      applyBodyStyle(cell, isAlt, value)
+
+      if (verticalSpan > 1 || labelEnd > labelStart) {
+        sheet.mergeCells(
+          rowNumber,
+          labelStart + 1,
+          rowNumber + verticalSpan - 1,
+          labelEnd + 1
+        )
+      }
+      if (verticalSpan > 1) {
+        cell.alignment = { ...cell.alignment, vertical: 'middle' }
+      }
+    }
+
+    // ── SECTION ROW (cadre analytique) : libellé indenté selon le
+    // niveau puis fusionné sur toutes les colonnes restantes à droite.
     if (rowMeta?.type === 'section') {
-      const startCol = (rowMeta.niveau ?? 1) + 1
-      const colCount = columns.length
-      const rowNumber = dataStartRow + rowIndex
+      const niveau = rowMeta.niveau ?? 0
+      const label = rowMeta.label ?? ''
+      const startOffset = Math.min(niveau, indentColumnCount)
+      const labelStart = baseSectionIndex + startOffset
+      const labelEnd = totalColumnCount - 1
 
-      sheet.mergeCells(rowNumber, startCol, rowNumber, colCount)
+      for (let sheetCol = 0; sheetCol < totalColumnCount; sheetCol += 1) {
+        if (sheetCol === labelStart) continue
+        const cell = excelRow.getCell(sheetCol + 1)
+        cell.value = ''
+        applyBodyStyle(cell, false, '')
+      }
 
-      const cell = excelRow.getCell(startCol)
-      cell.value = rowMeta.label ?? ''
+      const labelCell = excelRow.getCell(labelStart + 1)
+      applyBodyStyle(labelCell, false, '')
+      setSectionCellValue(
+        labelCell,
+        label,
+        indentColumnCount === 0 ? niveau : 0
+      )
 
-      applyBodyStyle(cell, false, cell.value)
-      cell.font = { bold: true, size: 10, color: { argb: hexArgb(theme.text) } }
+      if (labelEnd > labelStart) {
+        sheet.mergeCells(rowNumber, labelStart + 1, rowNumber, labelEnd + 1)
+      }
 
-      excelRow.height = 22
+      const regionWidth = sheetColumnWidths
+        .slice(labelStart, labelEnd + 1)
+        .reduce((sum, width) => sum + width, 0)
+      excelRow.height = estimateExcelRowHeight(
+        [`${indentColumnCount === 0 ? excelIndentPrefix(niveau) : ''}${label}`],
+        [regionWidth]
+      )
       return
     }
 
     // ── DATA ROW avec mergeKeys (fusion verticale indépendante par colonne)
     if (rowMeta?.type === 'data' && rowMeta.mergeKeys) {
+      const startOffset = Math.min(rowMeta.niveau ?? 0, indentColumnCount)
+
       row.forEach((value, colIndex) => {
         const cellId = `${rowIndex}:${colIndex}`
 
-        // Cellule couverte par une fusion démarrée plus haut : on ne la
-        // touche pas.
-        if (cellMerges.covered.has(cellId)) return
+        // Cellule couverte par une fusion démarrée plus haut : on ne
+        // touche pas au rectangle fusionné, seules les cellules
+        // d'indentation qui le précèdent sont stylées.
+        if (cellMerges.covered.has(cellId)) {
+          if (colIndex === baseSectionIndex) {
+            for (let k = 0; k < startOffset; k += 1) {
+              const cell = excelRow.getCell(baseSectionIndex + k + 1)
+              cell.value = ''
+              applyBodyStyle(cell, isAlt, '')
+            }
+          }
+          return
+        }
 
-        const cell = excelRow.getCell(colIndex + 1)
         const span = cellMerges.spans.get(cellId) ?? 1
 
+        if (colIndex === baseSectionIndex) {
+          writeActiviteRegion(value, rowMeta.niveau, span)
+          return
+        }
+
+        const sheetCol = toSheetIndex(colIndex)
+
         if (span > 1) {
-          const rowNumber = dataStartRow + rowIndex
           sheet.mergeCells(
             rowNumber,
-            colIndex + 1,
+            sheetCol + 1,
             rowNumber + span - 1,
-            colIndex + 1
+            sheetCol + 1
           )
         }
 
+        const cell = excelRow.getCell(sheetCol + 1)
         setBodyCellValue(cell, value, columns[colIndex])
         applyBodyStyle(cell, isAlt, value)
         if (isGanttActive(rowIndex, colIndex)) applyGanttActiveStyle(cell)
@@ -367,24 +595,24 @@ export async function exportRapportExcel(payload: RapportExportPayload) {
         }
       })
 
-      excelRow.height = estimateExcelRowHeight(row, columnWidths)
+      excelRow.height = estimateExcelRowHeight(row, rowHeightWidths(startOffset))
       return
     }
 
-    // ── DATA ROW avec groupKey (code + activité fusionnés verticalement) ──
-    //
-    //   - première occurrence du groupKey → on fusionne les cellules des
-    //     colonnes 0 et 1 sur `span` lignes, on écrit toutes les valeurs
-    //   - occurrences suivantes → on saute les colonnes 0 et 1 (déjà
-    //     couvertes par la fusion), on écrit uniquement les autres colonnes
-    if (rowMeta?.type === 'data' && rowMeta.groupKey != null) {
+    // ── DATA ROW avec groupKey (fusion legacy des colonnes 0 et 1) ──
+    // Plus émis par les pages (remplacé par mergeKeys) ; jamais combiné à
+    // l'indentation structurelle.
+    if (
+      rowMeta?.type === 'data' &&
+      rowMeta.groupKey != null &&
+      indentColumnCount === 0
+    ) {
       const groupKey = rowMeta.groupKey
       const isFirst = !groupSeen.has(groupKey)
 
       if (isFirst) {
         groupSeen.add(groupKey)
         const span = groupSpans.get(groupKey) ?? 1
-        const rowNumber = dataStartRow + rowIndex
 
         // Fusion verticale des colonnes code (1) et activité (2)
         if (span > 1) {
@@ -395,7 +623,12 @@ export async function exportRapportExcel(payload: RapportExportPayload) {
         // Écriture de toutes les colonnes
         row.forEach((value, colIndex) => {
           const cell = excelRow.getCell(colIndex + 1)
-          setBodyCellValue(cell, value, columns[colIndex])
+          setBodyCellValue(
+            cell,
+            value,
+            columns[colIndex],
+            colIndex === baseSectionIndex ? rowMeta.niveau : undefined
+          )
           applyBodyStyle(cell, isAlt, value)
           if (isGanttActive(rowIndex, colIndex)) applyGanttActiveStyle(cell)
 
@@ -417,19 +650,33 @@ export async function exportRapportExcel(payload: RapportExportPayload) {
         })
       }
 
-      excelRow.height = estimateExcelRowHeight(row, columnWidths)
+      excelRow.height = estimateExcelRowHeight(row, rowHeightWidths(0))
       return
     }
 
     // NORMAL ROW
+    const normalOffset = Math.min(
+      rowMeta?.type === 'data' ? (rowMeta.niveau ?? 0) : 0,
+      indentColumnCount
+    )
+
     row.forEach((value, colIndex) => {
-      const cell = excelRow.getCell(colIndex + 1)
+      if (colIndex === baseSectionIndex) {
+        writeActiviteRegion(
+          value,
+          rowMeta?.type === 'data' ? rowMeta.niveau : undefined,
+          1
+        )
+        return
+      }
+
+      const cell = excelRow.getCell(toSheetIndex(colIndex) + 1)
       setBodyCellValue(cell, value, columns[colIndex])
       applyBodyStyle(cell, isAlt, value)
       if (isGanttActive(rowIndex, colIndex)) applyGanttActiveStyle(cell)
     })
 
-    excelRow.height = estimateExcelRowHeight(row, columnWidths)
+    excelRow.height = estimateExcelRowHeight(row, rowHeightWidths(normalOffset))
   })
 
   const buffer = await workbook.xlsx.writeBuffer()

@@ -32,6 +32,19 @@ export const useSaveNiveauxLocalite = () => {
   })
 }
 
+export const useUpdateNiveauLocalite = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data: NiveauLocalite) => niveauLocaliteService.update(data),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: niveauLocaliteQueryKeys.list() })
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Erreur lors de la mise à jour du niveau')
+    },
+  })
+}
+
 export const useDeleteNiveauLocalite = () => {
   const queryClient = useQueryClient()
   return useMutation({

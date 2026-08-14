@@ -2,6 +2,7 @@ import {
   createContext,
   useContext,
   useEffect,
+  useMemo,
   type ReactNode,
 } from 'react'
 
@@ -20,10 +21,13 @@ export function ActiviteTabbedDialogProvider({
   setToolbarAction,
   children,
 }: ActiviteTabbedDialogContextValue & { children: ReactNode }) {
+  const value = useMemo(
+    () => ({ activeTab, setSubViewActive, setToolbarAction }),
+    [activeTab, setSubViewActive, setToolbarAction]
+  )
+
   return (
-    <ActiviteTabbedDialogContext.Provider
-      value={{ activeTab, setSubViewActive, setToolbarAction }}
-    >
+    <ActiviteTabbedDialogContext.Provider value={value}>
       {children}
     </ActiviteTabbedDialogContext.Provider>
   )

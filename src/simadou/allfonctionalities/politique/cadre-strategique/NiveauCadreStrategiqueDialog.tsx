@@ -14,7 +14,7 @@ export default function NiveauCadreStrategiqueDialog({ open, onOpenChange }: Ope
           <DialogTitle>Configuration des niveaux du cadre stratégique</DialogTitle>
         </DialogHeader>
         <div className='max-h-[min(70vh,36rem)] overflow-y-auto px-6 py-4'>
-          <NiveauCadreStrategiqueManager />
+          {open ? <NiveauCadreStrategiqueManager /> : null}
         </div>
       </DialogContent>
     </Dialog>

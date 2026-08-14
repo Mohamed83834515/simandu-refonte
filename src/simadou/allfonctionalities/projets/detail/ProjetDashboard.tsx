@@ -21,7 +21,9 @@ import { usePtbaVersionSelection } from '@/simadou/allHooks/admin/versionHooks'
 import { useActiveProgrammeCode } from '@/hooks/use-active-programme'
 import { formatNumber } from '@/simadou/allSercices/montantFormater'
 import { type Projet } from '@/simadou/allTypes'
-import { BarChart3, DollarSign, Wallet, Calendar, Activity, TrendingUp } from 'lucide-react'
+import { BarChart3, DollarSign, Wallet, Calendar, Activity, TrendingUp, FileText } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import ProjetRapportOrDialog from './rapport/ProjetRapportOrDialog'
 import { Bar, BarChart, XAxis, YAxis, CartesianGrid, LabelList } from 'recharts'
 import { cn } from '@/lib/utils'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -411,6 +413,23 @@ function DecaissementComparatifCard({ data, isLoading }: {
 function ProjetAvancementAnnuelCard({ data, isLoading }: {
   data: { annee: number; cible: number; realise: number }[]; isLoading: boolean
 }) {
+  const cumulativeData = useMemo(() => {
+    const sorted = [...data].sort((a, b) => a.annee - b.annee)
+
+    let cumulCible = 0
+    let cumulRealise = 0
+
+    return sorted.map((item) => {
+      cumulCible = Math.round((cumulCible + (item.cible ?? 0)) * 100) / 100
+      cumulRealise = Math.round((cumulRealise + (item.realise ?? 0)) * 100) / 100
+      return {
+        annee: item.annee,
+        cible: cumulCible,
+        realise: cumulRealise,
+      }
+    })
+  }, [data])
+
   return (
     <Card className='border-0 shadow-sm'>
       <CardHeader className='border-b pb-3'>
@@ -420,29 +439,29 @@ function ProjetAvancementAnnuelCard({ data, isLoading }: {
           </div>
           <div>
             <CardTitle className='text-sm font-semibold'>Avancement physique par année</CardTitle>
-            <CardDescription className='text-xs'>Taux réalisé vs cible (%) — toutes années</CardDescription>
+            <CardDescription className='text-xs'>Taux réalisé vs cible (%) — cumulé</CardDescription>
           </div>
         </div>
       </CardHeader>
       <CardContent className='pt-5'>
         {isLoading ? (
           <div className='flex h-[240px] items-center justify-center text-sm text-muted-foreground'>Chargement...</div>
-        ) : data.length === 0 ? (
+        ) : cumulativeData.length === 0 ? (
           <div className='flex h-[240px] items-center justify-center text-sm text-muted-foreground'>Aucune donnée</div>
         ) : (
           <div className='w-full overflow-x-auto'>
             <div style={{ minWidth: '300px' }}>
               <ChartContainer config={avancementChartConfig} className='h-[240px] w-full'>
-                <BarChart accessibilityLayer data={data} margin={{ top: 30, right: 10, left: -10, bottom: 0 }}>
+                <BarChart accessibilityLayer data={cumulativeData} margin={{ top: 30, right: 10, left: -10, bottom: 0 }}>
                   <CartesianGrid vertical={false} strokeDasharray='3 3' className='stroke-muted/40' />
                   <XAxis dataKey='annee' tickLine={false} tickMargin={10} axisLine={false} className='fill-muted-foreground text-xs' />
-                  <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(v) => `${v}%`} className='fill-muted-foreground text-[10px]' />
-                  <ChartTooltip cursor={{ fill: 'rgba(0,0,0,0.05)' }} content={<ChartTooltipContent formatter={(v) => `${v}%`} />} />
+                  <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(v) => `${v.toFixed(0)}%`} className='fill-muted-foreground text-[10px]' />
+                  <ChartTooltip cursor={{ fill: 'rgba(0,0,0,0.05)' }} content={<ChartTooltipContent formatter={(v) => `${Number(v).toFixed(0)}%`} />} />
                   <Bar dataKey='cible' fill='#FCD116' radius={[4, 4, 0, 0]}>
-                    <LabelList dataKey='cible' position='top' className='fill-muted-foreground text-[10px] font-bold' formatter={(v: any) => `${v}%`} />
+                    <LabelList dataKey='cible' position='top' className='fill-muted-foreground text-[10px] font-bold' formatter={(v: any) => `${Number(v).toFixed(0)}%`} />
                   </Bar>
                   <Bar dataKey='realise' fill='#10b981' radius={[4, 4, 0, 0]}>
-                    <LabelList dataKey='realise' position='top' className='fill-muted-foreground text-[10px] font-bold' formatter={(v: any) => `${v}%`} />
+                    <LabelList dataKey='realise' position='top' className='fill-muted-foreground text-[10px] font-bold' formatter={(v: any) => `${Number(v).toFixed(0)}%`} />
                   </Bar>
                 </BarChart>
               </ChartContainer>
@@ -574,6 +593,7 @@ export default function ProjetDashboard({ projet }: ProjetDashboardProps) {
 
   const defaultYear = availableYears[availableYears.length - 1] || new Date().getFullYear()
   const [selectedYear, setSelectedYear] = useState(defaultYear)
+  const [rapportOpen, setRapportOpen] = useState(false)
 
   useEffect(() => {
     setSelectedYear(defaultYear)
@@ -614,7 +634,7 @@ export default function ProjetDashboard({ projet }: ProjetDashboardProps) {
     () => ptbas.filter((p) => p.version_info?.annee_ptba === selectedYear),
     [ptbas, selectedYear]
   )
-
+  console.log('ptbasFiltres', ptbasFiltres)
   const tauxRealisationMoyen = useMemo(() => {
     if (!ptbasFiltres.length) return 0
     return Math.round(
@@ -788,20 +808,32 @@ export default function ProjetDashboard({ projet }: ProjetDashboardProps) {
           <h2 className='text-xl font-bold tracking-tight text-foreground'>Tableau de bord</h2>
           <p className='mt-0.5 text-sm text-muted-foreground'>Vue d'ensemble — avancement et finances du projet</p>
         </div>
-        <div className='flex items-center gap-2 rounded-xl border bg-background px-3 py-2 shadow-sm'>
-          <Calendar className='h-4 w-4 flex-shrink-0 text-muted-foreground' />
-          <Select value={String(selectedYear)} onValueChange={(v) => setSelectedYear(Number(v))}>
-            <SelectTrigger className='h-auto w-[110px] border-0 bg-transparent p-0 shadow-none focus:ring-0'>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {availableYears.map((y) => (
-                <SelectItem key={y} value={String(y)}>PTBA {y}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className='flex flex-wrap items-center gap-2'>
+          <Button type='button' variant='outline' onClick={() => setRapportOpen(true)}>
+            <FileText className='h-4 w-4' />
+            Rapport
+          </Button>
+          <div className='flex items-center gap-2 rounded-xl border bg-background px-3 py-2 shadow-sm'>
+            <Calendar className='h-4 w-4 flex-shrink-0 text-muted-foreground' />
+            <Select value={String(selectedYear)} onValueChange={(v) => setSelectedYear(Number(v))}>
+              <SelectTrigger className='h-auto w-[110px] border-0 bg-transparent p-0 shadow-none focus:ring-0'>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {availableYears.map((y) => (
+                  <SelectItem key={y} value={String(y)}>PTBA {y}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
+
+      <ProjetRapportOrDialog
+        projet={projet}
+        open={rapportOpen}
+        onOpenChange={setRapportOpen}
+      />
 
       {/* ── 4 KPI Cards ── */}
       <div className='grid grid-cols-2 gap-3 lg:grid-cols-4'>

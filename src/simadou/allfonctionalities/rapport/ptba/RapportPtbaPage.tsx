@@ -4,7 +4,7 @@ import ListeRapportPtba from './ListeRapportPtba'
 
 export default function RapportPtbaPage() {
   return (
-    <RapportPageLayout title='Rapport des états PTBA' icon={ClipboardList}>
+    <RapportPageLayout title='Rapport des états PAO' icon={ClipboardList}>
       <ListeRapportPtba />
     </RapportPageLayout>
   )

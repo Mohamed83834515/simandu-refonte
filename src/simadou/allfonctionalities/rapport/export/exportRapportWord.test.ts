@@ -3,25 +3,31 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { exportRapportWord } from './exportRapportWord'
 import type { RapportExportPayload } from './rapportExportTypes'
 
+/**
+ * Payload au format produit par les pages rapport : colonne « Activité »
+ * en tête (code intégré au libellé, en gras via boldPrefixSeparator),
+ * sections indentées par niveau, fusion verticale par activité via
+ * mergeKeys sur la colonne 0.
+ */
 function buildPayload(
   overrides: Partial<RapportExportPayload> = {}
 ): RapportExportPayload {
   return {
-    pageTitle: 'Tâches PTBA',
+    pageTitle: 'Tâches PAO',
     columns: [
-      { id: 'code', header: 'Code' },
-      { id: 'activite', header: 'Activité' },
+      { id: 'activite', header: 'Activité', boldPrefixSeparator: ' : ' },
       { id: 'tache', header: 'Intitulé tâche' },
+      { id: 'responsable', header: 'Responsable' },
     ],
     rows: [
-      ['', 'Composante 1', ''],
-      ['1.1.1', 'Étude de faisabilité', 'Recrutement du consultant'],
-      ['1.1.1', 'Étude de faisabilité', 'Validation du rapport'],
+      ['Composante 1', '', ''],
+      ['1.1.1 : Étude de faisabilité', 'Recrutement du consultant', 'A'],
+      ['1.1.1 : Étude de faisabilité', 'Validation du rapport', 'B'],
     ],
     rowMetas: [
       { type: 'section', niveau: 0, label: 'Composante 1' },
-      { type: 'data', groupKey: '1' },
-      { type: 'data', groupKey: '1' },
+      { type: 'data', niveau: 1, mergeKeys: { 0: '1' } },
+      { type: 'data', niveau: 1, mergeKeys: { 0: '1' } },
     ],
     ...overrides,
   }
@@ -35,8 +41,8 @@ async function exportAndReadXml(payload: RapportExportPayload) {
     blobs.push(blob as Blob)
     return 'blob:mock'
   })
-  vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
-  vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+  vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => { })
+  vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => { })
 
   await exportRapportWord(payload)
 
@@ -81,7 +87,9 @@ describe('exportRapportWord', () => {
     const gridColumns = (
       grids[1][0].match(/<w:gridCol/g) ?? []
     ).length
-    expect(gridColumns).toBe(6) // 3 colonnes de données + 3 mois de Gantt
+    // 1 colonne d'indentation (niveau max = 1) + 3 colonnes de données
+    // + 3 mois de Gantt
+    expect(gridColumns).toBe(7)
 
     const rows = [...dataTableXml.matchAll(/<w:tr\b.*?<\/w:tr>/gs)]
     expect(rows.length).toBeGreaterThanOrEqual(4) // en-tête + 3 lignes
@@ -92,8 +100,93 @@ describe('exportRapportWord', () => {
       expect(occupiedGridColumns(row[0])).toBe(gridColumns)
     })
 
-    // La ligne de section porte bien une fusion sur toute la largeur.
-    expect(xml).toMatch(/<w:gridSpan w:val="6"/)
+    // La ligne de section (ligne 1, après l'en-tête) : le libellé prend
+    // toutes les colonnes disponibles à droite (fusion pleine largeur,
+    // niveau 0 → aucune cellule d'indentation).
+    const sectionRow = rows[1][0]
+    const sectionCells = [...sectionRow.matchAll(/<w:tc>.*?<\/w:tc>/gs)]
+    expect(sectionCells.length).toBe(1)
+    expect(sectionCells[0][0]).toContain('Composante 1')
+    expect(sectionCells[0][0]).toMatch(/<w:gridSpan w:val="7"/)
+  })
+
+  it('section : libellé indenté dans la colonne Activité, code en gras', async () => {
+    const xml = await exportAndReadXml(
+      buildPayload({
+        rows: [
+          ['Composante 1', '', ''],
+          ['1A : Promotion des entreprises', '', ''],
+          ['1.1.1 : Étude de faisabilité', 'x', 'y'],
+        ],
+        rowMetas: [
+          { type: 'section', niveau: 0, label: 'Composante 1' },
+          {
+            type: 'section',
+            niveau: 1,
+            label: '1A : Promotion des entreprises',
+          },
+          { type: 'data', niveau: 2, mergeKeys: { 0: '1' } },
+        ],
+      })
+    )
+
+    // 2 colonnes d'indentation (niveau max = 2) + 3 colonnes de données :
+    // l'indentation est portée par de vraies colonnes bordées, comme dans
+    // l'export Excel.
+    const grids = [...xml.matchAll(/<w:tblGrid>.*?<\/w:tblGrid>/gs)]
+    const dataTableXml = xml.slice(grids[1].index)
+    const gridColumns = (grids[1][0].match(/<w:gridCol/g) ?? []).length
+    expect(gridColumns).toBe(5)
+
+    const rows = [...dataTableXml.matchAll(/<w:tr\b.*?<\/w:tr>/gs)]
+    rows.forEach((row) => {
+      expect(occupiedGridColumns(row[0])).toBe(gridColumns)
+    })
+
+    // Section niveau 0 : libellé en tête, fusionné sur toutes les
+    // colonnes disponibles à droite (5).
+    const section0Cells = [...rows[1][0].matchAll(/<w:tc>.*?<\/w:tc>/gs)]
+    expect(section0Cells.length).toBe(1)
+    expect(section0Cells[0][0]).toContain('Composante 1')
+    expect(section0Cells[0][0]).toMatch(/<w:gridSpan w:val="5"/)
+
+    // Section niveau 1 : une cellule d'indentation vide puis le libellé
+    // fusionné sur toutes les colonnes restantes (4).
+    const section1Cells = [...rows[2][0].matchAll(/<w:tc>.*?<\/w:tc>/gs)]
+    expect(section1Cells.length).toBe(2)
+    expect(section1Cells[0][0]).not.toContain('1A')
+    expect(section1Cells[1][0]).toContain('1A')
+    expect(section1Cells[1][0]).toMatch(/<w:gridSpan w:val="4"/)
+
+    // Activité (niveau cadre + 1 = 2) : deux cellules d'indentation vides
+    // puis le libellé dans la colonne principale.
+    const dataCells = [...rows[3][0].matchAll(/<w:tc>.*?<\/w:tc>/gs)]
+    expect(dataCells[0][0]).not.toContain('1.1.1')
+    expect(dataCells[1][0]).not.toContain('1.1.1')
+    expect(dataCells[2][0]).toContain('1.1.1')
+
+    const runs = [...xml.matchAll(/<w:r>.*?<\/w:r>/gs)].map((m) => m[0])
+
+    // Code « 1A » en gras, reste du libellé en normal.
+    const codeRun = runs.find((run) => run.includes('>1A<'))
+    expect(codeRun).toBeDefined()
+    expect(codeRun).toContain('<w:b/>')
+
+    const restRun = runs.find((run) =>
+      run.includes('Promotion des entreprises')
+    )
+    expect(restRun).toBeDefined()
+    expect(restRun).not.toContain('<w:b/>')
+
+    // Libellé sans code : tout en gras.
+    const plainRun = runs.find((run) => run.includes('Composante 1'))
+    expect(plainRun).toBeDefined()
+    expect(plainRun).toContain('<w:b/>')
+
+    // Code d'activité en gras aussi.
+    const activiteCodeRun = runs.find((run) => run.includes('>1.1.1<'))
+    expect(activiteCodeRun).toBeDefined()
+    expect(activiteCodeRun).toContain('<w:b/>')
   })
 
   it('en-têtes fusionnés + préambule : deux lignes d’en-tête et section portrait', async () => {
@@ -117,8 +210,8 @@ describe('exportRapportWord', () => {
     expect(xml).toMatch(/w:orient="landscape"/)
 
     // La bannière d'en-tête ouvre le document, avant le préambule.
-    expect(xml.indexOf('Rapport — Tâches PTBA')).toBeGreaterThanOrEqual(0)
-    expect(xml.indexOf('Rapport — Tâches PTBA')).toBeLessThan(
+    expect(xml.indexOf('Rapport — Tâches PAO')).toBeGreaterThanOrEqual(0)
+    expect(xml.indexOf('Rapport — Tâches PAO')).toBeLessThan(
       xml.indexOf('PREAMBULE')
     )
 
@@ -186,13 +279,8 @@ describe('exportRapportWord', () => {
   it('boldPrefixSeparator : le code est en gras, le reste en normal', async () => {
     const xml = await exportAndReadXml(
       buildPayload({
-        columns: [
-          { id: 'code', header: 'Code' },
-          { id: 'activite', header: 'Activité', boldPrefixSeparator: ' : ' },
-          { id: 'tache', header: 'Intitulé tâche' },
-        ],
-        rows: [['1.1.1', 'O1 : Étude de faisabilité', 'x']],
-        rowMetas: [{ type: 'data', groupKey: '1' }],
+        rows: [['O1 : Étude de faisabilité', 'x', 'y']],
+        rowMetas: [{ type: 'data' }],
       })
     )
 

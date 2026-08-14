@@ -115,7 +115,7 @@ export default function RapportPtbaPage() {
   }
 
   return (
-    <RapportPageLayout title='Rapport des états PTBA' icon={ClipboardList}>
+    <RapportPageLayout title='Rapport des états PAO' icon={ClipboardList}>
       <div className='space-y-4'>
         {/* ✅ Version Select sur la même ligne que les tabs */}
         <Tabs
@@ -127,7 +127,7 @@ export default function RapportPtbaPage() {
         >
           <div className='flex items-center justify-between gap-4'>
             <TabsList>
-              <TabsTrigger value='taches'>Tâches PTBA</TabsTrigger>
+              <TabsTrigger value='taches'>Tâches PAO</TabsTrigger>
               <TabsTrigger value='indicateurs'>Indicateurs</TabsTrigger>
               <TabsTrigger value='couts'>Coût Activité</TabsTrigger>
             </TabsList>

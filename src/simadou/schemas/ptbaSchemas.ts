@@ -84,10 +84,10 @@ export const chronogrammeSchema = z
 export const ptbaSchema = z.object({
   localites_ptba: z
     .array(z.number())
-    .min(1, "Au moins une localité doit être sélectionnée"),
+    .min(1, "Au moins une direction régionale doit être sélectionnée"),
   partenaire_conserne_ptba: z
     .array(z.number())
-    .min(1, "Au moins un partenaire doit être sélectionné"),
+    .min(1, "Au moins une direction/service doit être sélectionnée"),
   code_activite_ptba: z
     .string()
     .min(1, "Le code d'activité est requis")

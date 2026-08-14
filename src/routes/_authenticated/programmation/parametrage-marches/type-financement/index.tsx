@@ -1,19 +1,12 @@
 import AddTypeFinancementPPM from '@/simadou/allfonctionalities/ppm/type-financement/AddTypeFinancementPPM'
 import ListeTypeFinancementPPM from '@/simadou/allfonctionalities/ppm/type-financement/ListeTypeFinancementPPM'
 import { TypeFinancementPPM } from '@/simadou/allTypes/typeFinancementPPM'
-import { createFileRoute } from '@tanstack/react-router'
 import { FileText } from 'lucide-react'
 import { useState } from 'react'
 
-export const Route = createFileRoute(
-  '/_authenticated/programmation/parametrage-marches/type-financement/',
-)({
-  component: TypeFinancementPPMPage,
-})
-
 type Mode = 'list' | 'add' | 'edit'
 
-function TypeFinancementPPMPage() {
+export function TypeFinancementPPMPage() {
   const [mode, setMode] = useState<Mode>('list')
   const [currentRow, setCurrentRow] = useState<TypeFinancementPPM | null>(null)
 

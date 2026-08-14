@@ -12,6 +12,11 @@ import { useEmbeddedTableState } from '@/hooks/use-embedded-table-state'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { TableCell, TableRow } from '@/components/ui/table'
+import { ActiviteLabelCell, CadreSectionCells } from '../../CadreSectionCells'
+import {
+  formatActiviteLabel,
+  formatCadreSectionLabel,
+} from '../../rapportTableUtils'
 import { type RapportExportRowMeta } from '../../export/rapportExportTypes'
 import { useRapportExportRegistration } from '../../useRapportExportRegistration'
 
@@ -45,14 +50,9 @@ export function CoutActiviteTable({
 
   const columns: ColumnDef<TreeRow>[] = [
     {
-      id: 'code',
-      header: 'Code',
-      accessorFn: (row) => row.ptba?.code_activite_ptba ?? '',
-    },
-    {
       id: 'activite',
       header: 'Activité',
-      accessorFn: (row) => row.ptba?.intitule_activite_ptba ?? '',
+      accessorFn: (row) => (row.ptba ? formatActiviteLabel(row.ptba) : ''),
     },
     {
       id: 'ordre',
@@ -142,7 +142,7 @@ export function CoutActiviteTable({
       result.push({
         type: 'cadre',
 
-        label: cadre.intutile_ca,
+        label: formatCadreSectionLabel(cadre),
 
         niveau,
       })
@@ -209,7 +209,7 @@ export function CoutActiviteTable({
 
       rows.forEach((r) => {
         if (r.type === 'cadre') {
-          exportRows.push([r.label ?? '', '', '', '', '', '', '', ''])
+          exportRows.push([r.label ?? '', '', '', '', '', '', ''])
 
           rowMetas.push({
             type: 'section',
@@ -218,8 +218,7 @@ export function CoutActiviteTable({
           })
         } else {
           exportRows.push([
-            r.ptba?.code_activite_ptba ?? '',
-            r.ptba?.intitule_activite_ptba ?? '',
+            r.ptba ? formatActiviteLabel(r.ptba) : '',
             r.cout ? String(r.cout.ordre ?? '') : '',
             r.cout?.intitule_tache ?? '',
             r.cout?.unite_cu ?? '',
@@ -232,7 +231,9 @@ export function CoutActiviteTable({
 
           rowMetas.push({
             type: 'data',
-            groupKey: r.groupKey,
+            // Les activités s'indentent d'un cran sous leur cadre.
+            niveau: r.niveau + 1,
+            ...(r.groupKey ? { mergeKeys: { 0: r.groupKey } } : {}),
           })
         }
       })
@@ -240,12 +241,9 @@ export function CoutActiviteTable({
       return {
         columns: [
           {
-            id: 'code',
-            header: 'Code',
-          },
-          {
             id: 'activite',
             header: 'Activité',
+            boldPrefixSeparator: ' : ',
           },
           {
             id: 'ordre',
@@ -276,7 +274,6 @@ export function CoutActiviteTable({
         rowMetas,
         rows: exportRows,
         visibleColumnIds: [
-          'code',
           'activite',
           'ordre',
           'tache',
@@ -320,22 +317,14 @@ export function CoutActiviteTable({
           showViewOptions={false}
           customRowRenderer={(row, rowIdx, { rowClassName, cellClassName }) => {
             if (row.type === 'cadre') {
-              const empty = row.niveau
-
               return (
-                <TableRow className={`${rowClassName} font-bold`} key={rowIdx}>
-                  {Array.from({
-                    length: empty,
-                  }).map((_, x) => (
-                    <TableCell className={cellClassName()} key={x} />
-                  ))}
-
-                  <TableCell
-                    className={cellClassName()}
-                    colSpan={columns.length - empty}
-                  >
-                    {row.label}
-                  </TableCell>
+                <TableRow className={rowClassName} key={rowIdx}>
+                  <CadreSectionCells
+                    label={row.label ?? ''}
+                    niveau={row.niveau}
+                    columnCount={columns.length}
+                    cellClassName={cellClassName}
+                  />
                 </TableRow>
               )
             }
@@ -343,39 +332,38 @@ export function CoutActiviteTable({
             const span = row.groupKey ? (groupSpans.get(row.groupKey) ?? 1) : 1
 
             const first =
-              rows.findIndex((r) => r.groupKey === row.groupKey) === rowIdx
+              rows.findIndex(
+                (r) => r.type === 'ptba' && r.groupKey === row.groupKey
+              ) === rowIdx
 
             return (
               <TableRow className={rowClassName} key={rowIdx}>
                 {first && (
-                  <TableCell className={cellClassName(0)} rowSpan={span}>
-                    {row.ptba?.code_activite_ptba}
-                  </TableCell>
+                  <ActiviteLabelCell
+                    label={row.ptba ? formatActiviteLabel(row.ptba) : ''}
+                    niveau={row.niveau + 1}
+                    className={cellClassName(0)}
+                    rowSpan={span}
+                  />
                 )}
 
-                {first && (
-                  <TableCell className={cellClassName(1)} rowSpan={span}>
-                    {row.ptba?.intitule_activite_ptba}
-                  </TableCell>
-                )}
-
-                <TableCell className={cellClassName(2)}>
+                <TableCell className={cellClassName(1)}>
                   {row.cout?.ordre}
                 </TableCell>
-                <TableCell className={cellClassName(3)}>
+                <TableCell className={cellClassName(2)}>
                   {row.cout?.intitule_tache}
                 </TableCell>
-                <TableCell className={cellClassName(4)}>
+                <TableCell className={cellClassName(3)}>
                   {row.cout?.unite_cu}
                 </TableCell>
-                <TableCell className={cellClassName(5)}>
+                <TableCell className={cellClassName(4)}>
                   {row.cout && fmt(row.cout.quantite_cu)}
                 </TableCell>
-                <TableCell className={cellClassName(6)}>
+                <TableCell className={cellClassName(5)}>
                   {row.cout && fmt(row.cout.prix_unitaire)}
                 </TableCell>
 
-                <TableCell className={cellClassName(7)}>
+                <TableCell className={cellClassName(6)}>
                   {row.cout
                     ? fmt(row.cout.quantite_cu * row.cout.prix_unitaire)
                     : 'Aucun coût'}

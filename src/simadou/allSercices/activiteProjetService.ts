@@ -3,7 +3,7 @@ import type { ActiviteProjet } from "../allTypes";
 import { normalizeApiList } from "./apiListUtils";
 
 const BASE_URL = "/activites-projet/";
-const BASE_URL_LAST_NIVEAU = "/niveau_activite_config/last-niveau-activites-by-project/";
+const BASE_URL_LAST_NIVEAU = "/niveaux-activites-config/last-niveau-activites-by-project/";
 
 export const activiteProjetService = {
   // Récupérer toutes les activités projet
@@ -24,13 +24,13 @@ export const activiteProjetService = {
     );
   },
 
+
   // Récupérer une activité projet par code
   getLAstNiveauByProjet: async (code: string): Promise<ActiviteProjet[]> => {
     return await apiClient.request<ActiviteProjet[]>(
-      `${BASE_URL_LAST_NIVEAU}${code}/`,
+      `${BASE_URL_LAST_NIVEAU}?project_code=${encodeURIComponent(code)}`,
     );
   },
-
   // Créer une activité projet
   create: async (data: Partial<ActiviteProjet>): Promise<ActiviteProjet> => {
     return await apiClient.request<ActiviteProjet>(BASE_URL, {

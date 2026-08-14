@@ -1,4 +1,4 @@
-// Types spécifiques pour les indicateurs de tâches PTBA
+// Types spécifiques pour les indicateurs de Tâches PAO
 
 export interface IndicateurTache extends Record<string, unknown> {
   id_indicateur_tache: number;

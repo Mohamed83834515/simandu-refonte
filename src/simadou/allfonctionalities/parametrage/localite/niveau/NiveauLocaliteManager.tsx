@@ -6,6 +6,7 @@ import {
   useDeleteNiveauLocalite,
   useGetNiveauxLocalite,
   useSaveNiveauxLocalite,
+  useUpdateNiveauLocalite,
 } from '@/simadou/allHooks/admin/niveauLocaliteHooks'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -56,6 +57,7 @@ type Props = {
 export default function NiveauLocaliteManager({ onSuccess }: Props) {
   const { data: niveaux = [], isLoading } = useGetNiveauxLocalite()
   const createMutation = useSaveNiveauxLocalite()
+  const updateMutation = useUpdateNiveauLocalite()
   const deleteMutation = useDeleteNiveauLocalite()
 
   const sorted = useMemo(
@@ -65,6 +67,7 @@ export default function NiveauLocaliteManager({ onSuccess }: Props) {
 
   const [rows, setRows] = useState<NiveauRow[]>([])
   const [initialized, setInitialized] = useState(false)
+  const isSaving = createMutation.isPending || updateMutation.isPending
 
   useEffect(() => {
     if (initialized || isLoading) return
@@ -95,19 +98,34 @@ export default function NiveauLocaliteManager({ onSuccess }: Props) {
 
     try {
       let order = 0
-      const newNiveaux: any[] = []
+      const toCreate: Array<{
+        libelle_nlc: string
+        nombre_nlc: number
+        Code_number_nlc: number
+      }> = []
 
       for (const row of rows) {
         if (!row.libelle.trim()) continue
         order += 1
-        newNiveaux.push({
+        const payload = {
           libelle_nlc: row.libelle.trim(),
           nombre_nlc: order,
           Code_number_nlc: Number(row.codeNumber),
-        })
+        }
+
+        // Existing rows must be updated (PUT), not re-created (POST),
+        // otherwise Code_number_nlc uniqueness fails.
+        if (row.isNew) {
+          toCreate.push(payload)
+        } else if (row.id != null) {
+          await updateMutation.mutateAsync({ ...payload, id_nlc: row.id })
+        }
       }
 
-      await createMutation.mutateAsync(newNiveaux)
+      if (toCreate.length > 0) {
+        await createMutation.mutateAsync(toCreate)
+      }
+
       toast.success('Niveaux sauvegardés')
       setInitialized(false)
       onSuccess?.()
@@ -155,9 +173,9 @@ export default function NiveauLocaliteManager({ onSuccess }: Props) {
             <Plus className='h-4 w-4' />
             Ajouter un niveau
           </Button>
-          <Button type='button' onClick={onSave}>
+          <Button type='button' onClick={onSave} disabled={isSaving}>
             <Save className='h-4 w-4' />
-            Enregistrer
+            {isSaving ? 'Enregistrement...' : 'Enregistrer'}
           </Button>
         </div>
       </div>

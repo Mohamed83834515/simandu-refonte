@@ -111,7 +111,7 @@ export function indicateurCadreResultatToFormValues({
     intitule_indicateur_cr_iop: indicateur?.intitule_indicateur_cr_iop ?? '',
     periodicite_iop: indicateur?.periodicite_iop ?? '',
     source_iop: indicateur?.source_iop ?? '',
-    responsable_iop: id_personnel, 
+    responsable_iop: id_personnel,
     description_iop: indicateur?.description_iop ?? '',
     structure_iop:
       resolveRelationId(indicateur?.structure_iop, 'id_acteur')?.toString() ||
@@ -147,20 +147,36 @@ export function filterIndicateursForCadreResultat(
   cadre: CadreResultat,
   codeProjet?: string | null
 ): IndicateurCadreResultat[] {
-  const cadreCode = cadre.code_cr
+  const cadreCode = cadre.code_cr;
+
+  // Extraire l'ID du niveau de manière sécurisée en gérant tous les cas
+  const cadreNiveauId = (() => {
+    if (cadre.niveau_cr === null || cadre.niveau_cr === undefined) {
+      return 0;
+    }
+    if (typeof cadre.niveau_cr === 'object') {
+      return cadre.niveau_cr.id_ncr;
+    }
+    if (typeof cadre.niveau_cr === 'number') {
+      return cadre.niveau_cr;
+    }
+    return 0;
+  })();
 
   return indicateurs.filter((indicateur) => {
     if (codeProjet) {
       const projetCode =
         resolveRelationCode(indicateur.projet_iop, 'code_projet') ??
-        (typeof indicateur.projet_iop === 'string' ? indicateur.projet_iop : null)
-      if (projetCode && projetCode !== codeProjet) return false
+        (typeof indicateur.projet_iop === 'string' ? indicateur.projet_iop : null);
+      if (projetCode && projetCode !== codeProjet) return false;
     }
 
     const linkedCode =
       resolveRelationCode(indicateur.code_cr_iop, 'code_cr') ??
-      (typeof indicateur.code_cr_iop === 'string' ? indicateur.code_cr_iop : null)
+      (typeof indicateur.code_cr_iop === 'string' ? indicateur.code_cr_iop : null);
 
-    return linkedCode === cadreCode
-  })
+    const linkedNIVEAU = typeof indicateur.niveau_iop === 'number' ? indicateur.niveau_iop : 0;
+
+    return linkedCode === cadreCode && linkedNIVEAU === cadreNiveauId;
+  });
 }

@@ -17,8 +17,10 @@ import {
   detectAlignment,
   downloadBlob,
   filterExportRows,
+  findSectionColumnIndex,
   resolveCellMerges,
   resolveHeaderGroupRanges,
+  SECTION_LABEL_SEPARATOR,
   splitCellBoldPrefix,
   type ResolvedHeaderGroupRange,
 } from './rapportExportUtils'
@@ -33,9 +35,11 @@ function hexRgb(hex: string): [number, number, number] {
 }
 
 /** Largeur max (mm) d'une colonne mensuelle du Gantt. */
-const GANTT_PDF_COLUMN_WIDTH = 9
+const GANTT_PDF_COLUMN_WIDTH = 5
 /** Part max de la largeur utile réservée aux colonnes du Gantt. */
 const GANTT_PDF_MAX_WIDTH_RATIO = 0.5
+/** Retrait (mm) par niveau de cadre des libellés de section. */
+const SECTION_PDF_INDENT = 4
 
 /**
  * Lignes d'en-tête autoTable : une seule ligne sans groupes, deux lignes
@@ -82,6 +86,80 @@ function buildPdfHead(
   })
 
   return [top, bottom]
+}
+
+/** Segment de texte d'une ligne de cellule « code en gras ». */
+type BoldPrefixSegment = { text: string; bold: boolean; x: number }
+
+/**
+ * Met en page « CODE : Intitulé » : le code en gras ouvre la première
+ * ligne, le reste suit en normal sur la même ligne puis se replie sur la
+ * largeur utile (comme à l'écran, dans Excel et dans Word). Quand le code
+ * occupe presque toute la largeur, il est empilé au-dessus du texte.
+ * Retourne les lignes (pour le calcul de hauteur d'autoTable) et les
+ * segments à dessiner dans didDrawCell.
+ */
+function layoutBoldPrefix(
+  doc: jsPDF,
+  prefix: string,
+  separator: string,
+  rest: string,
+  maxWidth: number
+): { cellLines: string[]; lineSegments: BoldPrefixSegment[][] } {
+  doc.setFontSize(7)
+  doc.setFont('helvetica', 'bold')
+  const boldWidth = doc.getTextWidth(prefix)
+
+  // Code trop large pour partager sa ligne : empilé au-dessus du texte.
+  if (boldWidth > maxWidth * 0.6) {
+    const boldLines: string[] = doc.splitTextToSize(
+      `${prefix}${separator.trimEnd()}`,
+      maxWidth
+    )
+    doc.setFont('helvetica', 'normal')
+    const normalLines: string[] = doc.splitTextToSize(rest, maxWidth)
+
+    return {
+      cellLines: [...boldLines, ...normalLines],
+      lineSegments: [
+        ...boldLines.map((line) => [{ text: line, bold: true, x: 0 }]),
+        ...normalLines.map((line) => [{ text: line, bold: false, x: 0 }]),
+      ],
+    }
+  }
+
+  // Première ligne : « CODE : début du texte » ; le reste se replie dessous.
+  doc.setFont('helvetica', 'normal')
+  const tokens = `${separator}${rest}`.split(/(\s+)/)
+  let firstLine = ''
+  let index = 0
+  while (index < tokens.length) {
+    const candidate = firstLine + tokens[index]
+    if (
+      firstLine !== '' &&
+      doc.getTextWidth(candidate) > maxWidth - boldWidth
+    ) {
+      break
+    }
+    firstLine = candidate
+    index += 1
+  }
+
+  const remainder = tokens.slice(index).join('').trimStart()
+  const extraLines: string[] = remainder
+    ? doc.splitTextToSize(remainder, maxWidth)
+    : []
+
+  return {
+    cellLines: [`${prefix}${firstLine}`, ...extraLines],
+    lineSegments: [
+      [
+        { text: prefix, bold: true, x: 0 },
+        { text: firstLine, bold: false, x: boldWidth },
+      ],
+      ...extraLines.map((line) => [{ text: line, bold: false, x: 0 }]),
+    ],
+  }
 }
 
 /**
@@ -240,8 +318,11 @@ export async function exportRapportPdf(payload: RapportExportPayload) {
 
   const boldPrefixCells = new Map<
     string,
-    { lines: string[]; boldCount: number }
+    { lineSegments: BoldPrefixSegment[][]; indentLeft: number }
   >()
+
+  // Colonne « Activité » qui accueille les libellés de section indentés.
+  const sectionColumnIndex = findSectionColumnIndex(columns)
 
   // TABLE
   autoTable(doc, {
@@ -307,26 +388,64 @@ export async function exportRapportPdf(payload: RapportExportPayload) {
 
       if (!meta) return
 
-      // SECTION CADRE ANALYTIQUE
+      // SECTION CADRE ANALYTIQUE : libellé indenté selon le niveau puis
+      // fusionné sur toutes les colonnes restantes à droite.
       if (meta.type === 'section') {
-        const totalColumns = columns.length
-        const start = meta.niveau ?? 0
-
-        if (data.column.index < start) {
+        if (data.column.index < sectionColumnIndex) {
           data.cell.text = ['']
           return
         }
 
-        if (data.column.index === start) {
-          data.cell.colSpan = totalColumns - start
-          data.cell.text = [meta.label ?? '']
-          data.cell.styles.fontStyle = 'bold'
-          data.cell.styles.halign = 'left'
+        if (data.column.index > sectionColumnIndex) {
+          // Colonnes couvertes par la fusion du libellé.
+          data.cell.text = ['']
+          data.cell.styles.lineWidth = 0
           return
         }
 
-        data.cell.text = ['']
-        data.cell.styles.lineWidth = 0
+        // Largeur de la zone fusionnée : colonnes de données restantes +
+        // colonnes du Gantt.
+        const spanWidth =
+          (ganttStartIndex - sectionColumnIndex) * dataColWidth +
+          ganttColumnCount * ganttColWidth
+
+        const niveau = meta.niveau ?? 0
+        // Retrait plafonné : un cadre très profond reste lisible au lieu
+        // de dégénérer en une lettre par ligne.
+        const indent = Math.min(niveau * SECTION_PDF_INDENT, spanWidth / 2)
+        const label = meta.label ?? ''
+
+        data.cell.colSpan = columns.length - sectionColumnIndex
+        data.cell.styles.fontStyle = 'bold'
+        data.cell.styles.halign = 'left'
+        data.cell.styles.cellPadding = {
+          top: 2,
+          right: 2,
+          bottom: 2,
+          left: 2 + indent,
+        }
+
+        const split = splitCellBoldPrefix(label, SECTION_LABEL_SEPARATOR)
+        if (!split) {
+          data.cell.text = [label]
+          return
+        }
+
+        // Code en gras + reste en normal, dessinés dans didDrawCell.
+        const maxWidth = Math.max(spanWidth - 4 - indent, 8)
+        const layout = layoutBoldPrefix(
+          doc,
+          split.prefix,
+          SECTION_LABEL_SEPARATOR,
+          split.rest,
+          maxWidth
+        )
+
+        data.cell.text = layout.cellLines
+        boldPrefixCells.set(`${rowIndex}:${data.column.index}`, {
+          lineSegments: layout.lineSegments,
+          indentLeft: indent,
+        })
         return
       }
 
@@ -341,6 +460,26 @@ export async function exportRapportPdf(payload: RapportExportPayload) {
       // ALIGNEMENT TEXTE / NOMBRE
       const value = data.cell.text?.[0]
       data.cell.styles.halign = detectAlignment(value)
+
+      // Retrait hiérarchique des activités sous leur cadre (colonne
+      // Activité) : rowMeta.niveau = niveau du cadre + 1, plafonné à la
+      // moitié de la colonne.
+      const dataIndent =
+        meta.type === 'data' &&
+        data.column.index === sectionColumnIndex &&
+        meta.niveau
+          ? Math.min(meta.niveau * SECTION_PDF_INDENT, dataColWidth / 2)
+          : 0
+
+      if (dataIndent > 0) {
+        data.cell.styles.halign = 'left'
+        data.cell.styles.cellPadding = {
+          top: 2,
+          right: 2,
+          bottom: 2,
+          left: 2 + dataIndent,
+        }
+      }
 
       // FUSIONS VERTICALES PAR COLONNE (mergeKeys)
       if (meta.type === 'data' && meta.mergeKeys) {
@@ -395,29 +534,22 @@ export async function exportRapportPdf(payload: RapportExportPayload) {
         const split = splitCellBoldPrefix(raw, separator)
 
         if (split) {
-          const maxWidth = dataColWidth - 4 // padding 2 mm de chaque côté
-          doc.setFontSize(7)
-
-          doc.setFont('helvetica', 'bold')
-          const boldLines: string[] = doc.splitTextToSize(
-            `${split.prefix}${separator.trimEnd()}`,
-            maxWidth
-          )
-
-          doc.setFont('helvetica', 'normal')
-          const normalLines: string[] = doc.splitTextToSize(
+          // padding 2 mm de chaque côté + retrait hiérarchique éventuel
+          const maxWidth = Math.max(dataColWidth - 4 - dataIndent, 8)
+          const layout = layoutBoldPrefix(
+            doc,
+            split.prefix,
+            separator,
             split.rest,
             maxWidth
           )
 
-          const lines = [...boldLines, ...normalLines]
-
           // Les lignes calculées servent au calcul de hauteur d'autoTable ;
           // le dessin lui-même est fait manuellement dans didDrawCell.
-          data.cell.text = lines
+          data.cell.text = layout.cellLines
           boldPrefixCells.set(`${rowIndex}:${data.column.index}`, {
-            lines,
-            boldCount: boldLines.length,
+            lineSegments: layout.lineSegments,
+            indentLeft: dataIndent,
           })
         }
       }
@@ -434,6 +566,44 @@ export async function exportRapportPdf(payload: RapportExportPayload) {
     didDrawCell: (data) => {
       if (data.section !== 'body') return
 
+      // Repères verticaux des niveaux d'indentation dans la colonne
+      // Activité (mêmes bordures que les colonnes d'indentation du
+      // fichier Excel). Pas de repères dans les cellules couvertes par
+      // une fusion verticale.
+      const cellMeta = rowMetas?.[data.row.index]
+      if (
+        cellMeta &&
+        data.column.index === sectionColumnIndex &&
+        !cellMerges.covered.has(`${data.row.index}:${data.column.index}`)
+      ) {
+        // Même plafond que le retrait : les sections fusionnent toutes
+        // les colonnes restantes, les activités restent dans leur zone.
+        const clampWidth =
+          cellMeta.type === 'section'
+            ? (ganttStartIndex - sectionColumnIndex) * dataColWidth +
+              ganttColumnCount * ganttColWidth
+            : dataColWidth
+        const indent = Math.min(
+          (cellMeta.niveau ?? 0) * SECTION_PDF_INDENT,
+          clampWidth / 2
+        )
+        const stepCount = Math.floor(indent / SECTION_PDF_INDENT)
+
+        if (stepCount > 0) {
+          doc.setDrawColor(...hexRgb(theme.border))
+          doc.setLineWidth(0.1)
+          for (let step = 1; step <= stepCount; step += 1) {
+            const lineX = data.cell.x + step * SECTION_PDF_INDENT
+            doc.line(
+              lineX,
+              data.cell.y,
+              lineX,
+              data.cell.y + data.cell.height
+            )
+          }
+        }
+      }
+
       const entry = boldPrefixCells.get(
         `${data.row.index}:${data.column.index}`
       )
@@ -442,9 +612,9 @@ export async function exportRapportPdf(payload: RapportExportPayload) {
       const fontSize = 7
       const lineHeight =
         (fontSize * doc.getLineHeightFactor()) / doc.internal.scaleFactor
-      const totalHeight = entry.lines.length * lineHeight
+      const totalHeight = entry.lineSegments.length * lineHeight
 
-      const x = data.cell.x + 2
+      const x = data.cell.x + 2 + entry.indentLeft
       // Aligné verticalement au centre, comme les autres cellules.
       let y =
         data.cell.y +
@@ -454,12 +624,11 @@ export async function exportRapportPdf(payload: RapportExportPayload) {
       doc.setFontSize(fontSize)
       doc.setTextColor(...hexRgb(theme.text))
 
-      entry.lines.forEach((line, index) => {
-        doc.setFont(
-          'helvetica',
-          index < entry.boldCount ? 'bold' : 'normal'
-        )
-        doc.text(line, x, y)
+      entry.lineSegments.forEach((segments) => {
+        segments.forEach((segment) => {
+          doc.setFont('helvetica', segment.bold ? 'bold' : 'normal')
+          doc.text(segment.text, x + segment.x, y)
+        })
         y += lineHeight
       })
     },

@@ -7,7 +7,7 @@ const ENDPOINT = "/versions-ptbas/";
 
 const versionPtbaService = {
   async getAll(): Promise<VersionPtba[]> {
-    return apiClient.request(ENDPOINT, { method: "GET" });
+    return apiClient.request(`${ENDPOINT}list/`, { method: "GET" });
   },
 
   async getById(id: number): Promise<VersionPtba> {
@@ -20,7 +20,7 @@ const versionPtbaService = {
   ): Promise<VersionPtbasProjetsResponse> {
     const params =
       codeProjet?.trim()
-        ? { code_projet: codeProjet.trim() }
+        ? { projet: codeProjet.trim() }
         : undefined
 
     return apiClient.request(`${ENDPOINT}${idVersion}/ptbas-projets/`, {
@@ -66,7 +66,7 @@ const versionPtbaService = {
     data: Partial<VersionPtbaFormData>,
     file?: File,
   ): Promise<VersionPtba> {
-    if (typeof file !== 'string'&& file instanceof File) {
+    if (typeof file !== 'string' && file instanceof File) {
       // Si un fichier est fourni, utiliser FormData
       const formData = new FormData();
 

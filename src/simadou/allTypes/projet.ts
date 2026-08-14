@@ -1,6 +1,7 @@
 import { Acteur } from "./acteur";
 import { Localite } from "./localite";
 import { Personnel } from "./personnel";
+import { PlanSite } from "./planSite";
 import { Programme } from "./programme";
 import { TypeProjet } from "./typeProjet";
 
@@ -13,7 +14,7 @@ export interface Projet {
   date_signature_projet: string;
   date_demarrage_projet: string;
   date_cloture_projet: string;
-  partenaire_projet: Acteur | null;
+  partenaire_projet: PlanSite | null;
   programme_projet?: Programme | number;
   structure_projet: number;
   signataires_projet: Acteur[];

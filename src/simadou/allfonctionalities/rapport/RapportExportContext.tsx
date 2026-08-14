@@ -68,6 +68,7 @@ export function RapportExportProvider({ pageTitle, children }: ProviderProps) {
       gantt: table.gantt,
       headerGroups: table.headerGroups,
       preamble: table.preamble,
+      fiche: table.fiche,
     }
   }, [])
 

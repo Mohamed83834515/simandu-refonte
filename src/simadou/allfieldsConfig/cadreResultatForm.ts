@@ -28,8 +28,7 @@ export const getCadreResultatFormConfigForDialog = ({
       type: 'text',
       placeholder: 'Abrégé du cadre',
       required: true,
-      maxLength: codeLength,
-      gridCols: 2,
+      gridCols: 2, 
     },
     {
       name: 'intutile_cr',

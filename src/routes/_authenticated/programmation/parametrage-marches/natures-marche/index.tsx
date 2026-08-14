@@ -1,19 +1,12 @@
 import AddNatureMarche from '@/simadou/allfonctionalities/ppm/natures-marche/AddNatureMarche'
 import ListeNatureMarche from '@/simadou/allfonctionalities/ppm/natures-marche/ListeNatureMarche'
 import type { NatureMarche } from '@/simadou/allTypes/natureMarche'
-import { createFileRoute } from '@tanstack/react-router'
 import { Tags } from 'lucide-react'
 import { useState } from 'react'
 
-export const Route = createFileRoute(
-  '/_authenticated/programmation/parametrage-marches/natures-marche/',
-)({
-  component: NaturesMarchePage,
-})
-
 type Mode = 'list' | 'add' | 'edit'
 
-function NaturesMarchePage() {
+export function NaturesMarchePage() {
   const [mode, setMode] = useState<Mode>('list')
   const [currentRow, setCurrentRow] = useState<NatureMarche | null>(null)
 

@@ -64,9 +64,20 @@ function ExportFormatIcon({
   )
 }
 
-export default function RapportExportButton() {
+type RapportExportButtonProps = {
+  /** Formats proposés (défaut : Word, Excel, PDF). */
+  formats?: ExportFormat[]
+}
+
+export default function RapportExportButton({
+  formats,
+}: RapportExportButtonProps = {}) {
   const { isRegistered, isLoading, resolvePayload } = useRapportExport()
   const [isExporting, setIsExporting] = useState(false)
+
+  const options = formats?.length
+    ? exportOptions.filter((opt) => formats.includes(opt.format))
+    : exportOptions
 
   const handleExport = async (format: ExportFormat) => {
     if (isExporting) return
@@ -94,7 +105,7 @@ export default function RapportExportButton() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align='end' className='w-44 p-1'>
-        {exportOptions.map(
+        {options.map(
           ({ format, label, extension, icon, badgeClassName, iconClassName }) => (
             <DropdownMenuItem
               key={format}

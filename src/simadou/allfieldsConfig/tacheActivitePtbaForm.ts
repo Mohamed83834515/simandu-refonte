@@ -1,14 +1,23 @@
 import type { FormConfig, SelectOption } from '../../Global/types/formConfig'
+import { TACHE_PROPORTION_TOTAL_MAX } from '@/simadou/lib/tacheActivitePtbaUtils'
 
 export function getTacheActivitePtbaFormConfigForDialog({
   personnelOptions,
   isLoadingPersonnels,
   responsableAsText = false,
+  maxProportion = TACHE_PROPORTION_TOTAL_MAX,
 }: {
   personnelOptions: SelectOption[]
   isLoadingPersonnels?: boolean
   responsableAsText?: boolean
+  /** Max allowed for this create/edit (remaining under 100%). */
+  maxProportion?: number
 }): FormConfig {
+  const cappedMax = Math.max(
+    0,
+    Math.min(TACHE_PROPORTION_TOTAL_MAX, maxProportion)
+  )
+
   return {
   fields: [
     {
@@ -27,11 +36,16 @@ export function getTacheActivitePtbaFormConfigForDialog({
     },
     {
       name: 'proportion_gt',
-      label: 'Proportion',
+      label: 'Proportion (%)',
       type: 'number',
-      placeholder: 'Ex: 25%, 50%, 100%',
+      placeholder: `0 – ${cappedMax}`,
       required: true,
-      maxLength: 10,
+      min: 0,
+      max: cappedMax,
+      helperText:
+        cappedMax < TACHE_PROPORTION_TOTAL_MAX
+          ? `Maximum disponible : ${cappedMax}% (total des tâches ≤ ${TACHE_PROPORTION_TOTAL_MAX}%)`
+          : `Total des proportions des tâches ≤ ${TACHE_PROPORTION_TOTAL_MAX}%`,
       gridCols: 2,
     },
     {

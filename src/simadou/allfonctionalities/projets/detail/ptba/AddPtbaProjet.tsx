@@ -60,17 +60,18 @@ export default function AddPtbaProjet({
   const activeProgrammeCode = useActiveProgrammeCode()
   const codeProgramme =
     typeof projet.programme_projet === 'object' &&
-    projet.programme_projet?.code_programme
+      projet.programme_projet?.code_programme
       ? projet.programme_projet.code_programme
       : activeProgrammeCode
-  const {  selectedVersionId} = usePtbaVersionSelection(codeProgramme)
-  const reel_version = localStorage.getItem('selectedVersionId') ?? selectedVersionId 
+  const { selectedVersionId } = usePtbaVersionSelection(codeProgramme)
+  const reel_version = localStorage.getItem('selectedVersionProjetId') ?? selectedVersionId
   const { data: activites = [] } = useGetActivitesProjetLastNiveau(codeProjet)
   const { data: acteurs = [] } = useGetActeurs()
   const { data: localites = [] } = useGetLocalites()
   const { data: personnels = [] } = useGetPersonnels()
   const { data: ugls = [] } = useGetUgls()
   const { data: typeActivites = [] } = useGetTypeActivites()
+  console.log('currentRow', currentRow)
 
   const activiteOptions = useMemo((): SelectOption[] =>
     activites?.map((activite: ActiviteProjet) => ({
@@ -93,20 +94,51 @@ export default function AddPtbaProjet({
     [activiteOptions, localites, acteurs, personnels, ugls, typeActivites]
   )
 
+  // Fonction helper pour vérifier si c'est un tableau d'objets Localite
+  function isLocaliteArray(value: any): value is Localite[] {
+    return Array.isArray(value) &&
+      value.length > 0 &&
+      typeof value[0] === 'object' &&
+      value[0] !== null &&
+      'id_loca' in value[0];
+  }
+
+  // Fonction helper pour vérifier si c'est un tableau d'objets Acteur
+  function isActeurArray(value: any): value is Acteur[] {
+    return Array.isArray(value) &&
+      value.length > 0 &&
+      typeof value[0] === 'object' &&
+      value[0] !== null &&
+      'id_acteur' in value[0];
+  }
+
   const defaultValues = useMemo((): PtbaProjetFormData => {
     return {
       code_actvite_projet:
         resolveActiviteProjetId(currentRow?.code_actvite_projet) ?? 0,
-      localites_ptba:
-        typeof currentRow?.localites_ptba === 'object'
-          ? (currentRow.localites_ptba as Localite[]).map((l) => l.id_loca)
-          : [],
-      partenaire_conserne_ptba:
-        typeof currentRow?.partenaire_conserne_ptba === 'object'
-          ? (currentRow.partenaire_conserne_ptba as Acteur[]).map(
-              (p) => p.id_acteur
-            )
-          : [],
+      localites_ptba: (() => {
+        const localites = currentRow?.localites_ptba;
+        if (isLocaliteArray(localites)) {
+          return localites.map((l) => l.id_loca);
+        }
+        if (Array.isArray(localites)) {
+          return localites; // déjà un tableau de nombres
+        }
+        return [];
+      })(),
+      partenaire_conserne_ptba: (() => {
+        const partenaires = currentRow?.partenaire_conserne_ptba;
+        if (isActeurArray(partenaires)) {
+          return partenaires.map((p) => p.id_acteur);
+        }
+        if (Array.isArray(partenaires)) {
+          return partenaires; // déjà un tableau de nombres
+        }
+        if (typeof partenaires === 'number') {
+          return [partenaires];
+        }
+        return [];
+      })(),
       code_activite_ptba: currentRow?.code_activite_ptba || '',
       intitule_activite_ptba: currentRow?.intitule_activite_ptba || '',
       chronogramme: currentRow?.chronogramme || '',
@@ -118,8 +150,8 @@ export default function AddPtbaProjet({
       version_ptba:
         resolveVersionPtbaFormValue(currentRow ?? undefined, reel_version) ??
         0,
-    }
-  }, [currentRow, codeProjet, reel_version])
+    };
+  }, [currentRow, codeProjet, reel_version]);
 
   const createMutation = useCreatePtbaProjet(codeProjet)
   const updateMutation = useUpdatePtbaProjet(codeProjet)

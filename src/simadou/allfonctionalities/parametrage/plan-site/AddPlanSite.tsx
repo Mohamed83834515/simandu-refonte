@@ -19,23 +19,34 @@ export default function AddPlanSite({ currentRow, niveauId, onClose, onSuccess }
   const { data: allPlans = [] } = useGetAllPlansSite()
 
   const currentNiveau = niveaux.find((n: any) => n.id_nsc === niveauId)
-  const parentNiveau = niveaux.find((n: any) => n.nombre_nsc === (currentNiveau?.nombre_nsc || 0) - 1)
+  const niveauLabel = currentNiveau?.libelle_nsc || 'structure'
+  const previousNiveaux = useMemo(
+    () =>
+      niveaux.filter(
+        (n: any) =>
+          currentNiveau != null &&
+          Number(n.nombre_nsc) < Number(currentNiveau.nombre_nsc)
+      ),
+    [niveaux, currentNiveau]
+  )
 
-  // Filtrer les plans parents
+  // Plans de tous les niveaux précédents (pas seulement le parent immédiat)
   const parentPlans = useMemo(() => {
-    if (!parentNiveau) return []
+    if (previousNiveaux.length === 0) return []
+    const previousIds = new Set(previousNiveaux.map((n: any) => n.id_nsc))
     return allPlans.filter((plan: any) => {
-      const planNiveauId = typeof plan.niveau_structure === 'object' 
-        ? (plan.niveau_structure as any)?.id_nsc
-        : plan.niveau_structure
-      return planNiveauId === parentNiveau.id_nsc
+      const planNiveauId =
+        typeof plan.niveau_structure === 'object'
+          ? (plan.niveau_structure as any)?.id_nsc
+          : plan.niveau_structure
+      return previousIds.has(planNiveauId)
     })
-  }, [allPlans, parentNiveau])
+  }, [allPlans, previousNiveaux])
 
   const formConfig = useMemo(() => {
-    const config = getPlanSiteFormConfig()
+    const config = getPlanSiteFormConfig(niveauLabel)
 
-    if (parentNiveau && parentPlans.length > 0) {
+    if (previousNiveaux.length > 0) {
       const parentOptions = parentPlans.map((plan: any) => ({
         label: plan.intutile_ds,
         value: plan.id_ds,
@@ -43,9 +54,9 @@ export default function AddPlanSite({ currentRow, niveauId, onClose, onSuccess }
 
       config.fields.push({
         name: 'parent_ds',
-        label: parentNiveau.libelle_nsc,
+        label: 'Structure rattaché',
         type: 'select',
-        placeholder: `Sélectionner ${parentNiveau.libelle_nsc}`,
+        placeholder: 'Sélectionner une structure rattachée',
         required: false,
         options: parentOptions,
         colSpan: 'full',
@@ -53,7 +64,7 @@ export default function AddPlanSite({ currentRow, niveauId, onClose, onSuccess }
     }
 
     return config
-  }, [parentNiveau, parentPlans])
+  }, [niveauLabel, previousNiveaux, parentPlans])
 
   const defaultValues = useMemo(() => ({
     code_ds: currentRow?.code_ds || '',

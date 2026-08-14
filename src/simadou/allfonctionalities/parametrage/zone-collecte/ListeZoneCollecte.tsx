@@ -9,15 +9,17 @@ import { useDeleteZoneCollecte, useGetZonesCollecte } from '@/simadou/allHooks/a
 import { GenericDialogs } from '@/Global/Generic/Genericdialogs'
 import { buildZoneCollecteColumns } from '@/simadou/allColonnes/zone-collecte-columns'
 import AddZoneCollecte from './AddZoneCollecte'
+import { useGetTypeZones } from '@/simadou/allHooks/admin/typeZoneHooks'
 
 export function ListeZoneCollecte() {
     const { search, navigate } = useEmbeddedTableState()
     const [open, setOpen] = useDialogState<'add' | 'edit' | 'delete'>(null)
     const [currentRow, setCurrentRow] = useState<ZoneCollecte | null>(null)
 
+    const { data: typeZones } = useGetTypeZones();
     const columns = useMemo(
-        () => buildZoneCollecteColumns(setOpen, setCurrentRow),
-        [setOpen, setCurrentRow]
+        () => buildZoneCollecteColumns(setOpen, setCurrentRow, typeZones),
+        [setOpen, setCurrentRow, typeZones]
     )
 
     const deleteMutation = useDeleteZoneCollecte()

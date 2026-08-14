@@ -57,15 +57,35 @@ export function ChronogrammeMonthCell({ value, month }: Props) {
     const isActive = months.includes(month)
 
     return (
-        <div className="flex justify-center">
-            {isActive ? (
-                <div className="h-2.5 w-2.5 rounded-full bg-green-500 shadow-sm shadow-green-200" />
-            ) : (
-                <div className="h-2 w-2 rounded-full bg-gray-200 dark:bg-gray-700" />
-            )}
-        </div>
+        <div
+            title={isActive ? month : undefined}
+            className={
+                isActive
+                    ? 'absolute inset-0 bg-green-500 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.22)] dark:bg-green-600 dark:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.22)]'
+                    : 'absolute inset-0'
+            }
+        />
     )
 }
+
+const chronogrammeColumnMeta = {
+    width: '1.75rem',
+    maxWidth: '1.75rem',
+    className:
+        'relative !p-0 w-7 min-w-7 max-w-7 text-center align-middle border-r border-border',
+    thClassName:
+        '!px-0 !py-1.5 w-7 min-w-7 max-w-7 text-center border-r border-border',
+    tdClassName:
+        'relative !p-0 w-7 min-w-7 max-w-7 text-center align-middle border-r border-border',
+} as const
+
+const chronogrammeFirstColumnMeta = {
+    ...chronogrammeColumnMeta,
+    className: `${chronogrammeColumnMeta.className} border-l-2 border-l-border`,
+    thClassName: `${chronogrammeColumnMeta.thClassName} border-l-2 border-l-border`,
+    tdClassName: `${chronogrammeColumnMeta.tdClassName} border-l-2 border-l-border`,
+} as const
+
 // Personnaliser le rendu des colonnes mois
 export const parseChronogramme = (value: unknown): string[] => {
     if (!value) return []
@@ -86,13 +106,60 @@ export const buildPtbasColumns = (
     setOpen: (dialog: PtbasDialogType | null) => void,
     setCurrentRow: React.Dispatch<React.SetStateAction<Ptba | null>>,
     onOpenPlanification: (activite: Ptba) => void,
-    currencyCode?:string
+    currencyCode: string | undefined,
+    getResponsableLabel: (activite: Ptba) => string | null,
 ) => {
     const baseColumns = buildColumns<Ptba>([
-        { type: "text", key: "code_activite_ptba", title: "Code", sticky: true },
-        { type: "text", key: "intitule_activite_ptba", title: "Activité" },
-    ])
+        { type: "text", key: "code_activite_ptba", title: "Code", sticky: true, maxWidth: 'max-w-24' },
+        { type: "text", key: "intitule_activite_ptba", title: "Activité", maxWidth: 'max-w-full' },
+    ]).map((col) => {
+        const key = 'accessorKey' in col ? col.accessorKey : undefined
+        if (key === 'code_activite_ptba') {
+            return {
+                ...col,
+                size: 96,
+                meta: {
+                    ...col.meta,
+                    width: '5.5rem',
+                    maxWidth: '7rem',
+                    className: [col.meta?.className, 'w-24 max-w-28'].filter(Boolean).join(' '),
+                    thClassName: 'w-24 max-w-28',
+                    tdClassName: 'w-24 max-w-28',
+                },
+            }
+        }
+        if (key === 'intitule_activite_ptba') {
+            return {
+                ...col,
+                size: 320,
+                meta: {
+                    width: '22rem',
+                    maxWidth: '28rem',
+                    className: 'w-80 max-w-md border-r-2 border-r-border',
+                    thClassName: 'w-80 max-w-md border-r-2 border-r-border',
+                    tdClassName: 'w-80 max-w-md border-r-2 border-r-border',
+                },
+            }
+        }
+        return col
+    })
 
+    const responsableColumn: ColumnDef<Ptba> = {
+        id: "responsable",
+        accessorKey: 'responsable',
+        header: ({ column }) => (
+            <DataTableColumnHeader column={column} title='Responsable' />
+        ),
+        cell: ({ row }) => {
+            const activite = row.original;
+            // const structure = row.original.partenaire_conserne_ptbab;
+            const responsable_ptba = getResponsableLabel(activite);
+            if (!responsable_ptba) return 'N/A'
+            return <Button variant="ghost" className="text-left" size="sm">  {responsable_ptba}</Button>
+        },
+        enableSorting: false,
+        enableHiding: false,
+    }
     const actionsColumn: ColumnDef<Ptba> = {
         id: "actions",
         accessorKey: 'id_ptba',
@@ -109,13 +176,13 @@ export const buildPtbasColumns = (
         enableSorting: false,
         enableHiding: false,
     }
-    const chronogrammeColumns: ColumnDef<Ptba>[] = getMoisOptions().map((mois) => ({
+    const chronogrammeColumns: ColumnDef<Ptba>[] = getMoisOptions().map((mois, index) => ({
         id: `chronogramme_${mois.value}`,
         header: ({ column }) => (
             <DataTableColumnHeader
                 column={column}
                 title={mois.label}
-                className="text-center"
+                className="justify-center text-center text-[11px]"
             />
         ),
         cell: ({ row }) => (
@@ -124,9 +191,8 @@ export const buildPtbasColumns = (
                 month={mois.value}
             />
         ),
-        meta: {
-            className: "text-center",
-        },
+        meta: { ...(index === 0 ? chronogrammeFirstColumnMeta : chronogrammeColumnMeta) },
+        size: 28,
         enableSorting: false,
         enableHiding: false,
     }))
@@ -134,7 +200,7 @@ export const buildPtbasColumns = (
     const coutColumns: ColumnDef<Ptba> = {
         id: 'cout_row',
         header: ({ column }) => (
-            <DataTableColumnHeader column={column} title={`Cout Activites (${currencyCode})`}  />
+            <DataTableColumnHeader column={column} title={`Budget (${currencyCode})`} />
         ),
         cell: ({ row }) => {
             const budget = row.original.cout_total_ptba
@@ -199,6 +265,7 @@ export const buildPtbasColumns = (
 
     return [
         ...baseColumns,
+        responsableColumn,
         ...chronogrammeColumns,
         planificationColumn,
         coutColumns,

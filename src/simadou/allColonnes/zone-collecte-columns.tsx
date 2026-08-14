@@ -1,7 +1,7 @@
 // simadou/allColonnes/zoneCollecte-columns.tsx
 import { GenericRowActions } from "@/Global/Tableaux/GenericRowActions"
 import { UserPen, Trash2, Download } from "lucide-react"
-import { ZoneCollecte } from "../allTypes"
+import { TypeZone, ZoneCollecte } from "../allTypes"
 import { DataTableColumnHeader } from "@/components/data-table/column-header"
 import { ColumnDef } from "@tanstack/react-table"
 import { Button } from "@/components/ui/button"
@@ -10,7 +10,8 @@ type ZoneCollecteDialogType = 'add' | 'edit' | 'delete'
 
 export const buildZoneCollecteColumns = (
     setOpen: (dialog: ZoneCollecteDialogType | null) => void,
-    setCurrentRow: React.Dispatch<React.SetStateAction<ZoneCollecte | null>>
+    setCurrentRow: React.Dispatch<React.SetStateAction<ZoneCollecte | null>>,
+     typeZones?: TypeZone[]
 ): ColumnDef<ZoneCollecte>[] => {
     return [
         {
@@ -39,9 +40,20 @@ export const buildZoneCollecteColumns = (
             header: ({ column }) => (
                 <DataTableColumnHeader column={column} title='Type de zone' />
             ),
-            cell: ({ row }) => (
-                <div className='max-w-md whitespace-normal'>{row.original.type_zone}</div>
-            ),
+            cell: ({ row }) => {
+                // Récupérer l'ID du type de zone
+                const typeZoneId = row.original.type_zone;
+                
+                // Trouver le type de zone correspondant
+                const typeZone = typeZones?.find(t => String(t.id_type_zone) === String(typeZoneId));
+                
+                // Afficher le nom si trouvé, sinon afficher l'ID
+                return (
+                    <div className='max-w-md whitespace-normal'>
+                        {typeZone?.nom_type_zone || typeZoneId || '-'}
+                    </div>
+                );
+            },
         },
         {
             id: 'shape_file',

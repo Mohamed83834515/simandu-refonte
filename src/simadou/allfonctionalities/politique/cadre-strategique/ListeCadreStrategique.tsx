@@ -131,9 +131,22 @@ export default function ListeCadreStrategique() {
   )
 
   useEffect(() => {
-    if (niveaux.length > 0 && activeNiveau == null) {
-      setActiveNiveau(niveaux[0])
+    if (niveaux.length === 0) {
+      if (activeNiveau != null) setActiveNiveau(undefined)
+      return
     }
+
+    const matched = activeNiveau
+      ? niveaux.find((n) => n.id_nsc === activeNiveau.id_nsc)
+      : undefined
+
+    if (matched) {
+      // Refresh the selected niveau when libellé / order changes in the query.
+      if (matched !== activeNiveau) setActiveNiveau(matched)
+      return
+    }
+
+    setActiveNiveau(niveaux[0])
   }, [niveaux, activeNiveau])
 
   const currentNiveauId = Number(
@@ -237,7 +250,7 @@ export default function ListeCadreStrategique() {
         orientation='vertical'
         className='space-y-4'
         style={tabsStyle}
-        key={niveaux.length}
+        key={niveaux.map((n) => `${n.id_nsc}:${n.libelle_nsc}`).join('|')}
         value={String(currentNiveauId)}
         onValueChange={handleTabChange}
       >

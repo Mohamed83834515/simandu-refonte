@@ -1,19 +1,11 @@
 import AddFonction from '@/simadou/allfonctionalities/parametrage/autres/fonction/AddFonction'
 import ListeFOnction from '@/simadou/allfonctionalities/parametrage/autres/fonction/ListeFonction'
-import { createFileRoute } from '@tanstack/react-router'
 import { Briefcase } from 'lucide-react'
 import { useState } from 'react'
 
-export const Route = createFileRoute(
-    '/_authenticated/parametrage/autres/fonction/',
-)({
-    component: fonctionPage,
-})
-
-
 type Mode = 'list' | 'add' | 'edit'
 
-function fonctionPage() {
+export function FonctionPage() {
     const [mode, setMode] = useState<Mode>('list')
     const [currentRow, setCurrentRow] = useState<any | null>(null)
 

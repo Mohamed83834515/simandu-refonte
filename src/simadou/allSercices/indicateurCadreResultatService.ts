@@ -8,27 +8,27 @@ import { normalizeApiList } from "./apiListUtils";
 export const indicateurCadreResultatService = {
   getAll: async (): Promise<IndicateurCadreResultat[]> => {
     const response = await apiClient.request<unknown>(
-      "/indicateurs-cadre-resultats-cmrs/",
+      "/indicateurs-cadre-resultats/",
     );
     return normalizeApiList<IndicateurCadreResultat>(response);
   },
 
   getById: async (id: number): Promise<IndicateurCadreResultat> => {
     return await apiClient.request<IndicateurCadreResultat>(
-      `/indicateurs-cadre-resultats-cmrs/${id}/`,
+      `/indicateurs-cadre-resultats/${id}/`,
     );
   },
 
   getByCadre: async (cadreId: number): Promise<IndicateurCadreResultat[]> => {
     const response = await apiClient.request<unknown>(
-      `/indicateurs-cadre-resultats-cmrs/?id_cadre_secteur=${cadreId}`,
+      `/indicateurs-cadre-resultats/?id_cadre_secteur=${cadreId}`,
     );
     return normalizeApiList<IndicateurCadreResultat>(response);
   },
 
   getByNiveau: async (niveau: number): Promise<IndicateurCadreResultat[]> => {
     const response = await apiClient.request<unknown>(
-      `/indicateurs-cadre-resultats-cmrs/?niveau_cr=${niveau}`,
+      `/indicateurs-cadre-resultats/?niveau_cr=${niveau}`,
     );
     return normalizeApiList<IndicateurCadreResultat>(response);
   },
@@ -37,7 +37,7 @@ export const indicateurCadreResultatService = {
     data: IndicateurCadreResultatFormData,
   ): Promise<IndicateurCadreResultat> => {
     return await apiClient.request<IndicateurCadreResultat>(
-      "/indicateurs-cadre-resultats-cmrs/",
+      "/indicateurs-cadre-resultats/",
       {
         method: "POST",
         data,
@@ -50,7 +50,7 @@ export const indicateurCadreResultatService = {
     data: Partial<IndicateurCadreResultatFormData>,
   ): Promise<IndicateurCadreResultat> => {
     return await apiClient.request<IndicateurCadreResultat>(
-      `/indicateurs-cadre-resultats-cmrs/${id}/`,
+      `/indicateurs-cadre-resultats/${id}/`,
       {
         method: "PUT",
         data,
@@ -60,14 +60,14 @@ export const indicateurCadreResultatService = {
 
   delete: async (id: number): Promise<void> => {
     await apiClient.request<IndicateurCadreResultat>(
-      `/indicateurs-cadre-resultats-cmrs/${id}/`,
+      `/indicateurs-cadre-resultats/${id}/`,
       { method: "DELETE" },
     );
   },
 
   toggleStatus: async (id: number): Promise<IndicateurCadreResultat> => {
     return await apiClient.request<IndicateurCadreResultat>(
-      `/indicateurs-cadre-resultats-cmrs/${id}/toggle_status/`,
+      `/indicateurs-cadre-resultats/${id}/toggle_status/`,
       {
         method: "PATCH",
       },

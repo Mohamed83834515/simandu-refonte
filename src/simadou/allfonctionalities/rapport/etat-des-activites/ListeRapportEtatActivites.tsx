@@ -19,7 +19,13 @@ import { usePtbaVersionSelection } from '@/simadou/allHooks/admin/versionHooks'
 import { useSuiviPtbaActivitesProgress } from '@/simadou/allHooks/admin/suiviPtbaHooks'
 import { PtbaVersionSelect } from '@/simadou/allfonctionalities/ptba/PtbaVersionSelect'
 import {
+  ActiviteLabelCell,
+  CadreSectionCells,
+} from '@/simadou/allfonctionalities/rapport/CadreSectionCells'
+import {
   EMPTY_PTBA_LIST,
+  formatActiviteLabel,
+  formatCadreSectionLabel,
   resolvePtbaActiviteId,
 } from '@/simadou/allfonctionalities/rapport/rapportTableUtils'
 import { resolveCadreAnalytiqueFormValue } from '@/simadou/lib/ptbaFormUtils'
@@ -115,14 +121,9 @@ export default function ListeRapportEtatActivites() {
 
   const columns: ColumnDef<TreeRow>[] = [
     {
-      id: 'code',
-      header: 'Code',
-      accessorFn: (row) => row.ptba?.code_activite_ptba ?? '',
-    },
-    {
       id: 'activite',
       header: 'Activité',
-      accessorFn: (row) => row.ptba?.intitule_activite_ptba ?? '',
+      accessorFn: (row) => (row.ptba ? formatActiviteLabel(row.ptba) : ''),
     },
     { id: 'statut', header: 'Statut', accessorFn: () => '' },
     { id: 'difficultes', header: 'Difficultés', accessorFn: () => '' },
@@ -165,7 +166,7 @@ export default function ListeRapportEtatActivites() {
 
       result.push({
         type: 'cadre',
-        label: cadre.intutile_ca,
+        label: formatCadreSectionLabel(cadre),
         niveau,
       })
 
@@ -294,7 +295,7 @@ export default function ListeRapportEtatActivites() {
 
       rows.forEach((r) => {
         if (r.type === 'cadre') {
-          exportRows.push([r.label ?? '', '', '', '', '', ''])
+          exportRows.push([r.label ?? '', '', '', '', ''])
           rowMetas.push({ type: 'section', niveau: r.niveau, label: r.label })
         } else if (r.ptba) {
           exportRows.push(
@@ -302,8 +303,11 @@ export default function ListeRapportEtatActivites() {
           )
           rowMetas.push({
             type: 'data',
-            groupKey:
-              r.activiteId != null ? String(r.activiteId) : undefined,
+            // Les activités s'indentent d'un cran sous leur cadre.
+            niveau: r.niveau + 1,
+            ...(r.activiteId != null
+              ? { mergeKeys: { 0: String(r.activiteId) } }
+              : {}),
           })
         }
       })
@@ -313,7 +317,6 @@ export default function ListeRapportEtatActivites() {
         rows: exportRows,
         rowMetas,
         visibleColumnIds: [
-          'code',
           'activite',
           'statut',
           'difficultes',
@@ -352,17 +355,14 @@ export default function ListeRapportEtatActivites() {
         }
         customRowRenderer={(row, i, { rowClassName, cellClassName }) => {
           if (row.type === 'cadre') {
-            const emptyColumns = row.niveau
-            const spanColumns = columns.length - emptyColumns
-
             return (
-              <TableRow className={`${rowClassName} font-bold`} key={i}>
-                {Array.from({ length: emptyColumns }).map((_, index) => (
-                  <TableCell key={index} className={cellClassName()} />
-                ))}
-                <TableCell colSpan={spanColumns} className={cellClassName()}>
-                  {row.label}
-                </TableCell>
+              <TableRow className={rowClassName} key={i}>
+                <CadreSectionCells
+                  label={row.label ?? ''}
+                  niveau={row.niveau}
+                  columnCount={columns.length}
+                  cellClassName={cellClassName}
+                />
               </TableRow>
             )
           }
@@ -371,34 +371,33 @@ export default function ListeRapportEtatActivites() {
 
           return (
             <TableRow className={rowClassName} key={i}>
-              <TableCell className={cellClassName(0)}>
-                {row.ptba?.code_activite_ptba}
-              </TableCell>
+              <ActiviteLabelCell
+                label={row.ptba ? formatActiviteLabel(row.ptba) : ''}
+                niveau={row.niveau + 1}
+                className={cellClassName(0)}
+              />
               <TableCell className={cellClassName(1)}>
-                {row.ptba?.intitule_activite_ptba}
-              </TableCell>
-              <TableCell className={cellClassName(2)}>
                 {id != null ? (
                   renderStatut(id)
                 ) : (
                   <span className='text-xs text-muted-foreground'>—</span>
                 )}
               </TableCell>
-              <TableCell className={cellClassName(3)}>
+              <TableCell className={cellClassName(2)}>
                 {id != null ? (
                   renderDifficultes(id)
                 ) : (
                   <span className='text-xs text-muted-foreground'>—</span>
                 )}
               </TableCell>
-              <TableCell className={cellClassName(4)}>
+              <TableCell className={cellClassName(3)}>
                 {id != null ? (
                   renderDelai(id)
                 ) : (
                   <span className='text-xs text-muted-foreground'>—</span>
                 )}
               </TableCell>
-              <TableCell className={cellClassName(5)}>
+              <TableCell className={cellClassName(4)}>
                 {id != null ? (
                   renderRetard(id)
                 ) : (

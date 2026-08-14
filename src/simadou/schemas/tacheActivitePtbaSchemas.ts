@@ -1,5 +1,20 @@
 import { z } from "zod";
 
+const PROPORTION_TOTAL_MAX = 100;
+
+function proportionSchema(maxProportion: number) {
+  const max = Math.max(0, Math.min(PROPORTION_TOTAL_MAX, maxProportion));
+  return z
+    .number("La proportion est requise")
+    .min(0, "La proportion doit être supérieure ou égale à 0")
+    .max(
+      max,
+      max < PROPORTION_TOTAL_MAX
+        ? `La proportion ne peut pas dépasser ${max}% (total des tâches ≤ ${PROPORTION_TOTAL_MAX}%)`
+        : `La proportion doit être inférieure ou égale à ${PROPORTION_TOTAL_MAX}`
+    );
+}
+
 // Schéma de validation pour TacheActivitePtba
 export const tacheActivitePtbaSchema = z.object({
   intutile_tache_gt: z
@@ -7,10 +22,7 @@ export const tacheActivitePtbaSchema = z.object({
     .min(1, "L'intitulé de la tâche est requis")
     .max(200, "L'intitulé ne peut pas dépasser 200 caractères"),
 
-  proportion_gt: z
-    .number("La proportion est requise")
-    .min(0, "La proportion doit être supérieure ou égale à 0")
-    .max(100, "La proportion doit être inférieure ou égale à 100"),
+  proportion_gt: proportionSchema(PROPORTION_TOTAL_MAX),
 
   code_tache_gt: z
     .string()
@@ -61,6 +73,19 @@ export const tacheActivitePtbaProjetSchema = tacheActivitePtbaSchema
       .max(100, 'Le responsable ne peut pas dépasser 100 caractères')
       .optional(),
   });
+
+/** Schema with a dynamic max for `proportion_gt` (remaining room under 100%). */
+export function createTacheActivitePtbaSchema(maxProportion: number) {
+  return tacheActivitePtbaSchema.extend({
+    proportion_gt: proportionSchema(maxProportion),
+  });
+}
+
+export function createTacheActivitePtbaProjetSchema(maxProportion: number) {
+  return tacheActivitePtbaProjetSchema.extend({
+    proportion_gt: proportionSchema(maxProportion),
+  });
+}
 
 // Type inféré du schéma
 export type TacheActivitePtbaFormData = z.infer<typeof tacheActivitePtbaSchema>;

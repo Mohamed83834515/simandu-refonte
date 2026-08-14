@@ -12,8 +12,14 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { DialogDescription, DialogTitle } from '@/components/ui/dialog'
 import { type NiveauStructureConfigFormData } from '@/simadou/allTypes/entities'
-import { useDeleteNiveauPlanSite, useGetNiveauxPlanSite, useSaveNiveauxPlanSite } from '@/simadou/allHooks/admin/niveauPlanSiteHooks'
+import {
+  useDeleteNiveauPlanSite,
+  useGetNiveauxPlanSite,
+  useSaveNiveauxPlanSite,
+  useUpdateNiveauPlanSite,
+} from '@/simadou/allHooks/admin/niveauPlanSiteHooks'
 
 type NiveauRow = {
   id?: number
@@ -52,7 +58,8 @@ type Props = {
 
 export default function NiveauPlanSiteManager({ onSuccess }: Props) {
   const { data: niveaux = [], isLoading } = useGetNiveauxPlanSite()
-  const saveMutation = useSaveNiveauxPlanSite()
+  const createMutation = useSaveNiveauxPlanSite()
+  const updateMutation = useUpdateNiveauPlanSite()
   const deleteMutation = useDeleteNiveauPlanSite()
 
   const sorted = useMemo(
@@ -62,6 +69,7 @@ export default function NiveauPlanSiteManager({ onSuccess }: Props) {
 
   const [rows, setRows] = useState<NiveauRow[]>([])
   const [initialized, setInitialized] = useState(false)
+  const isSaving = createMutation.isPending || updateMutation.isPending
 
   useEffect(() => {
     if (initialized || isLoading) return
@@ -78,37 +86,79 @@ export default function NiveauPlanSiteManager({ onSuccess }: Props) {
   }
 
   const onSave = async () => {
-    // ✅ Ne prendre que les nouveaux niveaux (ceux avec isNew = true)
-    const newRows = rows.filter((row) => row.isNew && row.libelle.trim())
-    
-    if (newRows.length === 0) {
-      toast.error('Ajoutez au moins un nouveau niveau')
+    const rowsToSave = rows.filter((row) => row.libelle.trim())
+    if (rowsToSave.length === 0) {
+      toast.error('Renseignez au moins un libellé de niveau')
       return
     }
 
-    const codeNumbers = newRows.map((r) => Number(r.codeNumber))
+    const codeNumbers = rowsToSave.map((r) => Number(r.codeNumber))
     if (new Set(codeNumbers).size !== codeNumbers.length) {
       toast.error('Chaque niveau doit avoir un code numérique unique')
       return
     }
 
+    const originalById = new Map(
+      sorted.map((n: any) => [
+        n.id_nsc as number,
+        {
+          libelle: String(n.libelle_nsc ?? ''),
+          codeNumber: Number(n.code_number_nsc) || 1,
+          nombre: Number(n.nombre_nsc) || 0,
+        },
+      ])
+    )
+
     try {
-      let order = niveaux.length // Commencer après les niveaux existants
-      const niveauxToSave: NiveauStructureConfigFormData[] = []
-      
-      for (const row of newRows) {
+      let order = 0
+      const toCreate: NiveauStructureConfigFormData[] = []
+      let updatedCount = 0
+
+      for (const row of rows) {
         if (!row.libelle.trim()) continue
         order += 1
-        niveauxToSave.push({
+        const payload: NiveauStructureConfigFormData = {
           libelle_nsc: row.libelle.trim(),
           nombre_nsc: order,
           code_number_nsc: Number(row.codeNumber),
-        })
+        }
+
+        if (row.isNew) {
+          toCreate.push(payload)
+          continue
+        }
+
+        if (row.id == null) continue
+
+        const original = originalById.get(row.id)
+        const changed =
+          !original ||
+          original.libelle !== payload.libelle_nsc ||
+          original.codeNumber !== Number(payload.code_number_nsc) ||
+          original.nombre !== order
+
+        if (!changed) continue
+
+        await updateMutation.mutateAsync({ ...payload, id_nsc: row.id })
+        updatedCount += 1
       }
-      
-      await saveMutation.mutateAsync(niveauxToSave)
+
+      if (toCreate.length === 0 && updatedCount === 0) {
+        toast.message('Aucune modification à enregistrer')
+        return
+      }
+
+      if (toCreate.length > 0) {
+        await createMutation.mutateAsync(toCreate)
+      } else {
+        toast.success(
+          updatedCount === 1
+            ? 'Niveau modifié avec succès'
+            : 'Niveaux sauvegardés'
+        )
+      }
+
       setInitialized(false)
-      onSuccess?.()
     } catch {
       toast.error('Erreur lors de la sauvegarde')
     }
@@ -118,7 +168,6 @@ export default function NiveauPlanSiteManager({ onSuccess }: Props) {
     const row = rows[index]
     if (!row) return
 
-    // ✅ Si c'est un niveau existant (avec ID), on le supprime
     if (row.id != null && !row.isNew) {
       if (!window.confirm('Supprimer ce niveau ?')) return
       try {
@@ -132,7 +181,6 @@ export default function NiveauPlanSiteManager({ onSuccess }: Props) {
       return
     }
 
-    // ✅ Si c'est un nouveau niveau (sans ID), on l'enlève juste de l'état
     setRows((prev) => prev.filter((_, i) => i !== index))
   }
 
@@ -142,20 +190,20 @@ export default function NiveauPlanSiteManager({ onSuccess }: Props) {
 
   return (
     <div className='space-y-4'>
-      <div className='flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between'>
-        <div>
-          <h3 className='text-base font-semibold'>Configuration des niveaux de structure</h3>
-          <p className='text-sm text-muted-foreground'>
+      <div className='flex items-start justify-between gap-4 pe-8'>
+        <div className='space-y-1'>
+          <DialogTitle>Configuration des niveaux de structure</DialogTitle>
+          <DialogDescription>
             Gérez les niveaux hiérarchiques (Ministère, Direction, Service, etc.)
-          </p>
+          </DialogDescription>
         </div>
-        <div className='flex flex-col gap-2 sm:flex-row'>
+        <div className='flex shrink-0 flex-col gap-2 sm:flex-row'>
           <Button type='button' variant='outline' onClick={onAddRow}>
             <Plus className='h-4 w-4' />
             Ajouter un niveau
           </Button>
-          <Button type='button' onClick={onSave} disabled={saveMutation.isPending}>
-            {saveMutation.isPending ? 'Enregistrement...' : 'Enregistrer'}
+          <Button type='button' onClick={onSave} disabled={isSaving}>
+            {isSaving ? 'Enregistrement...' : 'Enregistrer'}
           </Button>
         </div>
       </div>
@@ -173,9 +221,7 @@ export default function NiveauPlanSiteManager({ onSuccess }: Props) {
           <TableBody>
             {rows.map((row, index) => (
               <TableRow key={row.id ?? `new-${index}`}>
-                <TableCell className='font-medium'>
-                  {index + 1}
-                </TableCell>
+                <TableCell className='font-medium'>{index + 1}</TableCell>
                 <TableCell>
                   <Input
                     value={row.libelle}

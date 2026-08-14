@@ -57,6 +57,18 @@ function rowsFromNiveaux(niveaux: NiveauCadreStrategique[]): NiveauRow[] {
   return niveaux.length > 0 ? niveaux.map(toRow) : [createEmptyRow()]
 }
 
+function niveauxQueryKey(codeProgramme: string | undefined) {
+  return [niveauCadreStrategiqueQueryKeys.all, codeProgramme] as const
+}
+
+function withoutDeletedIds(
+  niveaux: NiveauCadreStrategique[],
+  deletedIds: Set<number>
+) {
+  if (deletedIds.size === 0) return niveaux
+  return niveaux.filter((n) => !deletedIds.has(n.id_nsc))
+}
+
 export default function NiveauCadreStrategiqueManager() {
   const queryClient = useQueryClient()
   const codeProgramme = useActiveProgrammeCode()
@@ -68,26 +80,53 @@ export default function NiveauCadreStrategiqueManager() {
   const [rows, setRows] = useState<NiveauRow[]>([createEmptyRow()])
   const [isDirty, setIsDirty] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
-  const skipSyncRef = useRef(false)
+  const pendingDeletedIdsRef = useRef<Set<number>>(new Set())
 
-  const syncRowsFromQuery = useCallback(() => {
-    setRows(rowsFromNiveaux(niveaux))
+  const applyNiveaux = useCallback((next: NiveauCadreStrategique[]) => {
+    const pending = pendingDeletedIdsRef.current
+    const filtered = withoutDeletedIds(next, pending)
+
+    // Drop pending ids once the server no longer returns them.
+    for (const id of [...pending]) {
+      if (!next.some((n) => n.id_nsc === id)) pending.delete(id)
+    }
+
+    setRows(rowsFromNiveaux(filtered))
     setIsDirty(false)
-  }, [niveaux])
+  }, [])
 
   useEffect(() => {
     setIsDirty(false)
-    skipSyncRef.current = false
+    pendingDeletedIdsRef.current.clear()
   }, [codeProgramme])
 
+  // Keep local rows in sync with the query unless the user is editing.
   useEffect(() => {
     if (isLoading || isDirty) return
-    if (skipSyncRef.current) {
-      skipSyncRef.current = false
-      return
-    }
-    syncRowsFromQuery()
-  }, [isLoading, isDirty, syncRowsFromQuery])
+    applyNiveaux(niveaux)
+  }, [isLoading, isDirty, niveaux, applyNiveaux])
+
+  const removeNiveauFromCache = useCallback(
+    (id: number) => {
+      queryClient.setQueriesData<NiveauCadreStrategique[]>(
+        { queryKey: niveauCadreStrategiqueQueryKeys.all },
+        (old) => withoutDeletedIds(old ?? [], new Set([id]))
+      )
+    },
+    [queryClient]
+  )
+
+  const refreshNiveaux = useCallback(async () => {
+    await queryClient.invalidateQueries({
+      queryKey: niveauxQueryKey(codeProgramme),
+    })
+    const fresh = await queryClient.fetchQuery({
+      queryKey: niveauxQueryKey(codeProgramme),
+      queryFn: () => niveauCadreStrategiqueService.getAll(codeProgramme),
+    })
+    applyNiveaux(fresh)
+    return fresh
+  }, [applyNiveaux, codeProgramme, queryClient])
 
   const markDirty = () => setIsDirty(true)
 
@@ -129,13 +168,7 @@ export default function NiveauCadreStrategiqueManager() {
         }
       }
 
-      const fresh = await queryClient.fetchQuery({
-        queryKey: [niveauCadreStrategiqueQueryKeys.all, codeProgramme],
-        queryFn: () => niveauCadreStrategiqueService.getAll(codeProgramme),
-      })
-      skipSyncRef.current = true
-      setRows(rowsFromNiveaux(fresh))
-      setIsDirty(false)
+      await refreshNiveaux()
       toast.success('Niveaux sauvegardés avec succès')
     } catch {
       toast.error('Erreur lors de la sauvegarde')
@@ -150,18 +183,26 @@ export default function NiveauCadreStrategiqueManager() {
 
     if (row.id != null) {
       if (!window.confirm('Supprimer ce niveau ?')) return
+      const deletedId = row.id
+      pendingDeletedIdsRef.current.add(deletedId)
+
+      // Remove immediately so a stale refetch cannot bring it back.
+      removeNiveauFromCache(deletedId)
+      setRows((prev) => {
+        const next = prev.filter((r) => r.id !== deletedId)
+        return next.length > 0 ? next : [createEmptyRow()]
+      })
+      setIsDirty(false)
+
       try {
-        await deleteMutation.mutateAsync(row.id)
-        const fresh = await queryClient.fetchQuery({
-          queryKey: [niveauCadreStrategiqueQueryKeys.all, codeProgramme],
-          queryFn: () => niveauCadreStrategiqueService.getAll(codeProgramme),
-        })
-        skipSyncRef.current = true
-        setRows(rowsFromNiveaux(fresh))
-        setIsDirty(false)
+        await deleteMutation.mutateAsync(deletedId)
+        removeNiveauFromCache(deletedId)
+        await refreshNiveaux()
         toast.success('Niveau supprimé')
       } catch {
+        pendingDeletedIdsRef.current.delete(deletedId)
         toast.error('Erreur lors de la suppression')
+        await refreshNiveaux()
       }
       return
     }

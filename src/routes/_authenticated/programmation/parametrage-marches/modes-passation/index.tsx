@@ -1,19 +1,11 @@
 import AddModePassation from '@/simadou/allfonctionalities/ppm/modes-passation/AddModePassation'
 import ListeModePassation from '@/simadou/allfonctionalities/ppm/modes-passation/ListeModePassation'
 import type { ModePassation } from '@/simadou/allTypes/modePassation'
-import { createFileRoute } from '@tanstack/react-router'
 import { FileText } from 'lucide-react'
 import { useState } from 'react'
-
-export const Route = createFileRoute(
-  '/_authenticated/programmation/parametrage-marches/modes-passation/',
-)({
-  component: ModesPassationPage,
-})
-
 type Mode = 'list' | 'add' | 'edit'
 
-function ModesPassationPage() {
+export function ModesPassationPage() {
   const [mode, setMode] = useState<Mode>('list')
   const [currentRow, setCurrentRow] = useState<ModePassation | null>(null)
 

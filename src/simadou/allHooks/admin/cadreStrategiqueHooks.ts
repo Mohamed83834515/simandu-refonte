@@ -6,6 +6,7 @@ import {
   type NiveauCadreStrategiqueFormData,
 } from '@/simadou/allSercices/niveauCadreStrategiqueService'
 import type { CadreStrategique } from '@/simadou/allTypes/cadreStrategique'
+import type { NiveauCadreStrategique } from '@/simadou/allTypes/niveauCadreStrategique'
 import type {
   CadreStrategiqueWriteData,
   NiveauCadreStrategiqueWriteData,
@@ -76,10 +77,15 @@ export function useDeleteNiveauCadreStrategique() {
   return useMutation({
     mutationFn: (id: number) => niveauCadreStrategiqueService.delete(id),
     meta: { suppressGlobalErrorToast: true },
-    onSuccess: async () => {
+    onSuccess: async (_data, id) => {
       await invalidateAndRefetch(
         queryClient,
         niveauCadreStrategiqueQueryKeys.all
+      )
+      // Guard against a stale list response that still includes the deleted row.
+      queryClient.setQueriesData<NiveauCadreStrategique[]>(
+        { queryKey: niveauCadreStrategiqueQueryKeys.all },
+        (old) => (old ?? []).filter((n) => n.id_nsc !== id)
       )
     },
   })

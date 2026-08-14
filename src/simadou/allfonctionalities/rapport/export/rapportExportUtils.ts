@@ -172,6 +172,18 @@ export function resolveCellMerges(
   return { spans, covered }
 }
 
+/** Séparateur code/intitulé des libellés de section (« CODE : Intitulé »). */
+export const SECTION_LABEL_SEPARATOR = ' : '
+
+/**
+ * Colonne qui accueille les libellés de section indentés : la colonne
+ * « activite » si elle existe, sinon la première colonne.
+ */
+export function findSectionColumnIndex(columns: RapportExportColumn[]): number {
+  const index = columns.findIndex((column) => column.id === 'activite')
+  return index >= 0 ? index : 0
+}
+
 /**
  * Découpe une valeur de cellule autour du séparateur pour un rendu
  * « code en gras + reste en normal ». Retourne null si le séparateur est

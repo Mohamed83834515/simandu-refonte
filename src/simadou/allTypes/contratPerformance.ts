@@ -1,5 +1,5 @@
+import { PlanSite } from "./entities"
 import { Programme } from "./programme"
-import { UGL } from "./ugl"
 import { VersionPtba } from "./versionPtba"
 
 export interface ContratPerformance {
@@ -16,7 +16,7 @@ export interface ContratPerformance {
   observation_globale: string
   etat: string
   version_ptba?: number | null | VersionPtba
-  structure?: number | null | UGL
+  structure?: number | null | PlanSite
   id_personnel?: number | null
   programme?: number | Programme | null
 }

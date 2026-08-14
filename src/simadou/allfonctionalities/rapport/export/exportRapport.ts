@@ -10,7 +10,8 @@ export async function exportRapport(
     return
   }
 
-  if (payload.rows.length === 0) {
+  const hasFiche = Boolean(payload.fiche)
+  if (payload.rows.length === 0 && !hasFiche) {
     toast.warning('Aucune donnée à exporter pour les filtres actuels.')
     return
   }
@@ -23,13 +24,23 @@ export async function exportRapport(
         break
       }
       case 'pdf': {
-        const { exportRapportPdf } = await import('./exportRapportPdf')
-        await exportRapportPdf(payload)
+        if (hasFiche) {
+          const { exportFichePdf } = await import('./exportFichePdf')
+          await exportFichePdf(payload)
+        } else {
+          const { exportRapportPdf } = await import('./exportRapportPdf')
+          await exportRapportPdf(payload)
+        }
         break
       }
       case 'word': {
-        const { exportRapportWord } = await import('./exportRapportWord')
-        await exportRapportWord(payload)
+        if (hasFiche) {
+          const { exportFicheWord } = await import('./exportFicheWord')
+          await exportFicheWord(payload)
+        } else {
+          const { exportRapportWord } = await import('./exportRapportWord')
+          await exportRapportWord(payload)
+        }
         break
       }
     }

@@ -14,6 +14,11 @@ import { useEmbeddedTableState } from '@/hooks/use-embedded-table-state'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { TableCell, TableRow } from '@/components/ui/table'
+import { ActiviteLabelCell, CadreSectionCells } from '../../CadreSectionCells'
+import {
+  formatActiviteLabel,
+  formatCadreSectionLabel,
+} from '../../rapportTableUtils'
 import { type RapportExportRowMeta } from '../../export/rapportExportTypes'
 import { buildGanttTimeline, tacheActiveInBucket } from './ganttTimeline'
 
@@ -43,14 +48,9 @@ export function TachesTable({
 
   const columns: ColumnDef<TreeRow>[] = [
     {
-      id: 'code',
-      header: 'Code',
-      accessorFn: (row) => row.ptba?.code_activite_ptba ?? '',
-    },
-    {
       id: 'activite',
       header: 'Activité',
-      accessorFn: (row) => row.ptba?.intitule_activite_ptba ?? '',
+      accessorFn: (row) => (row.ptba ? formatActiviteLabel(row.ptba) : ''),
     },
     {
       id: 'tache',
@@ -135,7 +135,7 @@ export function TachesTable({
 
       result.push({
         type: 'cadre',
-        label: cadre.intutile_ca,
+        label: formatCadreSectionLabel(cadre),
         niveau,
       })
 
@@ -218,8 +218,7 @@ export function TachesTable({
           ganttActiveByRow.push([])
         } else {
           exportRows.push([
-            r.ptba?.code_activite_ptba ?? '',
-            r.ptba?.intitule_activite_ptba ?? '',
+            r.ptba ? formatActiviteLabel(r.ptba) : '',
             r.tache?.intutile_tache_gt ?? '',
             r.tache?.proportion_gt ? String(r.tache.proportion_gt) : '',
             r.tache?.n_lot_gt ? String(r.tache.n_lot_gt) : '',
@@ -232,7 +231,11 @@ export function TachesTable({
           ])
           rowMetas.push({
             type: 'data',
-            groupKey: r.ptba?.id_ptba ? String(r.ptba?.id_ptba) : undefined,
+            // Les activités s'indentent d'un cran sous leur cadre.
+            niveau: r.niveau + 1,
+            ...(r.ptba?.id_ptba
+              ? { mergeKeys: { 0: String(r.ptba.id_ptba) } }
+              : {}),
           })
 
           // Mois actifs de la tâche : cellules colorées dans les exports.
@@ -251,6 +254,8 @@ export function TachesTable({
         columns: columns.map((c) => ({
           id: c.id as string,
           header: c.header as string,
+          // Code d'activité en gras dans les exports (« CODE : Intitulé »).
+          ...(c.id === 'activite' ? { boldPrefixSeparator: ' : ' } : {}),
         })),
 
         rowMetas,
@@ -303,20 +308,14 @@ export function TachesTable({
             showViewOptions={false}
             customRowRenderer={(row, i, { rowClassName, cellClassName }) => {
               if (row.type === 'cadre') {
-                const emptyColumns = row.niveau
-                const spanColumns = columns.length - emptyColumns
-
                 return (
-                  <TableRow className={`${rowClassName} font-bold`} key={i}>
-                    {Array.from({ length: emptyColumns }).map((_, index) => (
-                      <TableCell key={index} className={cellClassName()} />
-                    ))}
-                    <TableCell
-                      colSpan={spanColumns}
-                      className={cellClassName()}
-                    >
-                      {row.label}
-                    </TableCell>
+                  <TableRow className={rowClassName} key={i}>
+                    <CadreSectionCells
+                      label={row.label ?? ''}
+                      niveau={row.niveau}
+                      columnCount={columns.length}
+                      cellClassName={cellClassName}
+                    />
                   </TableRow>
                 )
               }
@@ -335,28 +334,25 @@ export function TachesTable({
                 return (
                   <TableRow className={rowClassName} key={i}>
                     {isFirst && (
-                      <TableCell className={cellClassName(0)} rowSpan={span}>
-                        {row.ptba?.code_activite_ptba}
-                      </TableCell>
+                      <ActiviteLabelCell
+                        label={row.ptba ? formatActiviteLabel(row.ptba) : ''}
+                        niveau={row.niveau + 1}
+                        className={cellClassName(0)}
+                        rowSpan={span}
+                      />
                     )}
 
-                    {isFirst && (
-                      <TableCell className={cellClassName(1)} rowSpan={span}>
-                        {row.ptba?.intitule_activite_ptba}
-                      </TableCell>
-                    )}
-
-                    <TableCell className={cellClassName(2)}>
+                    <TableCell className={cellClassName(1)}>
                       {row.tache?.intutile_tache_gt}
                     </TableCell>
-                    <TableCell className={cellClassName(3)}>
+                    <TableCell className={cellClassName(2)}>
                       {row.tache?.proportion_gt}
                     </TableCell>
-                    <TableCell className={cellClassName(4)}>
+                    <TableCell className={cellClassName(3)}>
                       {row.tache?.n_lot_gt}
                     </TableCell>
 
-                    <TableCell className={cellClassName(5)}>
+                    <TableCell className={cellClassName(4)}>
                       {row.tache?.date_debut_gt
                         ? new Date(row.tache.date_debut_gt).toLocaleDateString(
                             'fr-FR'
@@ -364,7 +360,7 @@ export function TachesTable({
                         : ''}
                     </TableCell>
 
-                    <TableCell className={cellClassName(6)}>
+                    <TableCell className={cellClassName(5)}>
                       {row.tache?.date_fin_gt
                         ? new Date(row.tache.date_fin_gt).toLocaleDateString(
                             'fr-FR'

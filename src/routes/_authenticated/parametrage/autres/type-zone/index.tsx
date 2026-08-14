@@ -1,18 +1,11 @@
 import AddTypeZone from '@/simadou/allfonctionalities/parametrage/autres/type-zones/AddTypeZone'
 import ListeTypeZone from '@/simadou/allfonctionalities/parametrage/autres/type-zones/ListeTypeZone'
-import { createFileRoute } from '@tanstack/react-router'
 import { MapPin } from 'lucide-react'
 import { useState } from 'react'
 
-export const Route = createFileRoute(
-  '/_authenticated/parametrage/autres/type-zone/',
-)({
-  component: TypeZonePage,
-})
-
 type Mode = 'list' | 'add' | 'edit'
 
-function TypeZonePage() {
+export function TypeZonePage() {
   const [mode, setMode]             = useState<Mode>('list')
   const [currentRow, setCurrentRow] = useState<any | null>(null)
 

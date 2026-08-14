@@ -3,15 +3,12 @@ import { ClipboardList } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { DataTableColumnHeader } from '@/components/data-table'
 import { buildColumns } from '@/Global/Tableaux/column-builder'
-import type { Ptba, TacheActivitePtba } from '@/simadou/allTypes'
+import type { Ptba } from '@/simadou/allTypes'
 import TacheAvancementProgressBar from '@/simadou/allfonctionalities/suivi-ptba/TacheAvancementProgressBar'
 
 export type SuiviPtbaColumnHandlers = {
   onOpenSuivi: (activite: Ptba) => void
   onOpenObservations: (activite: Ptba) => void
-  tachesByActivite: Map<number, TacheActivitePtba[]>
-  avancementByActivite: Map<number, number>
-  progressLoading: boolean
 }
 
 export function buildSuiviPtbaProjetColumns(
@@ -20,9 +17,6 @@ export function buildSuiviPtbaProjetColumns(
   const {
     onOpenSuivi,
     onOpenObservations,
-    tachesByActivite,
-    avancementByActivite,
-    progressLoading,
   } = handlers
 
   const baseColumns = buildColumns<Ptba>([
@@ -46,23 +40,15 @@ export function buildSuiviPtbaProjetColumns(
       <DataTableColumnHeader column={column} title='Avancement des tâches' />
     ),
     cell: ({ row }) => {
-      const id = row.original.id_ptba
-      if (progressLoading) {
-        return (
-          <div className='h-2 max-w-[120px] animate-pulse rounded-full bg-muted' />
-        )
-      }
-      if ((tachesByActivite.get(id) ?? []).length === 0) {
-        return <span className='text-xs text-muted-foreground'>—</span>
-      }
+      const taux = row.original.taux_execution_ptba
       return (
         <TacheAvancementProgressBar
-          percent={avancementByActivite.get(id) ?? 0}
+          percent={taux ?? 0}
           compact
         />
       )
     },
-    maxSize:150,
+    maxSize: 150,
     enableSorting: false,
     enableHiding: false,
   }
@@ -124,5 +110,5 @@ export function buildSuiviPtbaProjetColumns(
     enableHiding: false,
   }
 
-  return [...baseColumns, avancementColumn, suiviColumn,  observationsColumn]
+  return [...baseColumns, avancementColumn, suiviColumn, observationsColumn]
 }

@@ -5,20 +5,19 @@ import { createFileRoute } from '@tanstack/react-router'
 import { MapPin } from 'lucide-react'
 
 export const Route = createFileRoute(
-  '/_authenticated/parametrage/zone-de-collecte/',
+    '/_authenticated/projet-programme/zone-de-collecte/',
 )({
-  component: RouteComponent,
+    component: RouteComponent,
 })
 
-
 function RouteComponent() {
-  return (
-    <PageRouteLayout
-      title='Zones de collecte'
-      boutonAddTitle='Ajouter une zone'
-      icon={MapPin}
-      addDialogComponent={AddZoneCollecte}
-      listComponent={ListeZoneCollecte}
-    />
-  )
+    return (
+        <PageRouteLayout
+            title='Zones de collecte'
+            boutonAddTitle='Ajouter une zone'
+            icon={MapPin}
+            addDialogComponent={AddZoneCollecte}
+            listComponent={ListeZoneCollecte}
+        />
+    )
 }
