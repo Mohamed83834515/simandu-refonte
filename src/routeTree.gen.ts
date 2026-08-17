@@ -34,6 +34,7 @@ import { Route as AuthenticatedErrorsErrorRouteImport } from './routes/_authenti
 import { Route as AuthenticatedProgrammationParametrageMarchesRouteRouteImport } from './routes/_authenticated/programmation/parametrage-marches/route'
 import { Route as AuthenticatedParametrageAutresRouteRouteImport } from './routes/_authenticated/parametrage/autres/route'
 import { Route as AuthenticatedSuiviResultatsSuiviPtbaIndexRouteImport } from './routes/_authenticated/suivi-resultats/suivi-ptba/index'
+import { Route as AuthenticatedSuiviResultatsSuiviPpmIndexRouteImport } from './routes/_authenticated/suivi-resultats/suivi-ppm/index'
 import { Route as AuthenticatedSuiviResultatsSuiviIndicateursIndexRouteImport } from './routes/_authenticated/suivi-resultats/suivi-indicateurs/index'
 import { Route as AuthenticatedRapportPtbaIndexRouteImport } from './routes/_authenticated/rapport/ptba/index'
 import { Route as AuthenticatedRapportIndicateursIndexRouteImport } from './routes/_authenticated/rapport/indicateurs/index'
@@ -203,6 +204,12 @@ const AuthenticatedSuiviResultatsSuiviPtbaIndexRoute =
   AuthenticatedSuiviResultatsSuiviPtbaIndexRouteImport.update({
     id: '/suivi-resultats/suivi-ptba/',
     path: '/suivi-resultats/suivi-ptba/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedSuiviResultatsSuiviPpmIndexRoute =
+  AuthenticatedSuiviResultatsSuiviPpmIndexRouteImport.update({
+    id: '/suivi-resultats/suivi-ppm/',
+    path: '/suivi-resultats/suivi-ppm/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedSuiviResultatsSuiviIndicateursIndexRoute =
@@ -473,6 +480,7 @@ export interface FileRoutesByFullPath {
   '/rapport/indicateurs/': typeof AuthenticatedRapportIndicateursIndexRoute
   '/rapport/ptba/': typeof AuthenticatedRapportPtbaIndexRoute
   '/suivi-resultats/suivi-indicateurs/': typeof AuthenticatedSuiviResultatsSuiviIndicateursIndexRoute
+  '/suivi-resultats/suivi-ppm/': typeof AuthenticatedSuiviResultatsSuiviPpmIndexRoute
   '/suivi-resultats/suivi-ptba/': typeof AuthenticatedSuiviResultatsSuiviPtbaIndexRoute
   '/projet-programme/projets/$id/': typeof AuthenticatedProjetProgrammeProjetsIdIndexRoute
 }
@@ -532,6 +540,7 @@ export interface FileRoutesByTo {
   '/rapport/indicateurs': typeof AuthenticatedRapportIndicateursIndexRoute
   '/rapport/ptba': typeof AuthenticatedRapportPtbaIndexRoute
   '/suivi-resultats/suivi-indicateurs': typeof AuthenticatedSuiviResultatsSuiviIndicateursIndexRoute
+  '/suivi-resultats/suivi-ppm': typeof AuthenticatedSuiviResultatsSuiviPpmIndexRoute
   '/suivi-resultats/suivi-ptba': typeof AuthenticatedSuiviResultatsSuiviPtbaIndexRoute
   '/projet-programme/projets/$id': typeof AuthenticatedProjetProgrammeProjetsIdIndexRoute
 }
@@ -595,6 +604,7 @@ export interface FileRoutesById {
   '/_authenticated/rapport/indicateurs/': typeof AuthenticatedRapportIndicateursIndexRoute
   '/_authenticated/rapport/ptba/': typeof AuthenticatedRapportPtbaIndexRoute
   '/_authenticated/suivi-resultats/suivi-indicateurs/': typeof AuthenticatedSuiviResultatsSuiviIndicateursIndexRoute
+  '/_authenticated/suivi-resultats/suivi-ppm/': typeof AuthenticatedSuiviResultatsSuiviPpmIndexRoute
   '/_authenticated/suivi-resultats/suivi-ptba/': typeof AuthenticatedSuiviResultatsSuiviPtbaIndexRoute
   '/_authenticated/projet-programme/projets/$id/': typeof AuthenticatedProjetProgrammeProjetsIdIndexRoute
 }
@@ -658,6 +668,7 @@ export interface FileRouteTypes {
     | '/rapport/indicateurs/'
     | '/rapport/ptba/'
     | '/suivi-resultats/suivi-indicateurs/'
+    | '/suivi-resultats/suivi-ppm/'
     | '/suivi-resultats/suivi-ptba/'
     | '/projet-programme/projets/$id/'
   fileRoutesByTo: FileRoutesByTo
@@ -717,6 +728,7 @@ export interface FileRouteTypes {
     | '/rapport/indicateurs'
     | '/rapport/ptba'
     | '/suivi-resultats/suivi-indicateurs'
+    | '/suivi-resultats/suivi-ppm'
     | '/suivi-resultats/suivi-ptba'
     | '/projet-programme/projets/$id'
   id:
@@ -779,6 +791,7 @@ export interface FileRouteTypes {
     | '/_authenticated/rapport/indicateurs/'
     | '/_authenticated/rapport/ptba/'
     | '/_authenticated/suivi-resultats/suivi-indicateurs/'
+    | '/_authenticated/suivi-resultats/suivi-ppm/'
     | '/_authenticated/suivi-resultats/suivi-ptba/'
     | '/_authenticated/projet-programme/projets/$id/'
   fileRoutesById: FileRoutesById
@@ -973,6 +986,13 @@ declare module '@tanstack/react-router' {
       path: '/suivi-resultats/suivi-ptba'
       fullPath: '/suivi-resultats/suivi-ptba/'
       preLoaderRoute: typeof AuthenticatedSuiviResultatsSuiviPtbaIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/suivi-resultats/suivi-ppm/': {
+      id: '/_authenticated/suivi-resultats/suivi-ppm/'
+      path: '/suivi-resultats/suivi-ppm'
+      fullPath: '/suivi-resultats/suivi-ppm/'
+      preLoaderRoute: typeof AuthenticatedSuiviResultatsSuiviPpmIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/suivi-resultats/suivi-indicateurs/': {
@@ -1303,6 +1323,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedRapportIndicateursIndexRoute: typeof AuthenticatedRapportIndicateursIndexRoute
   AuthenticatedRapportPtbaIndexRoute: typeof AuthenticatedRapportPtbaIndexRoute
   AuthenticatedSuiviResultatsSuiviIndicateursIndexRoute: typeof AuthenticatedSuiviResultatsSuiviIndicateursIndexRoute
+  AuthenticatedSuiviResultatsSuiviPpmIndexRoute: typeof AuthenticatedSuiviResultatsSuiviPpmIndexRoute
   AuthenticatedSuiviResultatsSuiviPtbaIndexRoute: typeof AuthenticatedSuiviResultatsSuiviPtbaIndexRoute
 }
 
@@ -1381,6 +1402,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedRapportPtbaIndexRoute: AuthenticatedRapportPtbaIndexRoute,
   AuthenticatedSuiviResultatsSuiviIndicateursIndexRoute:
     AuthenticatedSuiviResultatsSuiviIndicateursIndexRoute,
+  AuthenticatedSuiviResultatsSuiviPpmIndexRoute:
+    AuthenticatedSuiviResultatsSuiviPpmIndexRoute,
   AuthenticatedSuiviResultatsSuiviPtbaIndexRoute:
     AuthenticatedSuiviResultatsSuiviPtbaIndexRoute,
 }

@@ -194,6 +194,11 @@ export const sidebarData: SidebarData = {
               icon: Eye,
             },
             {
+              title: "Suivi du Plan de passation des marchés",
+              url: "/suivi-resultats/suivi-ppm",
+              icon: FileStack,
+            },
+            {
               title: 'Cartographie',
               url: 'https://guinee.sygcip.com/',
               icon: MapPin,

@@ -5,7 +5,6 @@ import { GenericRowActions } from '@/Global/Tableaux/GenericRowActions'
 import { resolveRelationId } from '@/simadou/lib/resolveApiRelation'
 import type { EtapePassation } from '@/simadou/allTypes/etapePassation'
 import type { GroupeEtapePassation } from '@/simadou/allTypes/groupeEtapePassation'
-import EtapeSourcesCell from '@/simadou/allfonctionalities/ppm/etapes/EtapeSourcesCell'
 
 type EtapeDialogType = 'delete'
 
@@ -58,21 +57,6 @@ export const buildEtapePassationColumns = (
                 <DataTableColumnHeader column={column} title='Date prévue' />
             ),
             cell: ({ row }) => <div>{formatDateLabel(row.original.date_prevu)}</div>,
-        },
-        {
-            id: 'date_realise',
-            header: ({ column }) => (
-                <DataTableColumnHeader column={column} title='Date réalisée' />
-            ),
-            cell: ({ row }) => <div>{formatDateLabel(row.original.date_realise)}</div>,
-        },
-        {
-            id: 'fichiers',
-            header: ({ column }) => (
-                <DataTableColumnHeader column={column} title='Fichiers' />
-            ),
-            cell: ({ row }) => <EtapeSourcesCell idEtape={row.original.id_etape} />,
-            enableSorting: false,
         },
         {
             id: 'actions',

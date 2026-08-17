@@ -16,7 +16,7 @@ function RouteComponent() {
       <PageRouteLayout
         title='Plan de Passation des Marchés'
         icon={FileStack}
-        boutonAddTitle='Ajouter un Plan de passation'
+        boutonAddTitle='Ajouter un marché'
         addDialogComponent={AddPpm}
         listComponent={ListePpm}
         headerActions={<PpmHeaderActions />}
