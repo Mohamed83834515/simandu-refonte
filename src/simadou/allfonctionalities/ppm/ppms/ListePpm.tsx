@@ -73,7 +73,7 @@ export default function ListePpm() {
         navigate={navigate}
         isLoading={isLoading}
         searchKey='intitule_ppm'
-        searchPlaceholder='Filtrer les PPM...'
+        searchPlaceholder='Filtrer les marchés...'
         defaultPageSize={10}
         showViewOptions={false}
         emptyMessage='Aucun PPM trouvé pour cette version.'
