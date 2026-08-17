@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { GenericTable } from '@/Global/Generic/Generictable'
 import { GenericDialogs } from '@/Global/Generic/Genericdialogs'
 import { GenericDeleteDialog } from '@/Global/Tableaux/GenericDeleteDialog'
@@ -14,11 +14,14 @@ import { PtbaVersionSelect } from '@/simadou/allfonctionalities/ptba/PtbaVersion
 import { resolveRelationId } from '@/simadou/lib/resolveApiRelation'
 import type { Ppm } from '@/simadou/allTypes/ppm'
 import AddPpm from './AddPpm'
+import EtapesPassationDialog from '../etapes/EtapesPassationDialog'
 
 export default function ListePpm() {
   const { search, navigate } = useEmbeddedTableState()
   const [open, setOpen] = useDialogState<'add' | 'edit' | 'delete'>(null)
   const [currentRow, setCurrentRow] = useState<Ppm | null>(null)
+  const [etapesPpm, setEtapesPpm] = useState<Ppm | null>(null)
+  const [showEtapesDialog, setShowEtapesDialog] = useState(false)
 
   const { selectedVersionId, handleChangeVersion, versionOptions } =
     usePpmVersionContext()
@@ -41,6 +44,10 @@ export default function ListePpm() {
     )
   }, [allPpms, selectedVersionId])
 
+  const onOpenEtapes = useCallback((ppm: Ppm) => {
+    setEtapesPpm(ppm)
+    setShowEtapesDialog(true)
+  }, [])
   const lookups = useMemo(
     () => ({
       modesById: new Map(modes.map((m) => [m.id_mode_passation, m])),
@@ -53,8 +60,8 @@ export default function ListePpm() {
   )
 
   const columns = useMemo(
-    () => buildPpmColumns(setOpen, setCurrentRow, lookups),
-    [lookups]
+    () => buildPpmColumns(setOpen, setCurrentRow, lookups, onOpenEtapes),
+    [lookups, onOpenEtapes]
   )
 
   return (
@@ -112,6 +119,14 @@ export default function ListePpm() {
               onDelete={(row) => deleteMutation.mutate(row.id_ppm ?? 0)}
             />
           ),
+        }}
+      />
+      <EtapesPassationDialog
+        ppm={etapesPpm}
+        open={showEtapesDialog}
+        onOpenChange={(isOpen) => {
+          setShowEtapesDialog(isOpen)
+          if (!isOpen) setEtapesPpm(null)
         }}
       />
     </div>
