@@ -314,6 +314,7 @@ export const buildSuiviEtapePassationColumns = (
                     className='justify-center'
                 />
             ),
+
             cell: ({ row }) => {
                 const saving = isSaving(
                     row.original.id_etape
@@ -367,6 +368,7 @@ export const buildSuiviEtapePassationColumns = (
                 thClassName: 'text-center',
                 className: 'text-center',
             },
+
             enableSorting: false,
             enableHiding: false,
         },
