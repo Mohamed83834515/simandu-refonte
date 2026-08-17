@@ -33,12 +33,12 @@ export const useSavePpm = (
         queryKey: ppmQueryKeys.list(),
       })
       toast.success(
-        isEdit ? 'PPM modifié avec succès' : 'PPM créé avec succès'
+        isEdit ? 'Marché modifié avec succès' : 'Marché créé avec succès'
       )
       onSuccess?.()
     },
     onError: () => {
-      toast.error('Erreur lors de la sauvegarde du PPM')
+      toast.error('Erreur lors de la sauvegarde du marché')
     },
   })
 }
@@ -53,7 +53,7 @@ export const useDeletePpm = () => {
       await queryClient.invalidateQueries({
         queryKey: ppmQueryKeys.list(),
       })
-      toast.success('PPM supprimé avec succès')
+      toast.success('Marché supprimé avec succès')
     },
     onError: () => {
       toast.error('Erreur lors de la suppression du PPM')
@@ -77,11 +77,11 @@ export const useImportPpm = () => {
       await queryClient.invalidateQueries({
         queryKey: ppmQueryKeys.list(),
       })
-      toast.success('PPM importé avec succès')
+      toast.success('Marché importé avec succès')
     },
     onError: (error) => {
       toast.error(
-        getApiErrorMessage(error, "Erreur lors de l'import du PPM")
+        getApiErrorMessage(error, "Erreur lors de l'import du Marché")
       )
     },
   })
