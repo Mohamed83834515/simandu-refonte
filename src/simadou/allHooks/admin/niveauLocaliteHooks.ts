@@ -24,7 +24,7 @@ export const useSaveNiveauxLocalite = () => {
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: niveauLocaliteQueryKeys.list() })
-      toast.success('Niveaux ajoutés avec succès')
+      toast.success('Niveaux Localites ajoutés avec succès')
     },
     onError: (error: any) => {
       toast.error(error?.response?.data?.message || 'Erreur lors de l\'ajout des niveaux')
