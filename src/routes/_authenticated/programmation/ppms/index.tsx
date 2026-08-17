@@ -14,9 +14,9 @@ function RouteComponent() {
   return (
     <PpmVersionProvider>
       <PageRouteLayout
-        title='PPMS'
+        title='Plan de Passation des Marchés'
         icon={FileStack}
-        boutonAddTitle='Ajouter un PPM'
+        boutonAddTitle='Ajouter un Plan de passation'
         addDialogComponent={AddPpm}
         listComponent={ListePpm}
         headerActions={<PpmHeaderActions />}
