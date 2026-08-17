@@ -72,6 +72,73 @@ export const useSaveEtapePassation = (
     })
 }
 
+export const useCancelEtapePassation = (idPpm: number) => {
+    const queryClient = useQueryClient()
+
+    return useMutation({
+        mutationFn: async ({
+            idEtape,
+            groupeId,
+            etape,
+            datePrevu,
+        }: {
+            idEtape: number
+            groupeId: number | null
+            etape: string
+            datePrevu: string | null
+        }) => {
+            // 1. Récupérer tous les fichiers de l'étape
+            const sources =
+                await sourceVerificationEtapePassationService.getAll({
+                    etape_passation: idEtape,
+                })
+
+            // 2. Supprimer tous les fichiers liés à l'étape
+            await Promise.all(
+                sources.map((source) =>
+                    sourceVerificationEtapePassationService.delete(
+                        source.id_source_verif_etape
+                    )
+                )
+            )
+
+            // 3. Remettre la date de réalisation à null
+            return etapePassationService.update(idEtape, {
+                etape,
+                date_prevu: datePrevu || null,
+                date_realise: null,
+                groupe_etape: groupeId,
+                ppm: idPpm,
+            })
+        },
+
+        meta: {
+            suppressGlobalErrorToast: true,
+        },
+
+        onSuccess: async () => {
+            // Recharger les étapes
+            await queryClient.invalidateQueries({
+                queryKey:
+                    etapePassationQueryKeys.byPpm(idPpm),
+            })
+
+            toast.success(
+                'Suivi de l’étape annulé et fichiers supprimés'
+            )
+        },
+
+        onError: (error) => {
+            toast.error(
+                getApiErrorMessage(
+                    error,
+                    "Erreur lors de l'annulation du suivi"
+                )
+            )
+        },
+    })
+}
+
 export const useDeleteEtapePassation = (idPpm: number) => {
     const queryClient = useQueryClient()
 

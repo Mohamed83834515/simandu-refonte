@@ -6,6 +6,7 @@ import { getApiErrorMessage } from '@/lib/api-error-message'
 import type { EtapePassation } from '@/simadou/allTypes/etapePassation'
 import { buildSuiviEtapePassationColumns } from '@/simadou/allColonnes/suivi-etape-passation-columns'
 import {
+    useCancelEtapePassation,
     useGetGroupesEtapesPassation,
     useSaveEtapePassation,
 } from '@/simadou/allHooks/admin/etapePassationHooks'
@@ -74,6 +75,24 @@ export default function SuiviEtapesPassationTable({
         useState<Record<number, string>>({})
 
     const saveMutation = useSaveEtapePassation(idPpm)
+    const cancelMutation = useCancelEtapePassation(idPpm)
+
+    const onCancel = useCallback(
+        (row: EtapePassation) => {
+            const groupeId = resolveRelationId(
+                row.groupe_etape,
+                'id_groupe_etape'
+            )
+
+            cancelMutation.mutate({
+                idEtape: row.id_etape,
+                groupeId,
+                etape: row.etape,
+                datePrevu: row.date_prevu || null,
+            })
+        },
+        [cancelMutation]
+    )
 
     const onDraftChange = useCallback(
         (idEtape: number, value: string) => {
@@ -252,11 +271,15 @@ export default function SuiviEtapesPassationTable({
 
     const isSaving = useCallback(
         (idEtape: number) =>
-            saveMutation.isPending &&
-            saveMutation.variables?.id === idEtape,
+            (saveMutation.isPending &&
+                saveMutation.variables?.id === idEtape) ||
+            (cancelMutation.isPending &&
+                cancelMutation.variables?.idEtape === idEtape),
         [
             saveMutation.isPending,
             saveMutation.variables,
+            cancelMutation.isPending,
+            cancelMutation.variables,
         ]
     )
 
@@ -267,6 +290,7 @@ export default function SuiviEtapesPassationTable({
                 draft,
                 onDraftChange,
                 onValidate,
+                onCancel,
                 isSaving
             ),
         [
@@ -274,6 +298,7 @@ export default function SuiviEtapesPassationTable({
             draft,
             onDraftChange,
             onValidate,
+            onCancel,
             isSaving,
             etapesDurations,
         ]

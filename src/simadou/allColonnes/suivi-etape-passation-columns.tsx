@@ -3,8 +3,9 @@ import { DataTableColumnHeader } from '@/components/data-table'
 import type { EtapePassation } from '@/simadou/allTypes/etapePassation'
 import type { GroupeEtapePassation } from '@/simadou/allTypes/groupeEtapePassation'
 import { Button } from '@/components/ui/button'
-import { CheckCircle2, Plus, Loader2 } from 'lucide-react'
+import { Plus, Loader2, XCircle, Eye } from 'lucide-react'
 import { diffDays } from '@/simadou/lib/suiviEtapesCalcul'
+import { GenericRowActions } from '@/Global/Tableaux/GenericRowActions'
 
 type GroupeMap = Map<number, GroupeEtapePassation>
 
@@ -61,7 +62,8 @@ export const buildSuiviEtapePassationColumns = (
         value: string
     ) => void,
     onValidate: (row: EtapePassation) => void,
-    isSaving: (idEtape: number) => boolean
+    onCancel: (row: EtapePassation) => void,
+    isSaving: (idEtape: number) => boolean,
 ): ColumnDef<EtapePassation>[] => [
         {
             id: 'etape',
@@ -333,6 +335,7 @@ export const buildSuiviEtapePassationColumns = (
                     className='justify-center'
                 />
             ),
+
             cell: ({ row }) => {
                 const saving = isSaving(
                     row.original.id_etape
@@ -340,35 +343,53 @@ export const buildSuiviEtapePassationColumns = (
 
                 return (
                     <div className='flex justify-center'>
-                        <Button
-                            type='button'
-                            variant='outline'
-                            size='sm'
-                            disabled={saving}
-                            className='gap-2 border-green-200 bg-green-50 text-green-700 hover:bg-green-100 hover:text-green-800 dark:border-green-900 dark:bg-green-950/30 dark:text-green-400'
-                            onClick={() =>
-                                onValidate(row.original)
-                            }
-                        >
-                            {saving ? (
-                                <Loader2 className='h-4 w-4 animate-spin' />
-                            ) : (
-                                <CheckCircle2 className='h-4 w-4' />
-                            )}
+                        <GenericRowActions
+                            row={row}
+                            actions={[
+                                {
+                                    label: 'Suivre',
+                                    icon: saving ? (
+                                        <Loader2
+                                            size={16}
+                                            className='animate-spin'
+                                        />
+                                    ) : (
+                                        <Eye size={16} />
+                                    ),
+                                    onClick: () => {
+                                        if (!saving) {
+                                            onValidate(row.original)
+                                        }
+                                    },
+                                },
 
-                            <span className='text-xs font-medium'>
-                                {saving
-                                    ? 'Enregistrement...'
-                                    : 'Valider'}
-                            </span>
-                        </Button>
+                                {
+                                    label: 'Annuler',
+                                    icon: (
+                                        <XCircle
+                                            size={16}
+                                        />
+                                    ),
+                                    onClick: () => {
+                                        if (!saving) {
+                                            onCancel(row.original)
+                                        }
+                                    },
+                                    className:
+                                        'text-red-500!',
+                                    separator: true,
+                                },
+                            ]}
+                        />
                     </div>
                 )
             },
+
             meta: {
                 thClassName: 'text-center',
                 className: 'text-center',
             },
+
             enableSorting: false,
             enableHiding: false,
         },

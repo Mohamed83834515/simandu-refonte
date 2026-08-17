@@ -27,7 +27,7 @@ export default function SuiviEtapesSummary({
     const isRetard = ecart !== null && ecart > 0
     const isAvance = ecart !== null && ecart < 0
     const isDansLesDelais = ecart === 0
-
+    console.log(derniereEtapeRealisee)
     return (
         <div className='rounded-xl border bg-background p-4 shadow-sm'>
             <div className='mb-4 flex items-center justify-between'>
@@ -35,12 +35,6 @@ export default function SuiviEtapesSummary({
                     <h3 className='text-sm font-semibold'>
                         Synthèse du suivi
                     </h3>
-
-                    <p className='text-xs text-muted-foreground'>
-                        {derniereEtapeRealisee
-                            ? 'Le PPM est terminé.'
-                            : 'Durée consommée calculée jusqu’à aujourd’hui.'}
-                    </p>
                 </div>
             </div>
 
@@ -75,10 +69,10 @@ export default function SuiviEtapesSummary({
 
                 <div
                     className={`rounded-lg border p-4 ${isRetard
-                            ? 'border-red-200 bg-red-50 dark:border-red-900/50 dark:bg-red-950/20'
-                            : isAvance
-                                ? 'border-green-200 bg-green-50 dark:border-green-900/50 dark:bg-green-950/20'
-                                : 'bg-muted/20'
+                        ? 'border-red-200 bg-red-50 dark:border-red-900/50 dark:bg-red-950/20'
+                        : isAvance
+                            ? 'border-green-200 bg-green-50 dark:border-green-900/50 dark:bg-green-950/20'
+                            : 'bg-muted/20'
                         }`}
                 >
                     <div className='mb-2 flex items-center gap-2'>
@@ -97,10 +91,10 @@ export default function SuiviEtapesSummary({
 
                     <div
                         className={`text-xl font-bold ${isRetard
-                                ? 'text-red-600'
-                                : isAvance || isDansLesDelais
-                                    ? 'text-green-600'
-                                    : ''
+                            ? 'text-red-600'
+                            : isAvance || isDansLesDelais
+                                ? 'text-green-600'
+                                : ''
                             }`}
                     >
                         {ecart === null
