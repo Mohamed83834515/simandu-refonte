@@ -36,7 +36,7 @@ export const getPtbaFormConfig = (
   fields: [
     {
       name: "intitule_activite_ptba",
-      label: "Intitulé activité PTBA",
+      label: "Intitulé activité PAO",
       type: "textarea",
       placeholder: "Intitulé de l'activité (max 200 caractères)",
       required: true,
@@ -56,7 +56,7 @@ export const getPtbaFormConfig = (
     },
     {
       name: "code_activite_ptba",
-      label: "Code activité PTBA",
+      label: "Code activité PAO",
       type: "text",
       placeholder: "Ex: ACT001, PTBA01...",
       required: true,
@@ -105,7 +105,7 @@ export const getPtbaFormConfig = (
     },
     {
       name: "responsable_ptba",
-      label: "Responsable PTBA",
+      label: "Responsable PAO",
       type: "select",
       placeholder: "Sélectionner un responsable",
       required: false,

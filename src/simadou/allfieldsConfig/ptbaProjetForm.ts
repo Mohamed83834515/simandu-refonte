@@ -76,13 +76,14 @@ export function getPtbaProjetFormConfig(
       { step: 2, title: 'Coordonnées' },
     ],
     fields: [
+
       {
-        name: 'type_activite',
-        label: 'Type activité',
+        name: 'code_actvite_projet',
+        label: 'Plan Analytique',
         type: 'select',
-        placeholder: "Sélectionner un type d'activité",
+        placeholder: 'Sélectionner une activité du projet',
         required: true,
-        options: typeActivitesOptions(typeActivites),
+        options: activiteProjetOptions,
         gridCols: 2,
         formStep: 1,
       },
@@ -93,16 +94,6 @@ export function getPtbaProjetFormConfig(
         placeholder: 'Ex: ACT001, PTBA01…',
         required: true,
         gridCols: 2,
-        formStep: 1,
-      },
-      {
-        name: 'code_actvite_projet',
-        label: 'Plan Analytique',
-        type: 'select',
-        placeholder: 'Sélectionner une activité du projet',
-        required: true,
-        options: activiteProjetOptions,
-        gridCols: 1,
         formStep: 1,
       },
       {
@@ -132,6 +123,17 @@ export function getPtbaProjetFormConfig(
         placeholder: 'Sélectionner une ou plusieurs localités',
         required: true,
         options: localiteOptions(localites),
+        gridCols: 1,
+        formStep: 2,
+      },
+
+      {
+        name: 'type_activite',
+        label: 'Type activité',
+        type: 'select',
+        placeholder: "Sélectionner un type d'activité",
+        required: true,
+        options: typeActivitesOptions(typeActivites),
         gridCols: 2,
         formStep: 2,
       },
