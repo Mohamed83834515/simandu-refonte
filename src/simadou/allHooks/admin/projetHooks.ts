@@ -10,6 +10,7 @@ import { projetStatsService } from '@/simadou/allSercices/projetStatsService'
 import type { Projet, ProjetClotureForm } from '@/simadou/allTypes/projet'
 import { ProjectCreateData } from '@/simadou/schemas/projetSchema'
 import { toast } from 'sonner'
+import { getApiErrorMessage } from '@/lib/api-error-message'
 import { useActiveProgrammeId } from '@/hooks/use-active-programme'
 
 function findProjetByRouteId(
@@ -157,8 +158,8 @@ export function useCreateProjet() {
       queryClient.invalidateQueries({ queryKey: projetQueryKeys.all })
       toast.success('Projet créé avec succès ✅')
     },
-    onError: (error: Error) => {
-      toast.error(`Erreur lors de la création: ${error.message}`)
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, "Erreur lors de la création"))
     },
   })
 }
@@ -185,8 +186,8 @@ export function useClotureProjet() {
       toast.success(message)
     },
 
-    onError: (error: Error) => {
-      toast.error(`Erreur lors de la clôture: ${error.message}`)
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, "Erreur lors de la clôture"))
     },
   })
 }
@@ -208,8 +209,8 @@ export function useUpdateProjet(id: number) {
       }
       toast.success('Projet modifié avec succès ✅')
     },
-    onError: (error: Error) => {
-      toast.error(`Erreur lors de la modification: ${error.message}`)
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, "Erreur lors de la modification"))
     },
   })
 }
@@ -223,8 +224,8 @@ export function useDeleteProjet() {
       toast.success('Projet supprimé avec succès 🗑️')
       queryClient.invalidateQueries({ queryKey: projetQueryKeys.all })
     },
-    onError: (error: Error) => {
-      toast.error(`Erreur lors de la suppression: ${error.message}`)
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, "Erreur lors de la suppression"))
     },
   })
 }
