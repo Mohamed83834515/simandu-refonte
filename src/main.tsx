@@ -48,11 +48,16 @@ const queryClient = new QueryClient({
   },
   mutationCache: new MutationCache({
     onError: (error, _variables, _context, mutation) => {
-      if (
+      const suppress = (
         (mutation.options.meta as { suppressGlobalErrorToast?: boolean } | undefined)
           ?.suppressGlobalErrorToast
-      ) {
-        return
+      )
+
+      // If the mutation explicitly suppressed the global toast but provided its own
+      // `onError` handler, assume it handles errors locally. Otherwise, show the
+      // server error globally so suppressed-but-unhandled mutations still report errors.
+      if (suppress) {
+        if ((mutation.options as any).onError) return
       }
 
       handleServerError(error)

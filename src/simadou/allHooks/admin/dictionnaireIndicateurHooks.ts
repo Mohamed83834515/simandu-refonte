@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { handleServerError } from '@/lib/handle-server-error'
 import { dictionnaireIndicateurService } from '@/simadou/allSercices/dictionnaireIndicateurService'
 import type { DictionnaireIndicateur } from '@/simadou/allTypes'
 import type { DictionnaireIndicateurWriteData } from '@/simadou/schemas/dictionnaireIndicateurSchemas'
@@ -31,6 +32,7 @@ export function useCreateDictionnaireIndicateur() {
     mutationFn: (data: DictionnaireIndicateurWriteData) =>
       dictionnaireIndicateurService.create(data),
     meta: { suppressGlobalErrorToast: true },
+    onError: (error) => handleServerError(error),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: dictionnaireIndicateurQueryKeys.all })
     },
@@ -48,6 +50,7 @@ export function useUpdateDictionnaireIndicateur() {
       data: Partial<DictionnaireIndicateurWriteData>
     }) => dictionnaireIndicateurService.update(id, data),
     meta: { suppressGlobalErrorToast: true },
+    onError: (error) => handleServerError(error),
     onSuccess: (_, vars) => {
       queryClient.invalidateQueries({ queryKey: dictionnaireIndicateurQueryKeys.all })
       queryClient.invalidateQueries({ queryKey: dictionnaireIndicateurQueryKeys.byId(vars.id) })
@@ -60,6 +63,7 @@ export function useDeleteDictionnaireIndicateur() {
   return useMutation({
     mutationFn: (id: number) => dictionnaireIndicateurService.delete(id),
     meta: { suppressGlobalErrorToast: true },
+    onError: (error) => handleServerError(error),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: dictionnaireIndicateurQueryKeys.all })
     },

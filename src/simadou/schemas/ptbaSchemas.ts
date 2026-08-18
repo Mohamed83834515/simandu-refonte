@@ -12,7 +12,7 @@ export const typeActiviteSchema = z.object({
     .max(1000, "L'intitulé ne peut pas dépasser 1000 caractères"),
   description: z
     .string()
-   .optional(),
+    .optional(),
 });
 
 // Schéma pour VersionPtba
@@ -94,12 +94,10 @@ export const ptbaSchema = z.object({
     .max(50, "Le code ne peut pas dépasser 50 caractères"),
   intitule_activite_ptba: z
     .string()
-    .min(1, "L'intitulé de l'activité est requis")
-    .max(200, "L'intitulé ne peut pas dépasser 200 caractères"),
+    .min(1, "L'intitulé de l'activité est requis"),
   chronogramme: chronogrammeSchema,
   observation: z
     .string()
-    .max(1000, "L'observation ne peut pas dépasser 1000 caractères")
     .optional(),
   statut_activite: z
     .string()

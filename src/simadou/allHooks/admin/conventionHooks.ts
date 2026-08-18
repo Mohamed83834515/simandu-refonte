@@ -30,9 +30,7 @@ export const useCreateConventionProjet = (idProjet: number) => {
       toast.success('Convention créée avec succès')
     },
     onError: (error) => {
-      toast.error(
-        getApiErrorMessage(error, 'Erreur lors de la création de la convention')
-      )
+      toast.error(getApiErrorMessage(error, 'Erreur lors de la création de la convention'))
     },
   })
 }
@@ -51,9 +49,7 @@ export const useUpdateConventionProjet = (idProjet: number) => {
       toast.success('Convention modifiée avec succès')
     },
     onError: (error) => {
-      toast.error(
-        getApiErrorMessage(error, 'Erreur lors de la modification de la convention')
-      )
+      toast.error(getApiErrorMessage(error, 'Erreur lors de la modification de la convention'))
     },
   })
 }
@@ -71,9 +67,7 @@ export const useDeleteConventionProjet = (idProjet: number) => {
       toast.success('Convention supprimée avec succès')
     },
     onError: (error) => {
-      toast.error(
-        getApiErrorMessage(error, 'Erreur lors de la suppression de la convention')
-      )
+      toast.error(getApiErrorMessage(error, 'Erreur lors de la suppression de la convention'))
     },
   })
 }

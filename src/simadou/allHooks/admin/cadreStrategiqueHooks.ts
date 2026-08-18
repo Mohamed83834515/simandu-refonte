@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { handleServerError } from '@/lib/handle-server-error'
 import { invalidateAndRefetch } from '@/simadou/allHooks/admin/queryInvalidation'
 import { cadreStrategiqueService } from '@/simadou/allSercices/cadreStrategiqueService'
 import {
@@ -39,6 +40,7 @@ export function useCreateNiveauCadreStrategique() {
         data as NiveauCadreStrategiqueFormData
       ),
     meta: { suppressGlobalErrorToast: true },
+    onError: (error) => handleServerError(error),
     onSuccess: async () => {
       await invalidateAndRefetch(
         queryClient,
@@ -63,6 +65,7 @@ export function useUpdateNiveauCadreStrategique() {
         data as NiveauCadreStrategiqueFormData
       ),
     meta: { suppressGlobalErrorToast: true },
+    onError: (error) => handleServerError(error),
     onSuccess: async () => {
       await invalidateAndRefetch(
         queryClient,
@@ -77,6 +80,7 @@ export function useDeleteNiveauCadreStrategique() {
   return useMutation({
     mutationFn: (id: number) => niveauCadreStrategiqueService.delete(id),
     meta: { suppressGlobalErrorToast: true },
+    onError: (error) => handleServerError(error),
     onSuccess: async (_data, id) => {
       await invalidateAndRefetch(
         queryClient,
@@ -106,6 +110,7 @@ export function useCreateCadreStrategique() {
     mutationFn: (data: CadreStrategiqueWriteData) =>
       cadreStrategiqueService.create(data as CadreStrategique),
     meta: { suppressGlobalErrorToast: true },
+    onError: (error) => handleServerError(error),
     onSuccess: async (_, variables) => {
       if (variables.programme_cs) {
         await invalidateAndRefetch(
@@ -128,6 +133,7 @@ export function useUpdateCadreStrategique(programmeId: number | undefined) {
       data: CadreStrategiqueWriteData
     }) => cadreStrategiqueService.update(id, data),
     meta: { suppressGlobalErrorToast: true },
+    onError: (error) => handleServerError(error),
     onSuccess: async () => {
       if (programmeId) {
         await invalidateAndRefetch(
@@ -144,6 +150,7 @@ export function useDeleteCadreStrategique(programmeId: number | undefined) {
   return useMutation({
     mutationFn: (id: number) => cadreStrategiqueService.delete(id),
     meta: { suppressGlobalErrorToast: true },
+    onError: (error) => handleServerError(error),
     onSuccess: async () => {
       if (programmeId) {
         await invalidateAndRefetch(
