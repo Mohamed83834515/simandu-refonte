@@ -2,10 +2,10 @@ import { ColumnDef } from '@tanstack/react-table'
 import { DataTableColumnHeader } from '@/components/data-table'
 import type { EtapePassation } from '@/simadou/allTypes/etapePassation'
 import type { GroupeEtapePassation } from '@/simadou/allTypes/groupeEtapePassation'
-import { Button } from '@/components/ui/button'
-import { Plus, Loader2, XCircle, Eye } from 'lucide-react'
+import { Loader2, XCircle, Eye } from 'lucide-react'
 import { diffDays } from '@/simadou/lib/suiviEtapesCalcul'
 import { GenericRowActions } from '@/Global/Tableaux/GenericRowActions'
+import EtapeSourcesCell from '../allfonctionalities/ppm/etapes/EtapeSourcesCell'
 
 type GroupeMap = Map<number, GroupeEtapePassation>
 
@@ -299,31 +299,10 @@ export const buildSuiviEtapePassationColumns = (
         {
             id: 'fichiers',
             header: ({ column }) => (
-                <DataTableColumnHeader
-                    column={column}
-                    title='Fichiers'
-                    className='justify-center'
-                />
+                <DataTableColumnHeader column={column} title='Fichiers' />
             ),
-            cell: () => (
-                <div className='flex justify-center'>
-                    <Button
-                        type='button'
-                        variant='ghost'
-                        size='icon'
-                        className='h-9 w-9 rounded-full border border-dashed text-muted-foreground hover:text-foreground'
-                        title='Ajouter un fichier'
-                    >
-                        <Plus className='h-4 w-4' />
-                    </Button>
-                </div>
-            ),
-            meta: {
-                thClassName: 'text-center',
-                className: 'text-center',
-            },
+            cell: ({ row }) => <EtapeSourcesCell idEtape={row.original.id_etape} />,
             enableSorting: false,
-            enableHiding: false,
         },
 
         {
