@@ -151,8 +151,8 @@ export const useDeleteEtapePassation = (idPpm: number) => {
             })
             toast.success('Étape supprimée')
         },
-        onError: () =>
-            toast.error("Erreur lors de la suppression de l'étape"),
+        onError: (error) =>
+            toast.error(getApiErrorMessage(error, "Erreur lors de la suppression de l'étape")),
     })
 }
 
@@ -201,7 +201,7 @@ export const useDeleteSourceVerificationEtape = (idEtape: number) => {
             })
             toast.success('Fichier supprimé')
         },
-        onError: () => toast.error('Erreur lors de la suppression du fichier'),
+        onError: (error) => toast.error(getApiErrorMessage(error, "Erreur lors de la suppression du fichier")),
     })
 }
 

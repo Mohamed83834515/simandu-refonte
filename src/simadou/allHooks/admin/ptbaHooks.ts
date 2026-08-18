@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { getApiErrorMessage } from '@/lib/api-error-message'
 import ptbaService from '@/simadou/allSercices/ptbaService'
 import { useActiveProgrammeCode } from '@/hooks/use-active-programme'
 
@@ -25,8 +26,8 @@ export const useDeletePtba = () => {
         queryKey: ['ptba-activites-all', codeProgramme],
       })
     },
-    onError: () => {
-      toast.error("Erreur lors de la suppression de l'activité PTBA")
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, "Erreur lors de la suppression de l'activité PTBA"))
     },
   })
 }

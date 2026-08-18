@@ -37,8 +37,8 @@ export const useSavePpm = (
       )
       onSuccess?.()
     },
-    onError: () => {
-      toast.error('Erreur lors de la sauvegarde du marché')
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, 'Erreur lors de la sauvegarde du marché'))
     },
   })
 }
@@ -55,8 +55,8 @@ export const useDeletePpm = () => {
       })
       toast.success('Marché supprimé avec succès')
     },
-    onError: () => {
-      toast.error('Erreur lors de la suppression du PPM')
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, 'Erreur lors de la suppression du PPM'))
     },
   })
 }

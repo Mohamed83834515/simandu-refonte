@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { getApiErrorMessage } from '@/lib/api-error-message'
 import { modePassationService } from '@/simadou/allSercices/modePassationService'
 import type { ModePassationFormData } from '@/simadou/schemas/modePassationSchema'
 
@@ -36,8 +37,8 @@ export const useSaveModePassation = (
       )
       onSuccess?.()
     },
-    onError: () => {
-      toast.error('Erreur lors de la sauvegarde du mode de passation')
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, 'Erreur lors de la sauvegarde du mode de passation'))
     },
   })
 }
@@ -54,8 +55,8 @@ export const useDeleteModePassation = () => {
       })
       toast.success('Mode de passation supprimé avec succès')
     },
-    onError: () => {
-      toast.error('Erreur lors de la suppression du mode de passation')
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, 'Erreur lors de la suppression du mode de passation'))
     },
   })
 }

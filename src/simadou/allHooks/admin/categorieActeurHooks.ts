@@ -2,6 +2,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { categorieActeurService } from '@/simadou/allSercices/categorieActeurService'
 import { toast } from 'sonner'
+import { getApiErrorMessage } from '@/lib/api-error-message'
 import { CategorieActeur } from '@/simadou/allTypes'
 
 export const categorieActeurQueryKeys = {
@@ -33,8 +34,8 @@ export const useSaveCategorieActeur = (isEdit: boolean, currentRow?: any, onSucc
       onSuccess?.()
     },
 
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Une erreur est survenue')
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, 'Une erreur est survenue'))
     },
   })
 }
@@ -50,8 +51,8 @@ export const useDeleteCategorieActeur = () => {
       })
       toast.success('Catégorie supprimée avec succès')
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Erreur lors de la suppression')
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, 'Erreur lors de la suppression'))
     },
   })
 }

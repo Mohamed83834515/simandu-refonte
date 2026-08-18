@@ -2,6 +2,7 @@ import { typeFinancementPPMService } from '@/simadou/allSercices/typeFinancement
 import { TypeFinancementPPMFormData } from '@/simadou/schemas/typeFinancementPPM'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { getApiErrorMessage } from '@/lib/api-error-message'
 
 export const TypeFinancementPPMQueryKeys = {
   all: ['types-financement-ppm'] as const,
@@ -36,8 +37,8 @@ export const useSaveTypeFinancementPPM = (
       )
       onSuccess?.()
     },
-    onError: () => {
-      toast.error('Erreur lors de la sauvegarde du type de financement de Passation des Marches')
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, 'Erreur lors de la sauvegarde du type de financement de Passation des Marches'))
     },
   })
 }
@@ -54,8 +55,8 @@ export const useDeleteTypeFinancementPPM = () => {
       })
       toast.success('type de financement de Passation des Marches supprimé avec succès')
     },
-    onError: () => {
-      toast.error('Erreur lors de la suppression du type de financement de Passation des Marches')
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, 'Erreur lors de la suppression du type de financement de Passation des Marches'))
     },
   })
 }

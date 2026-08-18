@@ -2,6 +2,7 @@ import { niveauStructureConfigService } from '@/simadou/allSercices/niveauStruct
 import { NiveauStructureConfigFormData } from '@/simadou/allTypes/entities'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { getApiErrorMessage } from '@/lib/api-error-message'
 
 export const niveauPlanSiteQueryKeys = {
   all: ['niveaux-structures'] as const,
@@ -29,9 +30,9 @@ export const useSaveNiveauxPlanSite = () => {
       await queryClient.invalidateQueries({ queryKey: niveauPlanSiteQueryKeys.list() })
       toast.success('Niveaux ajoutés avec succès')
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       console.error('Erreur lors de la création des niveaux:', error)
-      toast.error('Erreur lors de l\'ajout des niveaux')
+      toast.error(getApiErrorMessage(error, 'Erreur lors de l\'ajout des niveaux'))
     },
   })
 }
@@ -46,7 +47,7 @@ export const useUpdateNiveauPlanSite = () => {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: niveauPlanSiteQueryKeys.list() })
     },
-    onError: () => toast.error('Erreur lors de la modification du niveau'),
+    onError: (error: unknown) => toast.error(getApiErrorMessage(error, 'Erreur lors de la modification du niveau')),
   })
 }
 
@@ -58,6 +59,6 @@ export const useDeleteNiveauPlanSite = () => {
       await queryClient.invalidateQueries({ queryKey: niveauPlanSiteQueryKeys.list() })
       toast.success('Niveau supprimé avec succès')
     },
-    onError: () => toast.error('Erreur lors de la suppression'),
+    onError: (error: unknown) => toast.error(getApiErrorMessage(error, 'Erreur lors de la suppression')),
   })
 }

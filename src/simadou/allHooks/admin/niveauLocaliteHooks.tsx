@@ -2,6 +2,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { niveauLocaliteService } from '@/simadou/allSercices/niveauLocaliteService'
 import { toast } from 'sonner'
+import { getApiErrorMessage } from '@/lib/api-error-message'
 import { NiveauLocalite } from '@/simadou/allTypes/niveauLocalite'
 
 export const niveauLocaliteQueryKeys = {
@@ -26,8 +27,8 @@ export const useSaveNiveauxLocalite = () => {
       await queryClient.invalidateQueries({ queryKey: niveauLocaliteQueryKeys.list() })
       toast.success('Niveaux ajoutés avec succès')
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Erreur lors de l\'ajout des niveaux')
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, 'Erreur lors de l\'ajout des niveaux'))
     },
   })
 }
@@ -39,8 +40,8 @@ export const useUpdateNiveauLocalite = () => {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: niveauLocaliteQueryKeys.list() })
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Erreur lors de la mise à jour du niveau')
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, 'Erreur lors de la mise à jour du niveau'))
     },
   })
 }
@@ -53,8 +54,8 @@ export const useDeleteNiveauLocalite = () => {
       await queryClient.invalidateQueries({ queryKey: niveauLocaliteQueryKeys.list() })
       toast.success('Niveau supprimé avec succès')
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Erreur lors de la suppression')
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, 'Erreur lors de la suppression'))
     },
   })
 }

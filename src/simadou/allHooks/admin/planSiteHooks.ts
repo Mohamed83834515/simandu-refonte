@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { planSiteService } from '@/simadou/allSercices/planSiteService';
 import { PlanSite } from '@/simadou/allTypes';
 import { toast } from 'sonner';
+import { getApiErrorMessage } from '@/lib/api-error-message'
 
 // Gardez votre hook existant pour les composants React
 export const useGetPlanSites = () => {
@@ -44,7 +45,7 @@ export const useSavePlanSite = (isEdit: boolean, currentRow?: any, onSuccess?: (
       toast.success(isEdit ? 'Plan site modifié' : 'Plan site créé')
       onSuccess?.()
     },
-    onError: () => toast.error('Une erreur est survenue'),
+    onError: (error: unknown) => toast.error(getApiErrorMessage(error, 'Une erreur est survenue')),
   })
 }
 
@@ -56,6 +57,6 @@ export const useDeletePlanSite = () => {
       await queryClient.invalidateQueries({ queryKey: planSiteQueryKeys.allPlans() })
       toast.success('Plan site supprimé')
     },
-    onError: () => toast.error('Erreur lors de la suppression'),
+    onError: (error: unknown) => toast.error(getApiErrorMessage(error, 'Erreur lors de la suppression')),
   })
 }

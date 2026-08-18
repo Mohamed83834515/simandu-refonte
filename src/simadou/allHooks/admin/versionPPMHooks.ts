@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { getApiErrorMessage } from '@/lib/api-error-message'
 import versionPPMService from '@/simadou/allSercices/versionPPMService'
 import type { VersionPPM } from '@/simadou/allTypes/versionPPM'
 import { VersionPPMFormData } from '@/simadou/schemas/ppmShema'
@@ -106,8 +107,8 @@ export const useSaveVersionPPM = (isEdit: boolean, currentRow?: any, onSuccess?:
       onSuccess?.()
     },
 
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Une erreur est survenue')
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, 'Une erreur est survenue'))
     },
   })
 }
@@ -123,8 +124,8 @@ export const useDeleteVersionPPM = () => {
       })
       toast.success('Version PPM supprimée avec succès')
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Erreur lors de la suppression')
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, 'Erreur lors de la suppression'))
     },
   })
 }

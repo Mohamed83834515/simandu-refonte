@@ -113,14 +113,7 @@ export default function AddProjet({ open, onOpenChange, currentRow }: OpenPropsP
       partenaires_execution_projet: data.partenaires_execution_projet.map(Number),
       zone_projet: data.zone_projet.map(Number),
     }
-    mutation.mutate(payload, {
-      onSuccess: () => {
-        toast.success(isEdit ? 'Projet modifié avec succès' : 'Projet créé avec succès')
-        onOpenChange(false)
-      },
-      onError: () =>
-        toast.error(isEdit ? 'Erreur lors de la modification' : "Erreur lors de l'enregistrement"),
-    })
+    mutation.mutate(payload)
   }
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

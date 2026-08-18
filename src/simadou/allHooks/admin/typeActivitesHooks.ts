@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import typeActiviteService from '@/simadou/allSercices/typeActiviteService'
 import { toast } from 'sonner';
+import { getApiErrorMessage } from '@/lib/api-error-message'
 
 // Gardez votre hook existant pour les composants React
 export const useGetTypeActivites = () => {
@@ -45,8 +46,8 @@ export const useSaveTypeActivite = (
       onSuccess?.()
     },
 
-    onError: () => {
-      toast.error("Une erreur est survenue")
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, 'Une erreur est survenue'))
     },
   })
 }
@@ -66,8 +67,8 @@ export const useDeleteTypeActivite = () => {
       toast.success("Type supprimé")
     },
 
-    onError: () => {
-      toast.error("Erreur lors de la suppression")
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, 'Erreur lors de la suppression'))
     },
   })
 }

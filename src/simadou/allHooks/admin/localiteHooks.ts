@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { localiteService } from '@/simadou/allSercices/localiteService';
 import { toast } from 'sonner';
+import { getApiErrorMessage } from '@/lib/api-error-message'
 import { Localite } from '@/simadou/allTypes';
 
 // Gardez votre hook existant pour les composants React
@@ -70,8 +71,8 @@ export const useSaveLocalite = (isEdit: boolean, currentRow?: any, onSuccess?: (
       toast.success(isEdit ? 'Localité modifiée avec succès' : 'Localité créée avec succès')
       onSuccess?.()
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Une erreur est survenue')
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, 'Une erreur est survenue'))
     },
   })
 }
@@ -85,8 +86,8 @@ export const useDeleteLocalite = () => {
       await queryClient.invalidateQueries({ queryKey: localiteQueryKeys.niveaux })
       toast.success('Localité supprimée avec succès')
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Erreur lors de la suppression')
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, 'Erreur lors de la suppression'))
     },
   })
 }

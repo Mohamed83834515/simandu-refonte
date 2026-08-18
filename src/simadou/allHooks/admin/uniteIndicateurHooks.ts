@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { uniteIndicateurService } from '@/simadou/allSercices/uniteIndicateurService'
 import { UniteIndicateurFormData } from '@/simadou/schemas/uniteIndicateurSchema'
 import { toast } from 'sonner'
+import { getApiErrorMessage } from '@/lib/api-error-message'
 
 export const uniteIndicateurQueryKeys = {
   all: ['unites-indicateur'] as const,
@@ -35,8 +36,8 @@ export const useSaveUniteIndicateur = (isEdit: boolean, currentRow?: any, onSucc
       onSuccess?.()
     },
 
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Une erreur est survenue')
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, 'Une erreur est survenue'))
     },
   })
 }
@@ -52,8 +53,8 @@ export const useDeleteUniteIndicateur = () => {
       })
       toast.success('Unité supprimée avec succès')
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Erreur lors de la suppression')
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, 'Erreur lors de la suppression'))
     },
   })
 }

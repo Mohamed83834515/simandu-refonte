@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { fonctionService } from '@/simadou/allSercices/fonctionService'
 import { FonctionFormData } from '@/simadou/schemas/fonctionSchema'
 import { toast } from 'sonner'
+import { getApiErrorMessage } from '@/lib/api-error-message'
 
 export const fonctionQueryKeys = {
   all: ['fonctions'] as const,
@@ -33,8 +34,8 @@ export const useSaveFonction = (isEdit: boolean, currentRow?: any, onSuccess?: (
       onSuccess?.()
     },
 
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Une erreur est survenue')
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, 'Une erreur est survenue'))
     },
   })
 }
@@ -50,8 +51,8 @@ export const useDeleteFonction = () => {
       })
       toast.success('Fonction supprimée avec succès')
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Erreur lors de la suppression')
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, 'Erreur lors de la suppression'))
     },
   })
 }

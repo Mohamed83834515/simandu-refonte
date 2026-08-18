@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { typeZoneService } from '@/simadou/allSercices/typeZoneService'
 import { TypeZoneFormData } from '@/simadou/schemas/typeZoneSchema'
 import { toast } from 'sonner'
+import { getApiErrorMessage } from '@/lib/api-error-message'
 
 export const typeZoneQueryKeys = {
   all: ['type-zone'] as const,
@@ -33,8 +34,8 @@ export const useSaveTypeZone = (isEdit: boolean, currentRow?: any, onSuccess?: (
       onSuccess?.()
     },
 
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Une erreur est survenue')
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, 'Une erreur est survenue'))
     },
   })
 }
@@ -50,8 +51,8 @@ export const useDeleteTypeZone = () => {
       })
       toast.success('Type de zone supprimé')
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Erreur lors de la suppression')
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, 'Erreur lors de la suppression'))
     },
   })
 }

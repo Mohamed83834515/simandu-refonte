@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { getApiErrorMessage } from '@/lib/api-error-message'
 import contratPerformanceService from '@/simadou/allSercices/contratPerformanceService'
 import type { ContratPerformancePayload } from '@/simadou/allTypes/contratPerformance'
 
@@ -35,8 +36,8 @@ export const useCreateContratPerformance = (programmeId?: number) => {
       })
       toast.success('Contrat de performance créé avec succès')
     },
-    onError: () => {
-      toast.error("Erreur lors de l'enregistrement du contrat de performance")
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, "Erreur lors de l'enregistrement du contrat de performance"))
     },
   })
 }
@@ -56,8 +57,8 @@ export const useUpdateContratPerformance = (id: number, programmeId?: number) =>
       })
       toast.success('Contrat de performance modifié avec succès')
     },
-    onError: () => {
-      toast.error('Erreur lors de la modification du contrat de performance')
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, 'Erreur lors de la modification du contrat de performance'))
     },
   })
 }
@@ -73,8 +74,8 @@ export const useDeleteContratPerformance = (programmeId?: number) => {
       })
       toast.success('Contrat de performance supprimé avec succès')
     },
-    onError: () => {
-      toast.error('Erreur lors de la suppression du contrat de performance')
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, 'Erreur lors de la suppression du contrat de performance'))
     },
   })
 }

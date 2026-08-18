@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { getApiErrorMessage } from '@/lib/api-error-message'
 import { natureMarcheService } from '@/simadou/allSercices/natureMarcheService'
 import type { NatureMarcheFormData } from '@/simadou/schemas/natureMarcheSchema'
 
@@ -36,8 +37,8 @@ export const useSaveNatureMarche = (
       )
       onSuccess?.()
     },
-    onError: () => {
-      toast.error('Erreur lors de la sauvegarde de la nature de marché')
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, 'Erreur lors de la sauvegarde de la nature de marché'))
     },
   })
 }
@@ -54,8 +55,8 @@ export const useDeleteNatureMarche = () => {
       })
       toast.success('Nature de marché supprimée avec succès')
     },
-    onError: () => {
-      toast.error('Erreur lors de la suppression de la nature de marché')
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, 'Erreur lors de la suppression de la nature de marché'))
     },
   })
 }

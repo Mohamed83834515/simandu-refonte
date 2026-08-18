@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { uglService } from '@/simadou/allSercices/uglService';
 import { UGLFormData } from '@/simadou/allTypes/entities';
 import { toast } from 'sonner';
+import { getApiErrorMessage } from '@/lib/api-error-message'
 
 export const uglQueryKeys = {
   all: ['ugls'] as const,
@@ -43,8 +44,8 @@ export const useSaveUgl = (isEdit: boolean, currentRow?: any, onSuccess?: () => 
       onSuccess?.()
     },
 
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Une erreur est survenue')
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, 'Une erreur est survenue'))
     },
   })
 }
@@ -60,8 +61,8 @@ export const useDeleteUgl = () => {
       })
       toast.success('UGL supprimée avec succès')
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Erreur lors de la suppression')
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, 'Erreur lors de la suppression'))
     },
   })
 }

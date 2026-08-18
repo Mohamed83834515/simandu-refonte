@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { acteurService } from '@/simadou/allSercices/acteurService';
 import { toast } from 'sonner';
+import { getApiErrorMessage } from '@/lib/api-error-message'
 import { ActeurFormData } from '@/simadou/allTypes';
 
 
@@ -33,8 +34,8 @@ export const useSaveActeur = (isEdit: boolean, currentRow?: any, onSuccess?: () 
       onSuccess?.()
     },
 
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Une erreur est survenue')
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, 'Une erreur est survenue'))
     },
   })
 }
@@ -50,8 +51,8 @@ export const useDeleteActeur = () => {
       })
       toast.success('Acteur supprimé avec succès')
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Erreur lors de la suppression')
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, 'Erreur lors de la suppression'))
     },
   })
 }
