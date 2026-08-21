@@ -11,7 +11,7 @@ type ZoneCollecteDialogType = 'add' | 'edit' | 'delete'
 export const buildZoneCollecteColumns = (
     setOpen: (dialog: ZoneCollecteDialogType | null) => void,
     setCurrentRow: React.Dispatch<React.SetStateAction<ZoneCollecte | null>>,
-     typeZones?: TypeZone[]
+    typeZones?: TypeZone[]
 ): ColumnDef<ZoneCollecte>[] => {
     return [
         {
@@ -35,6 +35,26 @@ export const buildZoneCollecteColumns = (
             ),
         },
         {
+            id: 'latitude_zone',
+            accessorKey: 'latitude_zone',
+            header: ({ column }) => (
+                <DataTableColumnHeader column={column} title='Latitude ' />
+            ),
+            cell: ({ row }) => (
+                <div className='font-medium'>{row.original.latitude_zone}</div>
+            ),
+        },
+        {
+            id: 'longitude_zone',
+            accessorKey: 'longitude_zone',
+            header: ({ column }) => (
+                <DataTableColumnHeader column={column} title='Longitude ' />
+            ),
+            cell: ({ row }) => (
+                <div className='font-medium'>{row.original.longitude_zone}</div>
+            ),
+        },
+        {
             id: 'type_zone',
             accessorKey: 'type_zone',
             header: ({ column }) => (
@@ -43,10 +63,10 @@ export const buildZoneCollecteColumns = (
             cell: ({ row }) => {
                 // Récupérer l'ID du type de zone
                 const typeZoneId = row.original.type_zone;
-                
+
                 // Trouver le type de zone correspondant
                 const typeZone = typeZones?.find(t => String(t.id_type_zone) === String(typeZoneId));
-                
+
                 // Afficher le nom si trouvé, sinon afficher l'ID
                 return (
                     <div className='max-w-md whitespace-normal'>

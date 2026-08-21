@@ -4,6 +4,8 @@ export interface ZoneCollecte {
   nom_zone: string
   shape_file?: File
   type_zone: string
+  latitude_zone?: number
+  longitude_zone?: number
 }
 
 export interface ZoneCollecteTable {
@@ -12,6 +14,8 @@ export interface ZoneCollecteTable {
   nom_zone: string
   shape_file?: string
   type_zone: string
+  latitude_zone?: number
+  longitude_zone?: number
 }
 
 export interface ZoneCollecteFormProps {

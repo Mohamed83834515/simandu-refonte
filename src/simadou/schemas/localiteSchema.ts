@@ -13,6 +13,8 @@ export const localiteSchema = z.object({
   code_national_loca: z.string().min(1, 'Le code national est requis'),
   parent_loca: z.number().nullable().optional(),
   niveau_loca: z.number(),
+  latitude_loca: z.number().optional(),
+  longitude_loca: z.number().optional(),
 })
 
 export type NiveauLocaliteFormData = z.infer<typeof niveauLocaliteSchema>

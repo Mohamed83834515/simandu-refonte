@@ -41,6 +41,22 @@ export const getZoneCollecteFormConfig = (): FormConfig => ({
             required: true,
             gridCols: 1,
         },
+        {
+            name: "latitude_zone",
+            label: "Latitude zone",
+            type: "number",
+            placeholder: "Ex: 5.6789...",
+            required: false,
+            gridCols: 2,
+        },
+        {
+            name: "longitude_zone",
+            label: "Longitude zone",
+            type: "number",
+            placeholder: "Ex: 10.6789...",
+            required: false,
+            gridCols: 2,
+        },
     ]
 
 })

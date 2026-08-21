@@ -1,5 +1,5 @@
 // simadou/schemas/zoneCollecteSchema.ts
-import {  z } from 'zod'
+import { z } from 'zod'
 
 export const zoneCollecteSchema = z.object({
   code_zone: z.string().min(1, 'Le code est requis'),
@@ -10,6 +10,8 @@ export const zoneCollecteSchema = z.object({
       optional(),
   ]),
   type_zone: z.number().nullable().optional(),
+  latitude_zone: z.number().optional(),
+  longitude_zone: z.number().optional(),
 })
 
 export type ZoneCollecteFormData = z.infer<typeof zoneCollecteSchema>
