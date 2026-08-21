@@ -144,19 +144,19 @@ export function buildProjetRapportOrExport(
   const typeLabel =
     projet.type_projet && typeof projet.type_projet === 'object'
       ? projet.type_projet.nom_type_projet ||
-        projet.type_projet.code_type_projet ||
-        '—'
+      projet.type_projet.code_type_projet ||
+      '—'
       : '—'
 
   const tauxGlobal =
     tauxGlobalData.length === 0
       ? 0
       : Math.round(
-          tauxGlobalData.reduce(
-            (s, v) => s + (Number(v.taux_an_activite) || 0),
-            0
-          ) / tauxGlobalData.length
-        )
+        tauxGlobalData.reduce(
+          (s, v) => s + (Number(v.taux_an_activite) || 0),
+          0
+        ) / tauxGlobalData.length
+      )
   const realisees = tauxGlobalData.filter(
     (v) => Number(v.taux_an_activite) >= 100
   ).length
@@ -206,20 +206,20 @@ export function buildProjetRapportOrExport(
         items.length === 0
           ? 0
           : Math.round(
-              items.reduce(
-                (s, p) => s + (Number(p.taux_execution_ptba) || 0),
-                0
-              ) / items.length
-            )
+            items.reduce(
+              (s, p) => s + (Number(p.taux_execution_ptba) || 0),
+              0
+            ) / items.length
+          )
       const tauxDecaissement =
         items.length === 0
           ? 0
           : Math.round(
-              items.reduce(
-                (s, p) => s + (Number(p.taux_decaissement_ptba) || 0),
-                0
-              ) / items.length
-            )
+            items.reduce(
+              (s, p) => s + (Number(p.taux_decaissement_ptba) || 0),
+              0
+            ) / items.length
+          )
       return [
         String(year),
         String(items.length),
@@ -252,8 +252,8 @@ export function buildProjetRapportOrExport(
             [
               'Porteur',
               projet.partenaire_projet?.intutile_ds ||
-                projet.partenaire_projet?.code_ds ||
-                '—',
+              projet.partenaire_projet?.code_ds ||
+              '—',
             ],
             ['Responsable', responsableLabel],
             [
@@ -308,13 +308,13 @@ export function buildProjetRapportOrExport(
             financements.length === 0
               ? [['—', 'Aucun financement', '', '', '', '']]
               : financements.map((f) => [
-                  f.code_type || '—',
-                  f.intitule || '—',
-                  formatTypeFinancementLabel(f.type_financement),
-                  resolveBailleurLabel(f.bailleur, signatairesById),
-                  formatMontant(f.montant),
-                  formatDateFr(f.date_accord),
-                ]),
+                f.code_type || '—',
+                f.intitule || '—',
+                formatTypeFinancementLabel(f.type_financement),
+                resolveBailleurLabel(f.bailleur, signatairesById),
+                formatMontant(f.montant),
+                formatDateFr(f.date_accord),
+              ]),
         },
       ],
     },
@@ -373,9 +373,9 @@ export function buildProjetRapportOrExport(
             dossiers.length === 0
               ? [['—', 'Aucun dossier']]
               : dossiers.map((d) => [
-                  d.nom_dossier || '—',
-                  d.description_dossier || '—',
-                ]),
+                d.nom_dossier || '—',
+                d.description_dossier || '—',
+              ]),
         },
       ],
     },
@@ -423,7 +423,7 @@ export function buildProjetRapportOrExport(
       ],
       narrative: `Le projet affiche un taux d’exécution physique de ${tauxGlobal} % (${realisees} activité(s) réalisée(s) sur ${tauxGlobalData.length} suivie(s)). Budget ${formatMontant(budget)} GNF, décaissement ${formatMontant(decaisse)} GNF (${budgetPct} %).`,
       sections,
-      footerCode: 'MMAFP-RAPPORT-OR',
+      footerCode: 'MCENI-RAPPORT-OR',
     },
   }
 }

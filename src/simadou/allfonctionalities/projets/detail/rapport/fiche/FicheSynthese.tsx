@@ -78,7 +78,7 @@ export function FicheSynthese({
   tableTotalRow,
   children,
   footerNote = 'Document généré automatiquement — données issues du projet au moment de la génération.',
-  footerCode = 'MMAFP-RAPPORT-OR',
+  footerCode = 'MCENI-RAPPORT-OR',
   className,
   actions,
 }: FicheSyntheseProps) {

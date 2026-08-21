@@ -69,10 +69,10 @@ function p(
     size?: number
     color?: string
     align?:
-      | typeof AlignmentType.LEFT
-      | typeof AlignmentType.RIGHT
-      | typeof AlignmentType.CENTER
-      | typeof AlignmentType.JUSTIFIED
+    | typeof AlignmentType.LEFT
+    | typeof AlignmentType.RIGHT
+    | typeof AlignmentType.CENTER
+    | typeof AlignmentType.JUSTIFIED
     before?: number
     after?: number
   } = {}
@@ -165,7 +165,7 @@ function buildHeader(fiche: RapportExportFiche): Table {
               p(fiche.orgTitle ?? 'SIMANDOU', { bold: true, size: 22 }),
               p(
                 fiche.orgSubtitle ??
-                  'Plateforme de suivi des projets et programmes',
+                'Plateforme de suivi des projets et programmes',
                 { size: 16, color: MUTED, after: 0 }
               ),
             ],
@@ -570,7 +570,7 @@ export async function exportFicheWord(payload: RapportExportPayload) {
               children: [
                 p(
                   fiche.footerNote ??
-                    'Document généré automatiquement — données issues du projet au moment de la génération.',
+                  'Document généré automatiquement — données issues du projet au moment de la génération.',
                   { size: 14, color: MUTED, before: 80, after: 0 }
                 ),
               ],
@@ -582,7 +582,7 @@ export async function exportFicheWord(payload: RapportExportPayload) {
                 top: { style: BorderStyle.SINGLE, size: 4, color: BORDER },
               },
               children: [
-                p(fiche.footerCode ?? 'MMAFP-RAPPORT-OR', {
+                p(fiche.footerCode ?? 'MCENI-RAPPORT-OR', {
                   bold: true,
                   size: 14,
                   color: MUTED,
