@@ -582,7 +582,7 @@ export async function exportFicheWord(payload: RapportExportPayload) {
                 top: { style: BorderStyle.SINGLE, size: 4, color: BORDER },
               },
               children: [
-                p(fiche.footerCode ?? 'MCENI-RAPPORT-OR', {
+                p(fiche.footerCode ?? 'MINAGRI-RAPPORT-OR', {
                   bold: true,
                   size: 14,
                   color: MUTED,

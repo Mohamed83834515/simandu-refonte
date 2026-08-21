@@ -423,7 +423,7 @@ export function buildProjetRapportOrExport(
       ],
       narrative: `Le projet affiche un taux d’exécution physique de ${tauxGlobal} % (${realisees} activité(s) réalisée(s) sur ${tauxGlobalData.length} suivie(s)). Budget ${formatMontant(budget)} GNF, décaissement ${formatMontant(decaisse)} GNF (${budgetPct} %).`,
       sections,
-      footerCode: 'MCENI-RAPPORT-OR',
+      footerCode: 'MINAGRI-RAPPORT-OR',
     },
   }
 }

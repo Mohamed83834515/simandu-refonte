@@ -480,7 +480,7 @@ export async function exportFichePdf(payload: RapportExportPayload) {
   const footerLines: string[] = doc.splitTextToSize(footer, contentWidth * 0.7)
   doc.text(footerLines, marginX, state.y)
   doc.setFont('helvetica', 'bold')
-  doc.text(fiche.footerCode ?? 'MCENI-RAPPORT-OR', pageWidth - marginX, state.y, {
+  doc.text(fiche.footerCode ?? 'MINAGRI-RAPPORT-OR', pageWidth - marginX, state.y, {
     align: 'right',
   })
 
