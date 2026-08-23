@@ -200,7 +200,7 @@ export const sidebarData: SidebarData = {
             },
             {
               title: 'Cartographie',
-              url: 'https://guinee.sygcip.com/',
+              url: 'https://carto.ruche-sectoriel.net/',
               icon: MapPin,
             },
           ],
