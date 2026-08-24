@@ -200,7 +200,7 @@ export const sidebarData: SidebarData = {
             },
             {
               title: 'Cartographie',
-              url: 'https://carto.ruche-sectoriel.net/',
+              url: '/suivi-resultats/cartographie',
               icon: MapPin,
             },
           ],

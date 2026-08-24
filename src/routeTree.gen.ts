@@ -36,6 +36,7 @@ import { Route as AuthenticatedParametrageAutresRouteRouteImport } from './route
 import { Route as AuthenticatedSuiviResultatsSuiviPtbaIndexRouteImport } from './routes/_authenticated/suivi-resultats/suivi-ptba/index'
 import { Route as AuthenticatedSuiviResultatsSuiviPpmIndexRouteImport } from './routes/_authenticated/suivi-resultats/suivi-ppm/index'
 import { Route as AuthenticatedSuiviResultatsSuiviIndicateursIndexRouteImport } from './routes/_authenticated/suivi-resultats/suivi-indicateurs/index'
+import { Route as AuthenticatedSuiviResultatsCartographieIndexRouteImport } from './routes/_authenticated/suivi-resultats/cartographie/index'
 import { Route as AuthenticatedRapportPtbaIndexRouteImport } from './routes/_authenticated/rapport/ptba/index'
 import { Route as AuthenticatedRapportIndicateursIndexRouteImport } from './routes/_authenticated/rapport/indicateurs/index'
 import { Route as AuthenticatedRapportEtatDesActivitesIndexRouteImport } from './routes/_authenticated/rapport/etat-des-activites/index'
@@ -216,6 +217,12 @@ const AuthenticatedSuiviResultatsSuiviIndicateursIndexRoute =
   AuthenticatedSuiviResultatsSuiviIndicateursIndexRouteImport.update({
     id: '/suivi-resultats/suivi-indicateurs/',
     path: '/suivi-resultats/suivi-indicateurs/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedSuiviResultatsCartographieIndexRoute =
+  AuthenticatedSuiviResultatsCartographieIndexRouteImport.update({
+    id: '/suivi-resultats/cartographie/',
+    path: '/suivi-resultats/cartographie/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedRapportPtbaIndexRoute =
@@ -479,6 +486,7 @@ export interface FileRoutesByFullPath {
   '/rapport/etat-des-activites/': typeof AuthenticatedRapportEtatDesActivitesIndexRoute
   '/rapport/indicateurs/': typeof AuthenticatedRapportIndicateursIndexRoute
   '/rapport/ptba/': typeof AuthenticatedRapportPtbaIndexRoute
+  '/suivi-resultats/cartographie/': typeof AuthenticatedSuiviResultatsCartographieIndexRoute
   '/suivi-resultats/suivi-indicateurs/': typeof AuthenticatedSuiviResultatsSuiviIndicateursIndexRoute
   '/suivi-resultats/suivi-ppm/': typeof AuthenticatedSuiviResultatsSuiviPpmIndexRoute
   '/suivi-resultats/suivi-ptba/': typeof AuthenticatedSuiviResultatsSuiviPtbaIndexRoute
@@ -539,6 +547,7 @@ export interface FileRoutesByTo {
   '/rapport/etat-des-activites': typeof AuthenticatedRapportEtatDesActivitesIndexRoute
   '/rapport/indicateurs': typeof AuthenticatedRapportIndicateursIndexRoute
   '/rapport/ptba': typeof AuthenticatedRapportPtbaIndexRoute
+  '/suivi-resultats/cartographie': typeof AuthenticatedSuiviResultatsCartographieIndexRoute
   '/suivi-resultats/suivi-indicateurs': typeof AuthenticatedSuiviResultatsSuiviIndicateursIndexRoute
   '/suivi-resultats/suivi-ppm': typeof AuthenticatedSuiviResultatsSuiviPpmIndexRoute
   '/suivi-resultats/suivi-ptba': typeof AuthenticatedSuiviResultatsSuiviPtbaIndexRoute
@@ -603,6 +612,7 @@ export interface FileRoutesById {
   '/_authenticated/rapport/etat-des-activites/': typeof AuthenticatedRapportEtatDesActivitesIndexRoute
   '/_authenticated/rapport/indicateurs/': typeof AuthenticatedRapportIndicateursIndexRoute
   '/_authenticated/rapport/ptba/': typeof AuthenticatedRapportPtbaIndexRoute
+  '/_authenticated/suivi-resultats/cartographie/': typeof AuthenticatedSuiviResultatsCartographieIndexRoute
   '/_authenticated/suivi-resultats/suivi-indicateurs/': typeof AuthenticatedSuiviResultatsSuiviIndicateursIndexRoute
   '/_authenticated/suivi-resultats/suivi-ppm/': typeof AuthenticatedSuiviResultatsSuiviPpmIndexRoute
   '/_authenticated/suivi-resultats/suivi-ptba/': typeof AuthenticatedSuiviResultatsSuiviPtbaIndexRoute
@@ -667,6 +677,7 @@ export interface FileRouteTypes {
     | '/rapport/etat-des-activites/'
     | '/rapport/indicateurs/'
     | '/rapport/ptba/'
+    | '/suivi-resultats/cartographie/'
     | '/suivi-resultats/suivi-indicateurs/'
     | '/suivi-resultats/suivi-ppm/'
     | '/suivi-resultats/suivi-ptba/'
@@ -727,6 +738,7 @@ export interface FileRouteTypes {
     | '/rapport/etat-des-activites'
     | '/rapport/indicateurs'
     | '/rapport/ptba'
+    | '/suivi-resultats/cartographie'
     | '/suivi-resultats/suivi-indicateurs'
     | '/suivi-resultats/suivi-ppm'
     | '/suivi-resultats/suivi-ptba'
@@ -790,6 +802,7 @@ export interface FileRouteTypes {
     | '/_authenticated/rapport/etat-des-activites/'
     | '/_authenticated/rapport/indicateurs/'
     | '/_authenticated/rapport/ptba/'
+    | '/_authenticated/suivi-resultats/cartographie/'
     | '/_authenticated/suivi-resultats/suivi-indicateurs/'
     | '/_authenticated/suivi-resultats/suivi-ppm/'
     | '/_authenticated/suivi-resultats/suivi-ptba/'
@@ -1000,6 +1013,13 @@ declare module '@tanstack/react-router' {
       path: '/suivi-resultats/suivi-indicateurs'
       fullPath: '/suivi-resultats/suivi-indicateurs/'
       preLoaderRoute: typeof AuthenticatedSuiviResultatsSuiviIndicateursIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/suivi-resultats/cartographie/': {
+      id: '/_authenticated/suivi-resultats/cartographie/'
+      path: '/suivi-resultats/cartographie'
+      fullPath: '/suivi-resultats/cartographie/'
+      preLoaderRoute: typeof AuthenticatedSuiviResultatsCartographieIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/rapport/ptba/': {
@@ -1322,6 +1342,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedRapportEtatDesActivitesIndexRoute: typeof AuthenticatedRapportEtatDesActivitesIndexRoute
   AuthenticatedRapportIndicateursIndexRoute: typeof AuthenticatedRapportIndicateursIndexRoute
   AuthenticatedRapportPtbaIndexRoute: typeof AuthenticatedRapportPtbaIndexRoute
+  AuthenticatedSuiviResultatsCartographieIndexRoute: typeof AuthenticatedSuiviResultatsCartographieIndexRoute
   AuthenticatedSuiviResultatsSuiviIndicateursIndexRoute: typeof AuthenticatedSuiviResultatsSuiviIndicateursIndexRoute
   AuthenticatedSuiviResultatsSuiviPpmIndexRoute: typeof AuthenticatedSuiviResultatsSuiviPpmIndexRoute
   AuthenticatedSuiviResultatsSuiviPtbaIndexRoute: typeof AuthenticatedSuiviResultatsSuiviPtbaIndexRoute
@@ -1400,6 +1421,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedRapportIndicateursIndexRoute:
     AuthenticatedRapportIndicateursIndexRoute,
   AuthenticatedRapportPtbaIndexRoute: AuthenticatedRapportPtbaIndexRoute,
+  AuthenticatedSuiviResultatsCartographieIndexRoute:
+    AuthenticatedSuiviResultatsCartographieIndexRoute,
   AuthenticatedSuiviResultatsSuiviIndicateursIndexRoute:
     AuthenticatedSuiviResultatsSuiviIndicateursIndexRoute,
   AuthenticatedSuiviResultatsSuiviPpmIndexRoute:
