@@ -29,7 +29,7 @@ export const getLocaliteFormConfig = (): FormConfig => ({
             type: "text",
             placeholder: "Ex: Kindia, Labé, Mamou...",
             required: true,
-            gridCols: 1,
+            gridCols: 2,
         },
         {
             name: "latitude_loca",

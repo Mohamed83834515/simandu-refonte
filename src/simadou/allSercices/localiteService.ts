@@ -13,12 +13,12 @@ export const localiteService = {
 
   async getByParent(parentId: number | null): Promise<Localite[]> {
     const allLocalites = await this.getAll()
-    
+
     if (parentId === null) {
       // Retourner les localités sans parent (niveau 1)
       return allLocalites.filter((loc) => loc.parent_loca === null)
     }
-    
+
     // Filtrer les localités dont l'id du parent correspond
     return allLocalites.filter((loc) => {
       if (!loc.niveau_loca) return false
@@ -53,17 +53,70 @@ export const localiteService = {
   },
 
   async create(data: Localite): Promise<Localite> {
-    return await apiClient.request<Localite>(LOCALITE_URL, {
-      method: "POST",
-      data,
-    })
+    if (data.shape_file) {
+      // Si un fichier est fourni, utiliser FormData
+      const formData = new FormData();
+
+      // Ajouter tous les champs du formulaire
+      Object.entries(data).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          formData.append(key, value.toString());
+        }
+      });
+
+      // Ajouter le fichier avec la clé documentUrl
+      formData.append("shape_file", data.shape_file);
+
+      return apiClient.request(LOCALITE_URL, {
+        method: "POST",
+        data: formData,
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+    } else {
+      delete data.shape_file;
+      // Pas de fichier, utiliser JSON normal
+      return apiClient.request(LOCALITE_URL, {
+        method: "POST",
+        data,
+      });
+    }
   },
 
   async update(data: Localite): Promise<Localite> {
-    return await apiClient.request<Localite>(`${LOCALITE_URL}${data.id_loca}/`, {
-      method: "PUT",
-      data,
-    })
+    if (data.shape_file) {
+      const formData = new FormData();
+
+      console.log("update data", data);
+
+      // Ajouter tous les champs sauf shape_file
+      Object.entries(data).forEach(([key, value]) => {
+        if (key !== 'shape_file' && value !== undefined && value !== null) {
+          formData.append(key, value.toString());
+        }
+      });
+
+      if (typeof data.shape_file !== 'string') {
+        formData.append("shape_file", data.shape_file as File);
+      }
+
+      return apiClient.request(`${LOCALITE_URL}${data.id_loca}/`, {
+        method: "PATCH",
+        data: formData,
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+    } else {
+      const updateData = { ...data };
+      delete updateData.shape_file;
+
+      return apiClient.request(`${LOCALITE_URL}${data.id_loca}/`, {
+        method: "PATCH",
+        data: updateData,
+      });
+    }
   },
 
   async delete(id: number): Promise<void> {

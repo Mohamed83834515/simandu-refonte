@@ -15,6 +15,11 @@ export const localiteSchema = z.object({
   niveau_loca: z.number(),
   latitude_loca: z.number().optional(),
   longitude_loca: z.number().optional(),
+  shape_file: z.union([
+    z.instanceof(File),
+    z.string().
+      optional(),
+  ]),
 })
 
 export type NiveauLocaliteFormData = z.infer<typeof niveauLocaliteSchema>

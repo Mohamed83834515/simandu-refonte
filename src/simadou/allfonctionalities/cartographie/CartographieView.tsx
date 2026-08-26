@@ -7,9 +7,6 @@ export default function CartographieView() {
   const [isLoading, setIsLoading] = useState(true)
   const containerRef = useRef<HTMLDivElement>(null)
 
-
-
-
   return (
     <div
       ref={containerRef}

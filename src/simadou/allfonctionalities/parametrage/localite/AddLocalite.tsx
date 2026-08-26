@@ -45,7 +45,16 @@ export default function AddLocalite({ currentRow, niveauId, onClose, onSuccess }
         colSpan: 'full',
       })
     }
-
+    config.fields.push({
+      name: 'shape_file',
+      label: 'Shape file',
+      type: 'file',
+      accept: 'application/pdf,image/*,.doc,.docx',
+      maxSize: 10,
+      helperText: "Formats acceptés: PDF, DOC, DOCX (max 10MB)",
+      required: false,
+      gridCols: 1,
+    })
     return config
   }, [parentNiveau, parentLocalites])
 
@@ -58,6 +67,7 @@ export default function AddLocalite({ currentRow, niveauId, onClose, onSuccess }
       ? (currentRow.parent_loca as any).id_loca
       : currentRow?.parent_loca || null,
     niveau_loca: niveauId,
+    shape_file: currentRow?.shape_file || '',
   }), [currentRow, niveauId])
 
   const mutation = useSaveLocalite(isEdit, currentRow, () => {
