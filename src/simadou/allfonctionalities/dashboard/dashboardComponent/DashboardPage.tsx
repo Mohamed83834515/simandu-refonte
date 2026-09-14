@@ -68,8 +68,8 @@ const DashboardPage: React.FC = () => {
 
     const selectedVersionId = selectedVersion?.id_version_ptba
     const composanteSelectedVersionId = composanteSelectedVersion?.id_version_ptba
-    const { data: avancementComposantesNiveau2 = [] } = useGetAvancementParComposantes(2, composanteSelectedVersionId)
-    const { data: avancementComposantesNiveau3 = [] } = useGetAvancementParComposantes(3, composanteSelectedVersionId)
+    const { data: avancementComposantesNiveau2 = [] } = useGetAvancementParComposantes(3, composanteSelectedVersionId)
+    const { data: avancementComposantesNiveau3 = [] } = useGetAvancementParComposantes(4, composanteSelectedVersionId)
     const activitesDirectionVersionId =
         activitesDirectionSelectedVersion?.id_version_ptba
 
