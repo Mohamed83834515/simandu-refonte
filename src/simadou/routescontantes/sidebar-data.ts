@@ -103,7 +103,7 @@ export const sidebarData: SidebarData = {
           icon: FileStack,
           items: [
             {
-              title: 'Liste des programmes',
+              title: 'Liste des plans stratégiques',
               url: '/programme/liste',
               icon: FileStack,
             },
