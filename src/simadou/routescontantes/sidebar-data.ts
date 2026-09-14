@@ -80,7 +80,7 @@ export const sidebarData: SidebarData = {
             //   icon: Handshake,
             // },
             {
-              title: 'Cadre Organique du MINAGRI',
+              title: 'Cadre Organique du MA',
               url: '/parametrage/plans-de-site',
               icon: ClipboardList,
             },
