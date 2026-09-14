@@ -10,7 +10,6 @@ import {
   YAxis,
 } from 'recharts'
 import { CalendarIcon } from 'lucide-react'
-import { formatDashboardPercent } from '@/simadou/lib/dashboardPaoStatsUtils'
 import { CadreAnalytiqueComposante, NiveauCadreAnalytiqueComposante } from '@/simadou/allTypes/composanteGraphe'
 
 // ─── Couleurs alignées sur la charte du dashboard ───────────────────────────
@@ -81,9 +80,9 @@ function buildChartRows(
 
     return {
       composante: n2.code_ca,
-      avancementTechnique: parseFloat(avancementTechnique.toFixed(1)),
-      indicateurs: parseFloat(indicateurs.toFixed(1)),
-      decaissement: parseFloat(decaissement.toFixed(1)),
+      avancementTechnique: Math.round(avancementTechnique),
+      indicateurs: Math.round(indicateurs),
+      decaissement: Math.round(decaissement),
     }
   })
 }
@@ -104,7 +103,7 @@ const CustomTooltip: React.FC<any> = ({ active, payload, label }) => {
           />
           <span className='text-gray-600 dark:text-gray-400'>{entry.name} :</span>
           <span className='font-semibold text-gray-900 dark:text-gray-100'>
-            {formatDashboardPercent(Number(entry.value))}%
+            {Math.round(Number(entry.value ?? 0))}%
           </span>
         </div>
       ))}
@@ -203,7 +202,7 @@ const AvancementComposanteChart: React.FC<AvancementComposanteChartProps> = ({
                 position: 'top',
                 fontSize: 10,
                 fill: AVANCEMENT_COLOR,
-                formatter: (v: unknown) => `${formatDashboardPercent(Number(v))}%`,
+                formatter: (v: unknown) => `${Math.round(Number(v ?? 0))}%`,
               }}
             />
             <Bar
@@ -216,7 +215,7 @@ const AvancementComposanteChart: React.FC<AvancementComposanteChartProps> = ({
                 position: 'top',
                 fontSize: 10,
                 fill: INDICATEURS_COLOR,
-                formatter: (v: unknown) => `${formatDashboardPercent(Number(v))}%`,
+                formatter: (v: unknown) => `${Math.round(Number(v ?? 0))}%`,
               }}
             />
             <Bar
@@ -229,7 +228,7 @@ const AvancementComposanteChart: React.FC<AvancementComposanteChartProps> = ({
                 position: 'top',
                 fontSize: 10,
                 fill: DECAISSEMENT_COLOR,
-                formatter: (v: unknown) => `${formatDashboardPercent(Number(v))}%`,
+                formatter: (v: unknown) => `${Math.round(Number(v ?? 0))}%`,
               }}
             />
           </BarChart>
