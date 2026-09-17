@@ -124,7 +124,7 @@ export function buildPersonnelColumns({
       ),
       cell: ({ row }) => (
         <span className='text-sm'>
-          {row.original.fonction_perso?.nom_fonction ?? '—'}
+          {typeof row.original.fonction_perso === "string" ? row.original.fonction_perso : row.original.fonction_perso?.nom_fonction ?? '—'}
         </span>
       ),
       enableHiding: false,
