@@ -16,7 +16,7 @@ export interface Personnel extends Record<string, unknown> {
   prenom_perso?: string;
   email?: string;
   contact_perso?: string;
-  fonction_perso?: Fonction | string | null;
+  fonction_perso?: Fonction | null;
   service_perso?: PlanSite | null;
   niveau_perso?: number;
   rapport_mensuel_perso?: boolean;
