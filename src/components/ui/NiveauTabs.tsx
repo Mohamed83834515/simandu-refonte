@@ -22,7 +22,7 @@ interface NiveauTabTriggerProps {
 
 export function NiveauTabTrigger({ value, count, children }: NiveauTabTriggerProps) {
   return (
-    <TabsTrigger value={value} className='relative'>
+    <TabsTrigger value={value} className='relative h-auto flex-none'>
       {children}
       {count !== undefined && count > 0 && (
         <span className='rounded-full bg-muted px-1.5 py-0.5 text-xs text-black'>
@@ -34,5 +34,5 @@ export function NiveauTabTrigger({ value, count, children }: NiveauTabTriggerPro
 }
 
 export function NiveauTabsList({ children }: { children: React.ReactNode }) {
-  return <TabsList className='flex flex-wrap gap-1'>{children}</TabsList>
+  return <TabsList className='flex max-w-full flex-nowrap justify-start gap-1 overflow-x-auto'>{children}</TabsList>
 }
