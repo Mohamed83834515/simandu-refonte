@@ -5,7 +5,6 @@ import { DataTableColumnHeader } from '@/components/data-table'
 import { GenericRowActions } from '@/Global/Tableaux/GenericRowActions'
 import type { Personnel } from '@/simadou/allTypes'
 import {
-  formatNiveauAcces,
   formatPersonnelNom,
   formatStatutPersonnel,
   isPersonnelActif,
@@ -141,18 +140,18 @@ export function buildPersonnelColumns({
       ),
       enableHiding: false,
     },
-    {
-      id: 'niveau_perso',
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Niveau d'accès" />
-      ),
-      cell: ({ row }) => (
-        <span className='text-sm'>
-          {formatNiveauAcces(row.original.niveau_perso)}
-        </span>
-      ),
-      enableHiding: false,
-    },
+    // {
+    //   id: 'niveau_perso',
+    //   header: ({ column }) => (
+    //     <DataTableColumnHeader column={column} title="Niveau d'accès" />
+    //   ),
+    //   cell: ({ row }) => (
+    //     <span className='text-sm'>
+    //       {formatNiveauAcces(row.original.niveau_perso)}
+    //     </span>
+    //   ),
+    //   enableHiding: false,
+    // },
     {
       id: 'statut',
       header: ({ column }) => (
