@@ -163,10 +163,10 @@ export function useDeleteCadreStrategique(programmeId: number | undefined) {
 }
 
 /** Liste globale (ex. options formulaires). */
-export function useGetCadreStrategiques() {
+export function useGetCadreStrategiques(idProgramme: number | undefined) {
   return useQuery({
     queryKey: cadreStrategiqueQueryKeys.all,
-    queryFn: () => cadreStrategiqueService.getAll(),
+    queryFn: () => cadreStrategiqueService.getAll(idProgramme),
   })
 }
 

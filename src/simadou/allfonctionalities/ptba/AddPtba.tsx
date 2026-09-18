@@ -31,7 +31,7 @@ import { resolveRelationId } from '@/simadou/lib/resolveApiRelation'
 import { type PtbaFormData, ptbaSchema } from '@/simadou/schemas/ptbaSchemas'
 import { toast } from 'sonner'
 import { getApiErrorMessage } from '@/lib/api-error-message'
-import { useActiveProgrammeCode } from '@/hooks/use-active-programme'
+import { useActiveProgrammeCode, useActiveProgrammeId } from '@/hooks/use-active-programme'
 import {
   Dialog,
   DialogContent,
@@ -132,6 +132,7 @@ function resolveLocaliteIds(value: unknown): number[] {
 const AddPtba = ({ open, onOpenChange, currentRow }: OpenPropsPTBA) => {
   const isEdit = !!currentRow?.id_ptba
   const codeProgramme = useActiveProgrammeCode()
+  const idProgramme = useActiveProgrammeId()
   const { selectedVersionId } = usePtbaVersionSelection(codeProgramme)
   const { data: cadresAnalytique = [] } = useGetCadresAnalytique()
   const { data: niveaux = [] } = useGetNiveauxCadreAnalytique()
@@ -140,7 +141,7 @@ const AddPtba = ({ open, onOpenChange, currentRow }: OpenPropsPTBA) => {
   const { data: planSites = [] } = useGetAllPlansSite()
   const { data: niveaux_structures = [] } = useGetNiveauxPlanSite()
   const { data: personnels = [] } = useGetPersonnels()
-  const { data: cadres_strategiques = [] } = useGetCadreStrategiques()
+  const { data: cadres_strategiques = [] } = useGetCadreStrategiques(idProgramme)
   const { data: niveauxCs = [] } = useGetNiveauxCadreStrategique()
   const { data: ugls = [] } = useGetUgls()
 
