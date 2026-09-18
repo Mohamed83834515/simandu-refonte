@@ -48,6 +48,7 @@ import {
 } from '@/simadou/allHooks/admin/cadreStrategiqueHooks'
 import { useGetUgls } from '@/simadou/allHooks/admin/uglHooks'
 import { useGetAllPlansSite } from '@/simadou/allHooks/admin/planSiteHooks'
+import { useGetNiveauxPlanSite } from '@/simadou/allHooks/admin/niveauPlanSiteHooks'
 
 export interface OpenPropsPTBA {
   open: boolean
@@ -137,6 +138,7 @@ const AddPtba = ({ open, onOpenChange, currentRow }: OpenPropsPTBA) => {
   const { data: types_activites = [] } = useGetTypeActivites()
   const { data: localites = [] } = useGetLocalites()
   const { data: planSites = [] } = useGetAllPlansSite()
+  const { data: niveaux_structures = [] } = useGetNiveauxPlanSite()
   const { data: personnels = [] } = useGetPersonnels()
   const { data: cadres_strategiques = [] } = useGetCadreStrategiques()
   const { data: niveauxCs = [] } = useGetNiveauxCadreStrategique()
@@ -217,13 +219,16 @@ const AddPtba = ({ open, onOpenChange, currentRow }: OpenPropsPTBA) => {
 
   const planSiteOptions = useMemo(() => {
     if (!planSites || planSites.length === 0) return []
+    const niveauxValides = new Set(
+      niveaux_structures.map((n) => Number(n.id_nsc))
+    )
     return planSites
-      .filter((plan) => plan?.id_ds != null)
+      .filter((plan) => plan?.id_ds != null && niveauxValides.has(Number(plan.niveau_ds)))
       .map((plan) => ({
         value: plan.id_ds as number,
         label: plan.intutile_ds || plan.code_ds || 'Sans nom',
       }))
-  }, [planSites])
+  }, [planSites, niveaux_structures])
 
   const personnelOptions = useMemo(() => {
     if (!personnels || personnels.length === 0) return []
@@ -260,7 +265,7 @@ const AddPtba = ({ open, onOpenChange, currentRow }: OpenPropsPTBA) => {
     const scoped =
       lastNiveauId != null
         ? filterCadresStrategiqueByNiveau(cadres_strategiques, lastNiveauId)
-        : cadres_strategiques
+        : []
 
     const currentLabel =
       selectedCodeCrp != null
@@ -397,8 +402,8 @@ const AddPtba = ({ open, onOpenChange, currentRow }: OpenPropsPTBA) => {
     if (fieldName === 'partenaire_conserne_ptba') {
       const ids = Array.isArray(value)
         ? value
-            .map((v) => (typeof v === 'number' ? v : Number(v)))
-            .filter((id) => Number.isFinite(id) && id > 0)
+          .map((v) => (typeof v === 'number' ? v : Number(v)))
+          .filter((id) => Number.isFinite(id) && id > 0)
         : []
       setSelectedPlanSiteIds(ids)
     }

@@ -32,6 +32,7 @@ import StatCard from './StatCard'
 import AvancementDirectionChart from './AvancementDirectionChart'
 import AvancementTachesPlanSiteChart from './AvancementTachesPlanSiteChart'
 import AvancementComposanteChart from './Avancementcomposantechart'
+import { useGetNiveauxCadreAnalytique } from '@/simadou/allHooks/admin/cadreAnalytiqueHooks'
 
 
 // ─── Dashboard principal ───────────────────────────────────────────────────────
@@ -68,8 +69,21 @@ const DashboardPage: React.FC = () => {
 
     const selectedVersionId = selectedVersion?.id_version_ptba
     const composanteSelectedVersionId = composanteSelectedVersion?.id_version_ptba
-    const { data: avancementComposantesNiveau2 = [] } = useGetAvancementParComposantes(3, composanteSelectedVersionId)
-    const { data: avancementComposantesNiveau3 = [] } = useGetAvancementParComposantes(4, composanteSelectedVersionId)
+    const { data: niveauxCadreAnalytique = [] } = useGetNiveauxCadreAnalytique()
+
+    // Calculé seulement quand niveauxCadreAnalytique est chargé (length > 0)
+    // → undefined force enabled=false dans useGetAvancementParComposantes
+    const niveauAvantDernier = niveauxCadreAnalytique.length > 0
+      ? niveauxCadreAnalytique.length - 1
+      : undefined
+    const niveauDernier = niveauxCadreAnalytique.length > 0
+      ? niveauxCadreAnalytique.length
+      : undefined
+
+    // Ces deux hooks ne partent qu'une fois niveauX > 0 ET composanteSelectedVersionId > 0
+    const { data: avancementComposantesNiveau2 = [] } = useGetAvancementParComposantes(niveauAvantDernier, composanteSelectedVersionId)
+    const { data: avancementComposantesNiveau3 = [] } = useGetAvancementParComposantes(niveauDernier, composanteSelectedVersionId)
+
     const activitesDirectionVersionId =
         activitesDirectionSelectedVersion?.id_version_ptba
 

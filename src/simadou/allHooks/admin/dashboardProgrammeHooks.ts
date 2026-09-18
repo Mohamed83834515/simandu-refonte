@@ -35,7 +35,7 @@ export function useGetAvancementParComposantes(niveau?: number, versionId?: numb
     ),
     queryFn: () =>
       dashboardService.avancementParComposante(codeProgramme ?? '', niveau ?? 0, versionId ?? 0),
-    enabled: niveau != null && niveau > 0,
+    enabled: niveau != null && niveau > 0 && versionId != null && versionId > 0,
   })
 }
 export function useGetTachesActiviteByPlanSite(versionId?: number) {
