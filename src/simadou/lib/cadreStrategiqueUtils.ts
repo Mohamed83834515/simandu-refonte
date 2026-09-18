@@ -176,7 +176,7 @@ export function buildCadreStrategiqueSelectOptions(
   ) {
     options.unshift({
       value: currentCadreId,
-      label: currentCadreLabel ?? `Cadre stratégique #${currentCadreId}`,
+      label: currentCadreLabel ?? `veuillez configurer les cadres stratégiques ${currentCadreId}`,
     })
   }
 
