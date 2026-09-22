@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { z } from 'zod'
 import { DynamicForm } from '@/Global/Forms/DynamicForm'
+import { TableLoadingOverlay } from '@/Global/Generic/table-loading-overlay'
 import { useGetActeurs } from '@/simadou/allHooks/admin/acteurHooks'
 import {
   useCreateCadreStrategique,
@@ -147,17 +148,20 @@ export default function CadreStrategiqueFormPanel({
   }
 
   return (
-    <DynamicForm
-      key={cadre?.id_cs ?? `new-${niveau.id_nsc}`}
-      config={formConfig}
-      schema={schema}
-      defaultValues={defaultValues}
-      onSubmit={onSubmit}
-      submitText={isEditing ? 'Mettre à jour' : 'Ajouter'}
-      loadingText='Enregistrement…'
-      isLoading={createMutation.isPending || updateMutation.isPending}
-      onCancel={onClose}
-      cancelText='Annuler'
-    />
+    <div style={{ position: 'relative' }}>
+      {isLoadingActeurs && <TableLoadingOverlay />}
+      <DynamicForm
+        key={cadre?.id_cs ?? `new-${niveau.id_nsc}`}
+        config={formConfig}
+        schema={schema}
+        defaultValues={defaultValues}
+        onSubmit={onSubmit}
+        submitText={isEditing ? 'Mettre à jour' : 'Ajouter'}
+        loadingText='Enregistrement…'
+        isLoading={createMutation.isPending || updateMutation.isPending}
+        onCancel={onClose}
+        cancelText='Annuler'
+      />
+    </div>
   )
 }

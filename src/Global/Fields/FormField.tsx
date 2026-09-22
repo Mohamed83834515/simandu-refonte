@@ -682,7 +682,6 @@ export const FormField = ({
                       </Button>
                     </PopoverTrigger>
 
-                    {comboboxOpen ? (
                     <PopoverContent
                       className='p-0'
                       style={{ width: 'var(--radix-popover-trigger-width)' }}
@@ -769,7 +768,6 @@ export const FormField = ({
                         </CommandList>
                       </Command>
                     </PopoverContent>
-                    ) : null}
                   </Popover>
 
                   {isValid && (

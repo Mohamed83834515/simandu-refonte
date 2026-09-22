@@ -36,6 +36,7 @@ import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent } from '@/components/ui/tabs'
 import CadreStrategiqueFormPanel from './CadreStrategiqueFormPanel'
 import NiveauCadreStrategiqueDialog from './NiveauCadreStrategiqueDialog'
+import { TableLoadingOverlay } from '@/Global/Generic/table-loading-overlay'
 
 function CadreStrategiqueNiveauTable({
   niveauId,
@@ -109,7 +110,7 @@ export default function ListeCadreStrategique() {
 
   const { data: niveaux = [], isLoading: isLoadingNiveaux } =
     useGetNiveauxCadreStrategique()
-  const { data: cadres = [], dataUpdatedAt } = useGetCadresStrategique()
+  const { data: cadres = [], dataUpdatedAt, isLoading: isLoadingCadres } = useGetCadresStrategique()
   const { data: acteurs = [] } = useGetActeurs()
   const deleteMutation = useDeleteCadreStrategique(programmeId)
 
@@ -245,7 +246,8 @@ export default function ListeCadreStrategique() {
   }
 
   return (
-    <div className='space-y-4'>
+    <div className='space-y-4' style={{ position: 'relative' }}>
+      {isLoadingCadres && <TableLoadingOverlay />}
       <Tabs
         orientation='vertical'
         className='space-y-4'
