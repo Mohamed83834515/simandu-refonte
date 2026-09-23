@@ -33,6 +33,7 @@ import AvancementDirectionChart from './AvancementDirectionChart'
 import AvancementTachesPlanSiteChart from './AvancementTachesPlanSiteChart'
 import AvancementComposanteChart from './Avancementcomposantechart'
 import { useGetNiveauxCadreAnalytique } from '@/simadou/allHooks/admin/cadreAnalytiqueHooks'
+import { TableLoadingOverlay } from '@/Global/Generic/table-loading-overlay'
 
 
 // ─── Dashboard principal ───────────────────────────────────────────────────────
@@ -42,10 +43,10 @@ const DashboardPage: React.FC = () => {
 
     const codeProgramme = useActiveProgrammeCode()
     const idProgramme = useActiveProgrammeId()
-    const { data: projets = [] } = useGetProjets()
-    const { data: avancement_directions = [] } = useGetAvancementDirections()
+    const { data: projets = [], isLoading: isLoadingProjets } = useGetProjets()
+    const { data: avancement_directions = [], isLoading: isLoadingDirections } = useGetAvancementDirections()
 
-    const { data: versions = [] } = useGetVersions()
+    const { data: versions = [], isLoading: isLoadingVersions } = useGetVersions()
     const {
         anneesDisponibles,
         selectedAnnee,
@@ -53,7 +54,7 @@ const DashboardPage: React.FC = () => {
         selectedVersion,
     } = useDashboardAnneeSelection(versions)
 
-    const { data: ptbas = [] } = useGetPtbas(selectedVersion?.id_version_ptba || 0)
+    const { data: ptbas = [], isLoading: isLoadingPtbas } = useGetPtbas(selectedVersion?.id_version_ptba || 0)
 
     const {
         selectedAnnee: activitesDirectionSelectedAnnee,
@@ -81,8 +82,8 @@ const DashboardPage: React.FC = () => {
         : undefined
 
     // Ces deux hooks ne partent qu'une fois niveauX > 0 ET composanteSelectedVersionId > 0
-    const { data: avancementComposantesNiveau2 = [] } = useGetAvancementParComposantes(niveauAvantDernier, composanteSelectedVersionId)
-    const { data: avancementComposantesNiveau3 = [] } = useGetAvancementParComposantes(niveauDernier, composanteSelectedVersionId)
+    const { data: avancementComposantesNiveau2 = [], isLoading: isLoadingComposante2 } = useGetAvancementParComposantes(niveauAvantDernier, composanteSelectedVersionId)
+    const { data: avancementComposantesNiveau3 = [], isLoading: isLoadingComposante3 } = useGetAvancementParComposantes(niveauDernier, composanteSelectedVersionId)
 
     const activitesDirectionVersionId =
         activitesDirectionSelectedVersion?.id_version_ptba
@@ -91,9 +92,14 @@ const DashboardPage: React.FC = () => {
         () => buildProjetDashboardRows(projets as ProjetDashboardSource[]),
         [projets]
     )
-    const { data: ptbasProjetsData } = useGetPtbasProjetsByVersionWithStats(selectedVersionId, codeProgramme)
-    const { data: tachesByUgl = [] } =
+    const { data: ptbasProjetsData, isLoading: isLoadingPtbasProjets } = useGetPtbasProjetsByVersionWithStats(selectedVersionId, codeProgramme)
+    const { data: tachesByUgl = [], isLoading: isLoadingTaches } =
         useGetTachesActiviteByUgl(activitesDirectionVersionId)
+
+    // ── Chargement global : true tant que l'une des sources principales charge ──
+    const isGlobalLoading = isLoadingProjets || isLoadingVersions || isLoadingPtbas
+        || isLoadingDirections || isLoadingTaches || isLoadingPtbasProjets
+        || isLoadingComposante2 || isLoadingComposante3
 
     const activitesDirectionChartData = useMemo(
         () => buildAvancementTachesUglChartData(tachesByUgl),
@@ -193,7 +199,8 @@ const DashboardPage: React.FC = () => {
         : 0
     // ── Render ────────────────────────────────────────────────────────────────────
     return (
-        <div className='min-h-screen space-y-3 bg-gray-50 p-2 dark:bg-gray-950'>
+        <div className='relative min-h-screen space-y-3 bg-gray-50 p-2 dark:bg-gray-950'>
+            {isGlobalLoading && <TableLoadingOverlay />}
             {/* En-tête */}
             <DashboardHeader
                 nomProgramme={`Programme ${codeProgramme || 'Demo'}`}
