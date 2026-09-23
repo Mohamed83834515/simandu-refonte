@@ -21,6 +21,16 @@ export const ptbasProjetsVersionQueryKeys = {
     ] as const,
 }
 
+export const ptbasProjetsVersionStatsQueryKeys = {
+  all: ['versions-ptbas-stats', 'ptbas-projets'] as const,
+  byVersion: (idVersion: number, codeProgramme?: string) =>
+    [
+      ...ptbasProjetsVersionStatsQueryKeys.all,
+      idVersion,
+      codeProgramme?.trim() || '',
+    ] as const,
+}
+
 function invalidatePtbaProjetQueries(
   queryClient: ReturnType<typeof useQueryClient>,
   codeProjet?: string
@@ -56,6 +66,19 @@ export function useGetPtbasProjetsByVersion(
   return useQuery({
     queryKey: ptbasProjetsVersionQueryKeys.byVersion(versionId ?? 0, code),
     queryFn: () => versionPtbaService.getPtbasProjets(versionId!, code),
+    enabled: versionId != null && versionId > 0,
+  })
+}
+
+export const useGetPtbasProjetsByVersionWithStats = (
+  versionId?: number,
+  codeProgramme?: string
+) => {
+  const code = codeProgramme?.trim() || undefined
+
+  return useQuery({
+    queryKey: ptbasProjetsVersionStatsQueryKeys.byVersion(versionId ?? 0, code),
+    queryFn: () => versionPtbaService.getPtbasProjetStats(versionId!, code),
     enabled: versionId != null && versionId > 0,
   })
 }

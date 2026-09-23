@@ -29,6 +29,21 @@ const versionPtbaService = {
     });
   },
 
+  async getPtbasProjetStats(
+    idVersion: number,
+    codeProgramme?: string,
+  ): Promise<VersionPtbasProjetsResponse> {
+    const params =
+      codeProgramme?.trim()
+        ? { programme: codeProgramme.trim() }
+        : undefined
+
+    return apiClient.request(`${ENDPOINT}${idVersion}/ptbas-projets-by-programme/`, {
+      method: "GET",
+      params,
+    });
+  },
+
   async create(data: VersionPtbaFormData, file?: File): Promise<VersionPtba> {
     if (file) {
       // Si un fichier est fourni, utiliser FormData

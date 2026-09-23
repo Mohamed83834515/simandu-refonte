@@ -13,7 +13,7 @@ import {
     useGetAvancementParComposantes,
     useGetTachesActiviteByUgl,
 } from '@/simadou/allHooks/admin/dashboardProgrammeHooks'
-import { useGetPtbasProjetsByVersion } from '@/simadou/allHooks/admin/ptbaProjetHooks'
+import { useGetPtbasProjetsByVersionWithStats } from '@/simadou/allHooks/admin/ptbaProjetHooks'
 import { formatNumber } from '@/simadou/allSercices/montantFormater'
 import type { ProjetDashboardSource } from '@/simadou/allTypes/dashboardProjet'
 import {
@@ -74,11 +74,11 @@ const DashboardPage: React.FC = () => {
     // Calculé seulement quand niveauxCadreAnalytique est chargé (length > 0)
     // → undefined force enabled=false dans useGetAvancementParComposantes
     const niveauAvantDernier = niveauxCadreAnalytique.length > 0
-      ? niveauxCadreAnalytique.length - 1
-      : undefined
+        ? niveauxCadreAnalytique.length - 1
+        : undefined
     const niveauDernier = niveauxCadreAnalytique.length > 0
-      ? niveauxCadreAnalytique.length
-      : undefined
+        ? niveauxCadreAnalytique.length
+        : undefined
 
     // Ces deux hooks ne partent qu'une fois niveauX > 0 ET composanteSelectedVersionId > 0
     const { data: avancementComposantesNiveau2 = [] } = useGetAvancementParComposantes(niveauAvantDernier, composanteSelectedVersionId)
@@ -91,7 +91,7 @@ const DashboardPage: React.FC = () => {
         () => buildProjetDashboardRows(projets as ProjetDashboardSource[]),
         [projets]
     )
-    const { data: ptbasProjetsData } = useGetPtbasProjetsByVersion(selectedVersionId)
+    const { data: ptbasProjetsData } = useGetPtbasProjetsByVersionWithStats(selectedVersionId, codeProgramme)
     const { data: tachesByUgl = [] } =
         useGetTachesActiviteByUgl(activitesDirectionVersionId)
 
