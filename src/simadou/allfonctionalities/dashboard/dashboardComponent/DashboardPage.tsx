@@ -199,8 +199,7 @@ const DashboardPage: React.FC = () => {
         : 0
     // ── Render ────────────────────────────────────────────────────────────────────
     return (
-        <div className='relative min-h-screen space-y-3 bg-gray-50 p-2 dark:bg-gray-950'>
-            {isGlobalLoading && <TableLoadingOverlay />}
+        <div className='min-h-screen space-y-3 bg-gray-50 p-2 dark:bg-gray-950'>
             {/* En-tête */}
             <DashboardHeader
                 nomProgramme={`Programme ${codeProgramme || 'Demo'}`}
@@ -340,10 +339,13 @@ const DashboardPage: React.FC = () => {
             </div>
 
             {/* ── Tableau des projets ── */}
-            <ProjectTable
-                projets={projetRowsFiltered}
-                pageSize={10}
-            />
+            <div style={{ position: 'relative' }}>
+                {isLoadingProjets && <TableLoadingOverlay />}
+                <ProjectTable
+                    projets={projetRowsFiltered}
+                    pageSize={10}
+                />
+            </div>
             <AvancementComposanteChart
                 niveau2Data={avancementComposantesNiveau2}
                 niveau3Data={avancementComposantesNiveau3}
