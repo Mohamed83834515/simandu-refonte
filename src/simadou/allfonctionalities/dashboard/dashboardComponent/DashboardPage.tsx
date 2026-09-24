@@ -43,7 +43,7 @@ const DashboardPage: React.FC = () => {
 
     const codeProgramme = useActiveProgrammeCode()
     const idProgramme = useActiveProgrammeId()
-    const { data: projets = [] } = useGetProjets()
+    const { data: projets = [], isLoading: isLoadingProjets } = useGetProjets()
     const { data: avancement_directions = [] } = useGetAvancementDirections()
 
     const { data: versions = [] } = useGetVersions()
